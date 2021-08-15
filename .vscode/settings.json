@@ -1,0 +1,8 @@
+{
+    "Lua.diagnostics.disable": [
+        "undefined-global"
+    ],
+    "Lua.diagnostics.globals": [
+        "ENABLE_ALL_ADDONS"
+    ]
+}

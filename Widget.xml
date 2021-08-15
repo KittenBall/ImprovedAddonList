@@ -1,0 +1,107 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+    <Frame name="ImprovedAddonListDropDown" inherits="UIDropDownMenuTemplate" parent="AddonList">
+        <Anchors>
+            <Anchor point="TOPLEFT" x="0" y="-30"/>
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                AddonCharacterDropDown:Hide()
+                UIDropDownMenu_JustifyText(self,"LEFT")
+                UIDropDownMenu_SetAnchor(self, 14, 22)
+                UIDropDownMenu_SetWidth(self, 140)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Button name="ImprovedAddonListButtonTemplate" virtual="true">
+        <Size x="14" y="14"/>
+        <Scripts>
+			<OnEnter>
+				if(self.tooltipText ~= nil) then
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+					GameTooltip_SetTitle(GameTooltip, self.tooltipText);
+					GameTooltip:Show();
+				end
+			</OnEnter>
+			<OnLeave>
+				if(self.tooltipText ~= nil) then
+					GameTooltip:Hide();
+				end
+			</OnLeave>
+        </Scripts>
+    </Button>
+
+    <Button name="ImprovedAddonListSaveButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDropDown" x="0" y="2"/>
+        </Anchors>
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\save"/>
+        <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\save_push"/>
+        <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\save_highlight"/>
+    </Button>
+
+    <Button name="ImprovedAddonListSaveAsButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListSaveButton" x="8" y="0"/>
+        </Anchors>
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\saveas"/>
+        <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\saveas_push"/>
+        <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\saveas_highlight"/>
+    </Button>
+
+    <Button name="ImprovedAddonListDeleteButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListSaveAsButton" x="8" y="0"/>
+        </Anchors>
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\delete"/>
+        <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\delete_push"/>
+        <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\delete_highlight"/>
+    </Button>
+
+    <Button name="ImprovedAddonListTipsButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" hidden="true">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDeleteButton" x="8" y="0"/>
+        </Anchors>
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\tips"/>
+    </Button>
+
+    <Frame name="ImprovedAddonListInputDialog" parent="AddonList" inherits="BasicFrameTemplateWithInset" hidden="true" frameStrata="DIALOG">
+        <Size x="200" y="120"/>
+        <Anchors>
+            <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="ImprovedAddonListSaveAsButton" x="0" y="-3"/>
+        </Anchors>
+        <Layers>
+			<Layer level="OVERLAY">
+				<FontString inherits="GameFontNormal" text="" parentKey="TitleText" wordwrap="false">
+					<Anchors>
+						<Anchor point="TOP" x="0" y="-5"/>
+						<Anchor point="LEFT" x="60"/>
+						<Anchor point="RIGHT" x="-60"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+        </Layers>
+
+        <Frames>
+            <EditBox parentKey="EditBox" multiLine="true" autoFocus="true" letters="45">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="10" y="-32"/>
+                    <Anchor point="BOTTOMRIGHT" x="-10" y="5"/>
+                </Anchors>
+		        <FontString inherits="ChatFontNormal"/>
+            </EditBox>
+            <Button parentKey="OkayButton" inherits="UIPanelButtonTemplate" text="OKAY"> -->
+                <Size x="60" y="26"/>
+                <Anchors>
+                    <Anchor point="BOTTOMRIGHT" x="-10" y="5"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        self:SetFrameLevel(self:GetParent().EditBox:GetFrameLevel()+1)
+                    </OnLoad>
+                </Scripts>
+            </Button>
+        </Frames>
+    </Frame>
+</Ui>
