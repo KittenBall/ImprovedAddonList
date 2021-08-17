@@ -20,17 +20,12 @@ SLASH_IMPROVED_ADDON_LIST_RESET1 = "/impal"
 function Addon:OnLoad()
     ImprovedAddonListDB = ImprovedAddonListDB or {}
     ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
-    -- 默认添加全部启用和全部禁用方案
-    ImprovedAddonListDB.Configurations[ENABLE_ALL_ADDONS] = self:GetAllAddons()
-    ImprovedAddonListDB.Configurations[DISABLE_ALL_ADDONS] = {}
     self:InitUI()
 end
 
 -- 重置配置
 function Addon:Reset()
     ImprovedAddonListDB.Configurations = {}
-    ImprovedAddonListDB.Configurations[ENABLE_ALL_ADDONS] = self:GetAllAddons()
-    ImprovedAddonListDB.Configurations[DISABLE_ALL_ADDONS] = {}
     ImprovedAddonListDB.Active = nil
     Addon:RefreshDropDownAndList()
 end
@@ -110,24 +105,10 @@ function Addon.OnAddonListUpdate()
     ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
 end
 
--- 全部启用
-function Addon.OnEnableAll()
-    Addon.OnConfigurationSelected(nil, ENABLE_ALL_ADDONS)
-end
-
--- 全部禁用
-function Addon.OnDisableAll()
-    Addon.OnConfigurationSelected(nil, DISABLE_ALL_ADDONS)
-end
-
 -- 保存配置
 function Addon.SaveConfiguration()
     if not ImprovedAddonListDB.Active then
         Addon:ShowError(L["save_error"])
-        return
-    end
-    if ImprovedAddonListDB.Active == ENABLE_ALL_ADDONS or ImprovedAddonListDB.Active == DISABLE_ALL_ADDONS then
-        Addon:ShowError(L["change_default_error"])
         return
     end
     local enableMe = GetAddOnEnableState(nil, addonName) > 0
@@ -142,10 +123,6 @@ end
 function Addon.RenameConfiguration()
     if not ImprovedAddonListDB.Active then
         Addon:ShowError(L["rename_error"])
-        return
-    end
-    if ImprovedAddonListDB.Active == ENABLE_ALL_ADDONS or ImprovedAddonListDB.Active == DISABLE_ALL_ADDONS then
-        Addon:ShowError(L["change_default_error"])
         return
     end
     inputType = INPUT_TYPE_RENAME
@@ -172,10 +149,6 @@ end
 function Addon.DeleteConfiguration()
     if not ImprovedAddonListDB.Active then
         Addon:ShowError(L["delete_error"])
-        return
-    end
-    if ImprovedAddonListDB.Active == ENABLE_ALL_ADDONS or ImprovedAddonListDB.Active == DISABLE_ALL_ADDONS then
-        Addon:ShowError(L["change_default_error"])
         return
     end
     StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
@@ -253,16 +226,13 @@ function Addon:IsCurrentConfiguration()
     if not ImprovedAddonListDB.Active then return end
     local currentEnabledAddons = self:GetEnabledAddons()
     local configurationAddons = ImprovedAddonListDB.Configurations[ImprovedAddonListDB.Active]
-    if current == configurationAddons then
-        return true
-    end
 
     local currentEnabledAddonsLength = #currentEnabledAddons
     local configurationAddonsLength = #configurationAddons
     if currentEnabledAddonsLength ~= configurationAddonsLength then
         return false
     end
-    
+
     for _, name in ipairs(configurationAddons) do
         if not tContains(currentEnabledAddons, name) then
             return false
@@ -287,8 +257,6 @@ function Addon:ShowError(text)
 end
 
 AddonList:HookScript("OnShow", Addon.OnAddonListShow)
-AddonListEnableAllButton:HookScript("OnClick", Addon.OnEnableAll)
-AddonListDisableAllButton:HookScript("OnClick", Addon.OnDisableAll)
 hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
 
 Addon.Frame = CreateFrame("Frame")
