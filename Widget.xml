@@ -14,6 +14,54 @@
         </Scripts>
     </Frame>
 
+    <CheckButton name="ImprovedAddonListCheckButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="26" y="26"/>
+		</Size>
+		<HitRectInsets>
+			<AbsInset left="0" right="-100" top="0" bottom="0"/>
+		</HitRectInsets>
+        <Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalSmall">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="0" y=""/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				if (self:GetChecked()) then
+					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+				else
+					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF);
+				end
+			</OnClick>
+			<OnEnter>
+				if (self.tooltipText) then
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+					GameTooltip_SetTitle(GameTooltip, self.tooltipText);
+					GameTooltip:Show();
+				end
+			</OnEnter>
+			<OnLeave>
+				if(self.tooltipText ~= nil) then
+					GameTooltip:Hide();
+				end
+			</OnLeave>
+		</Scripts>
+		<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+		<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+	 	<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+		<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+		<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+	</CheckButton>
+
     <Button name="ImprovedAddonListButtonTemplate" virtual="true">
         <Size x="14" y="14"/>
         <Scripts>
@@ -39,6 +87,11 @@
         <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\save"/>
         <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\save_push"/>
         <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\save_highlight"/>
+        <Scripts>
+            <OnLoad>
+                self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+            </OnLoad>
+        </Scripts>
     </Button>
 
     <Button name="ImprovedAddonListSaveAsButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
@@ -66,35 +119,32 @@
         <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\tips"/>
     </Button>
 
-    <Frame name="ImprovedAddonListInputDialog" parent="AddonList" inherits="BasicFrameTemplateWithInset" hidden="true" frameStrata="DIALOG">
-        <Size x="200" y="120"/>
+    <Frame name="ImprovedAddonListInputDialog" parent="AddonList" inherits="ButtonFrameTemplate" hidden="true" frameStrata="DIALOG">
+        <Size x="320" y="250"/>
         <Anchors>
             <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="ImprovedAddonListSaveAsButton" x="0" y="-3"/>
         </Anchors>
         <Layers>
-			<Layer level="OVERLAY">
-				<FontString inherits="GameFontNormal" text="" parentKey="TitleText" wordwrap="false">
+            <Layer layer="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormal" text="这一块占位，不同场景触发加载即将到来">
 					<Anchors>
-						<Anchor point="TOP" x="0" y="-5"/>
-						<Anchor point="LEFT" x="60"/>
-						<Anchor point="RIGHT" x="-60"/>
+						<Anchor point="TOP" y="-70"/>
 					</Anchors>
 				</FontString>
-			</Layer>
+            </Layer>
         </Layers>
-
         <Frames>
             <EditBox parentKey="EditBox" multiLine="true" autoFocus="true" letters="45">
                 <Anchors>
-                    <Anchor point="TOPLEFT" x="10" y="-32"/>
-                    <Anchor point="BOTTOMRIGHT" x="-10" y="5"/>
+                    <Anchor point="TOPLEFT" x="10" y="-130"/>
+                    <Anchor point="BOTTOMRIGHT" x="-10" y="30"/>
                 </Anchors>
-		        <FontString inherits="ChatFontNormal"/>
+		        <FontString inherits="GameFontHighlightLarge"/>
             </EditBox>
-            <Button parentKey="OkayButton" inherits="UIPanelButtonTemplate" text="OKAY"> -->
-                <Size x="60" y="26"/>
+            <Button parentKey="OkayButton" inherits="SharedButtonSmallTemplate" text="OKAY"> -->
+                <Size x="80" y="22"/>
                 <Anchors>
-                    <Anchor point="BOTTOMRIGHT" x="-10" y="5"/>
+                    <Anchor point="BOTTOMRIGHT" x="-4" y="4"/>
                 </Anchors>
                 <Scripts>
                     <OnLoad>
@@ -102,6 +152,26 @@
                     </OnLoad>
                 </Scripts>
             </Button>
+
+            <CheckButton parentKey="SaveToGlobal" inherits="ImprovedAddonListCheckButtonTemplate">
+                <Anchors>
+                    <Anchor point="BOTTOMLEFT" x="4" y="2"/>
+                </Anchors>
+                <Scripts>
+                    <OnHide>
+                        self:SetChecked(false)
+                    </OnHide>
+                </Scripts>
+            </CheckButton>
         </Frames>
+        
+        <Scripts>
+            <OnLoad>
+                self.Inset:ClearAllPoints()
+                self.Inset:SetPoint("TOPLEFT", 4, -120)
+                self.Inset:SetPoint("BOTTOMRIGHT", -6, 26)
+                ButtonFrameTemplate_HidePortrait(self)
+            </OnLoad>
+        </Scripts>
     </Frame>
 </Ui>

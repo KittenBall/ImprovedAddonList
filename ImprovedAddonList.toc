@@ -7,6 +7,7 @@
 ## Notes-zhCN: 增强暴雪的插件列表，你可以保存不同的插件加载方案
 ## DefaultState: enabled
 ## SavedVariables: ImprovedAddonListDB
+## SavedVariablesPerCharacter: ImprovedAddonListDBPC
 
 Lib\LibStub.lua
 Lib\AceLocale-3.0.lua
