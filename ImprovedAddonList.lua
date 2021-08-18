@@ -12,7 +12,27 @@ local inputType
 -- Do not change this string, because it is part of key in db
 local CHAR_INDICATOR = "|TInterface\\Addons\\ImprovedAddonList\\Media\\char_indicator:18|t"
 
--- cmd
+-- 显示红字错误
+function Addon:ShowError(text)
+    UIErrorsFrame:AddMessage(text, 1.0, 0.0, 0.0, 1, 3)
+end
+
+-- 显示黄字消息
+function Addon:ShowMessage(text)
+    UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
+end
+
+AddonList:HookScript("OnShow", Addon.OnAddonListShow)
+hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
+
+Addon.Frame = CreateFrame("Frame")
+Addon.Frame:Hide()
+Addon.Frame:RegisterEvent("ADDON_LOADED")
+Addon.Frame:SetScript("OnEvent", function (self, event, ...)
+    if type(Addon[event]) == "function" then return Addon[event](Addon, ...) end
+end)
+
+----------  Cmd   -----------------
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     msg = strlower(strtrim(msg))
     if msg == "reset" then
@@ -22,9 +42,12 @@ SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     end
 end
 SLASH_IMPROVED_ADDON_LIST_RESET1 = "/impal"
+-----------------------------------
 
 -- On Addon Load
-function Addon:OnLoad()
+function Addon:ADDON_LOADED(name)
+    if name ~= addonName then return end
+    Addon.Frame:UnregisterEvent("ADDON_LOADED")
     ImprovedAddonListDB = ImprovedAddonListDB or {}
     ImprovedAddonListDBPC = ImprovedAddonListDBPC or {}
     ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
@@ -327,25 +350,3 @@ function Addon:GetConfigurationsSize()
     end
     return count
 end
-
--- 显示红字错误
-function Addon:ShowError(text)
-    UIErrorsFrame:AddMessage(text, 1.0, 0.0, 0.0, 1, 3)
-end
-
-function Addon:ShowMessage(text)
-    UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
-end
-
-AddonList:HookScript("OnShow", Addon.OnAddonListShow)
-hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
-
-Addon.Frame = CreateFrame("Frame")
-Addon.Frame:Hide()
-Addon.Frame:RegisterEvent("ADDON_LOADED")
-Addon.Frame:SetScript("OnEvent", function(self, _, name)
-    if name == addonName then
-        self:UnregisterEvent("ADDON_LOADED")
-        Addon:OnLoad()
-    end
-end)
