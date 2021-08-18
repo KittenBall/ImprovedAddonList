@@ -2,7 +2,7 @@ local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
-local MAX_CONFIGURATION_NUM = 27
+local MAX_CONFIGURATION_NUM = 25
 
 local INPUT_TYPE_SAVEAS = 1
 local INPUT_TYPE_RESET = 2
@@ -10,8 +10,9 @@ local INPUT_TYPE_RESET = 2
 local inputType
 
 -- Do not change this string, because it is part of key in db
-local CHAR_INDICATOR = "|TInterface\\Addons\\SpaUI\\Media\\char_indicator:18|t"
+local CHAR_INDICATOR = "|TInterface\\Addons\\ImprovedAddonList\\Media\\char_indicator:18|t"
 
+-- cmd
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     msg = strlower(strtrim(msg))
     if msg == "reset" then
@@ -128,6 +129,7 @@ function Addon.OnSaveButtonClick(_, button)
     end
 end
 
+-- 点击提示按钮
 function Addon.OnTipsButtonClick()
     Addon.OnConfigurationSelected(nil, ImprovedAddonListDBPC.Active)
 end
