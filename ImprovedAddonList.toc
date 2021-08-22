@@ -1,18 +1,21 @@
 ## Interface: 90100
 ## Author: 绿毛龟12138
-## Version: 1.2
+## Version: 1.4
 ## Title: ImprovedAddonList
 ## Title: 暴雪插件列表增强
 ## Notes: Improved Blizzard addon list, you can save different interface loading scenes
 ## Notes-zhCN: 增强暴雪的插件列表，你可以保存不同的插件加载方案
 ## DefaultState: enabled
-## SavedVariables: ImprovedAddonListDB
+## SavedVariables: ImprovedAddonListDB, ImprovedAddonListVersionControl
 ## SavedVariablesPerCharacter: ImprovedAddonListDBPC
 
 Lib\LibStub.lua
 Lib\AceLocale-3.0.lua
+Lib\LibCustomGlow-1.0.lua
 
 Locales\zhCN.lua
 
-Widget.xml
+UI.lua
+ImprovedAddonList.xml
 ImprovedAddonList.lua
+Condition.lua

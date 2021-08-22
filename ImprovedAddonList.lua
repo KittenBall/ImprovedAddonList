@@ -2,7 +2,7 @@ local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
-local MAX_CONFIGURATION_NUM = 25
+local MAX_CONFIGURATION_NUM = 30
 
 local INPUT_TYPE_SAVEAS = 1
 local INPUT_TYPE_RESET = 2
@@ -11,6 +11,14 @@ local inputType
 
 -- Do not change this string, because it is part of key in db
 local CHAR_INDICATOR = "|TInterface\\Addons\\ImprovedAddonList\\Media\\char_indicator:18|t"
+local UNSELECT = "|TInterface\\Addons\\ImprovedAddonList\\Media\\unselect:18|t"..L["unselect_configuration"]
+
+Addon.Frame = CreateFrame("Frame")
+Addon.Frame:Hide()
+Addon.Frame:RegisterEvent("ADDON_LOADED")
+Addon.Frame:SetScript("OnEvent", function (self, event, ...)
+    if type(Addon[event]) == "function" then return Addon[event](Addon, ...) end
+end)
 
 -- 显示红字错误
 function Addon:ShowError(text)
@@ -21,16 +29,6 @@ end
 function Addon:ShowMessage(text)
     UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
 end
-
-AddonList:HookScript("OnShow", Addon.OnAddonListShow)
-hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
-
-Addon.Frame = CreateFrame("Frame")
-Addon.Frame:Hide()
-Addon.Frame:RegisterEvent("ADDON_LOADED")
-Addon.Frame:SetScript("OnEvent", function (self, event, ...)
-    if type(Addon[event]) == "function" then return Addon[event](Addon, ...) end
-end)
 
 ----------  Cmd   -----------------
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
@@ -48,26 +46,44 @@ SLASH_IMPROVED_ADDON_LIST_RESET1 = "/impal"
 function Addon:ADDON_LOADED(name)
     if name ~= addonName then return end
     Addon.Frame:UnregisterEvent("ADDON_LOADED")
-    ImprovedAddonListDB = ImprovedAddonListDB or {}
-    ImprovedAddonListDBPC = ImprovedAddonListDBPC or {}
-    ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
-    ImprovedAddonListDBPC.Configurations = ImprovedAddonListDBPC.Configurations or {}
+    self:VersionMigrate()
+    self:InitData()
     self:InitUI()
 end
 
 -- 重置当前角色配置
 function Addon:Reset()
-    ImprovedAddonListDBPC.Configurations = {}
-    ImprovedAddonListDBPC.Active = nil
-    Addon:RefreshDropDownAndList()
+    ImprovedAddonListDBPC = {}
+    self:InitData()
+    self:RefreshDropDownAndList()
 end
 
 -- 重置所有角色配置
 function Addon:ResetAll()
-    ImprovedAddonListDB.Configurations = {}
-    ImprovedAddonListDBPC.Configurations = {}
-    ImprovedAddonListDBPC.Active = nil
-    Addon:RefreshDropDownAndList()
+    ImprovedAddonListDB = {}
+    ImprovedAddonListDBPC = {}
+    self:InitData()
+    self:RefreshDropDownAndList()
+end
+
+-- 版本迁移
+function Addon:VersionMigrate()
+    ImprovedAddonListVersionControl = ImprovedAddonListVersionControl or {}
+
+    local version = GetAddOnMetadata(addonName, "Version")
+    if not ImprovedAddonListVersionControl[version] then
+        if version == "1.4" then
+            self:ResetAll()
+        end
+        ImprovedAddonListVersionControl[version] = true
+    end
+end
+
+function Addon:InitData()
+    ImprovedAddonListDB = ImprovedAddonListDB or {}
+    ImprovedAddonListDBPC = ImprovedAddonListDBPC or {}
+    ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
+    ImprovedAddonListDBPC.Configurations = ImprovedAddonListDBPC.Configurations or {}
 end
 
 local function GetDropDownInfo(name)
@@ -85,11 +101,21 @@ function Addon.OnDropDownMenuInitialize(dropDown, level, menuList)
     for _, name in ipairs(configurations) do
         UIDropDownMenu_AddButton(GetDropDownInfo(name), level)
     end
+    UIDropDownMenu_AddButton(GetDropDownInfo(UNSELECT), level)
 end
 
 -- 选择配置
 function Addon.OnConfigurationSelected(_, configurationName)
-    local addons = Addon:GetConfiguration(configurationName)
+    -- 取消选择
+    if configurationName == UNSELECT then
+        ImprovedAddonListDBPC.Active = nil
+        Addon:RefreshDropDownAndList()
+        return
+    end
+    local configuration = Addon:GetConfiguration(configurationName)
+    if not configuration then return end
+    
+    local addons = configuration.addons
     if not addons then return end
 
     for i = 1, GetNumAddOns() do
@@ -102,7 +128,6 @@ function Addon.OnConfigurationSelected(_, configurationName)
     end
 
     ImprovedAddonListDBPC.Active = configurationName
-    CloseDropDownMenus()
     Addon:RefreshDropDownAndList()
 end
 
@@ -117,17 +142,22 @@ function Addon:InitUI()
     ImprovedAddonListTipsButton.tooltipText = L["tips"]
     ImprovedAddonListTipsButton:SetScript("OnDoubleClick", self.OnTipsButtonClick)
 
-    ImprovedAddonListInputDialog.TitleText:SetText(L["input_dialog_title"])
+    ImprovedAddonListInputDialog.ConditionLabel:SetText(L["load_condition_title"])
+    ImprovedAddonListInputDialog.ConditionTips:SetText(L["load_condition_tips"])
     ImprovedAddonListInputDialog.OkayButton:SetScript("OnClick", Addon.OnInputDialogConfirm)
     ImprovedAddonListInputDialog.SaveToGlobal.Text:SetText(L["save_to_global"])
     ImprovedAddonListInputDialog.SaveToGlobal.tooltipText = L["save_to_global_tips"]
+    ImprovedAddonListInputDialog.EditBoxLabel:SetText(L["input_configuration_name"])
 
+    self:InitConditionContent()
+    
+    UIDropDownMenu_Initialize(ImprovedAddonListDropDown, Addon.OnDropDownMenuInitialize)
     self:RefreshDropDownAndList()
 end
 
 -- 刷新下拉菜单和列表
 function Addon:RefreshDropDownAndList()
-    UIDropDownMenu_Initialize(ImprovedAddonListDropDown, Addon.OnDropDownMenuInitialize)
+    CloseDropDownMenus()
     UIDropDownMenu_SetText(ImprovedAddonListDropDown, ImprovedAddonListDBPC.Active)
     AddonList_Update()
 end
@@ -167,11 +197,9 @@ function Addon.SaveConfiguration()
     if not enableMe then
         Addon:ShowError(L["disable_me_tips"])
     end
-    if Addon:IsConfigurationGlobal() then
-        ImprovedAddonListDB.Configurations[ImprovedAddonListDBPC.Active] = Addon:GetEnabledAddons()
-    else
-        ImprovedAddonListDBPC.Configurations[ImprovedAddonListDBPC.Active] = Addon:GetEnabledAddons()
-    end
+
+    Addon:GetConfiguration(ImprovedAddonListDBPC.Active).addons = Addon:GetEnabledAddons()
+
     Addon:RefreshDropDownAndList()
     Addon:ShowMessage(L["save_success"])
 end
@@ -183,15 +211,13 @@ function Addon.ResetConfiguration()
         return
     end
     inputType = INPUT_TYPE_RESET
-    ImprovedAddonListInputDialog:SetShown(not ImprovedAddonListInputDialog:IsShown())
-    ImprovedAddonListInputDialog.EditBox:SetText(ImprovedAddonListDBPC.Active:gsub(CHAR_INDICATOR, ""))
-    ImprovedAddonListInputDialog.SaveToGlobal:SetChecked(Addon:IsConfigurationGlobal())
+    Addon:ShowOrHideInputDialog()
 end
 
 -- 另存为配置
 function Addon.SaveAsConfiguration()
     if Addon:GetConfigurationsSize() >= MAX_CONFIGURATION_NUM then
-        Addon:ShowError(L["max_configuration_num_limit"])
+        Addon:ShowError(L["max_configuration_num_limit"]:format(MAX_CONFIGURATION_NUM))
         return
     end
     local enableMe = GetAddOnEnableState(nil, addonName) > 0
@@ -199,8 +225,7 @@ function Addon.SaveAsConfiguration()
         Addon:ShowError(L["disable_me_tips"])
     end
     inputType = INPUT_TYPE_SAVEAS
-    ImprovedAddonListInputDialog:SetShown(not ImprovedAddonListInputDialog:IsShown())
-    ImprovedAddonListInputDialog.EditBox:SetText("")
+    Addon:ShowOrHideInputDialog()
 end
 
 -- 删除配置
@@ -210,7 +235,7 @@ function Addon.DeleteConfiguration()
         return
     end
     StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
-        text = string.format(L["delete_confirm"], ImprovedAddonListDBPC.Active),
+        text = L["delete_confirm"]:format(ImprovedAddonListDBPC.Active),
         button1 = OKAY,
         button2 = CANCEL,
         OnAccept = function()
@@ -221,25 +246,62 @@ function Addon.DeleteConfiguration()
             ImprovedAddonListDBPC.Active = nil
             Addon:RefreshDropDownAndList()
         end,
+        showAlert = true,
         hideOnEscape = true
     }
     StaticPopup_Show("DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM")
 end
 
+-- 显示或隐藏输入弹窗
+function Addon:ShowOrHideInputDialog()
+    if ImprovedAddonListInputDialog:IsShown() then
+        ImprovedAddonListInputDialog:Hide()
+    else
+        if inputType == INPUT_TYPE_RESET then
+            ImprovedAddonListInputDialog.TitleText:SetText(L["save_input_dialog_title"])
+            ImprovedAddonListInputDialog.EditBox:SetText(ImprovedAddonListDBPC.Active:gsub(CHAR_INDICATOR, ""))
+            ImprovedAddonListInputDialog.SaveToGlobal:SetChecked(Addon:IsConfigurationGlobal())
+            self:ResetConditions(self:GetConfiguration(ImprovedAddonListDBPC.Active))
+        else
+            ImprovedAddonListInputDialog.TitleText:SetText(L["save_as_input_dialog_title"])
+            ImprovedAddonListInputDialog.EditBox:SetText("")
+            ImprovedAddonListInputDialog.SaveToGlobal:SetChecked(false)
+            self:ResetConditions()
+        end
+        ImprovedAddonListInputDialog:Show()
+    end
+end
+
 -- 输入窗确认按钮
 function Addon.OnInputDialogConfirm()
-    local text = ImprovedAddonListInputDialog.EditBox:GetText()
-    if text == nil or strlen(text) == 0 then
+    local text = strtrim(ImprovedAddonListInputDialog.EditBox:GetText() or "")
+    if strlen(text) == 0 then
         Addon:ShowError(L["error_input_empty"])
         return
     end
 
     local saveToGlobal = ImprovedAddonListInputDialog.SaveToGlobal:GetChecked()
+
+    if Addon:MustbeSaveToGlobal() and not saveToGlobal then
+        Addon:ShowError(L["error_must_save_to_global"])
+        return
+    end
+
     if not saveToGlobal then
         text = CHAR_INDICATOR..text
     end
 
-    if Addon:CheckDistinct(text) then
+    -- 是否需要检查重名
+    local checkDistinct = false
+    if inputType == INPUT_TYPE_SAVEAS then
+        checkDistinct = true
+    elseif inputType == INPUT_TYPE_RESET then
+        if Addon:IsConfigurationGlobal() ~= saveToGlobal then
+            checkDistinct = true
+        end
+    end
+
+    if checkDistinct and Addon:CheckDistinct(text) then
         Addon:ShowError(L["error_input_distinct"])
         return
     end
@@ -249,16 +311,16 @@ function Addon.OnInputDialogConfirm()
 
     -- 另存为
     if inputType == INPUT_TYPE_SAVEAS  then
-        db.Configurations[text] = Addon:GetEnabledAddons()
+        db.Configurations[text] = Addon:GetConfigurationWithConditions()
         Addon.OnConfigurationSelected(nil, text)
     -- 重新设定
     elseif inputType == INPUT_TYPE_RESET then
-        db.Configurations[text] = Addon:GetEnabledAddons()
-        anotherDb.Configurations[text] = nil
         if ImprovedAddonListDBPC.Active then
             db.Configurations[ImprovedAddonListDBPC.Active] = nil
             anotherDb.Configurations[ImprovedAddonListDBPC.Active] = nil
         end
+        db.Configurations[text] = Addon:GetConfigurationWithConditions()
+        anotherDb.Configurations[text] = nil
         Addon.OnConfigurationSelected(nil, text)
     end
     ImprovedAddonListInputDialog:Hide()
@@ -270,9 +332,9 @@ function Addon:CheckDistinct(name)
 end
 
 -- 当前配置是否为角色通用配置
-function Addon:IsConfigurationGlobal()
-    if not ImprovedAddonListDBPC.Active then return end
-    return ImprovedAddonListDB.Configurations[ImprovedAddonListDBPC.Active] ~= nil
+function Addon:IsConfigurationGlobal(name)
+    name = name or ImprovedAddonListDBPC.Active
+    return ImprovedAddonListDB.Configurations[name] ~= nil
 end
 
 -- 获取启用插件列表
@@ -302,7 +364,7 @@ end
 function Addon:IsCurrentConfiguration()
     if not ImprovedAddonListDBPC.Active then return end
     local currentEnabledAddons = self:GetEnabledAddons()
-    local configurationAddons = self:GetConfiguration(ImprovedAddonListDBPC.Active)
+    local configurationAddons = self:GetConfiguration(ImprovedAddonListDBPC.Active).addons
 
     -- 这个判断没必要，以防万一
     if not configurationAddons then return end
@@ -350,3 +412,6 @@ function Addon:GetConfigurationsSize()
     end
     return count
 end
+
+AddonList:HookScript("OnShow", Addon.OnAddonListShow)
+hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)

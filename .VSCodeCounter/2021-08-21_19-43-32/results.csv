@@ -1,0 +1,12 @@
+"filename", "language", "YAML", "Lua", "Toc", "XML", "Markdown", "comment", "blank", "total"
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\Condition.lua", "Lua", 0, 124, 0, 0, 0, 13, 14, 151
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\ImprovedAddonList.lua", "Lua", 0, 270, 0, 0, 0, 57, 53, 380
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\ImprovedAddonList.toc", "Toc", 0, 0, 7, 0, 0, 10, 3, 20
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\ImprovedAddonList.xml", "XML", 0, 0, 0, 312, 0, 15, 16, 343
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\Lib\AceLocale-3.0.lua", "Lua", 0, 70, 0, 0, 0, 45, 23, 138
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\Lib\LibStub.lua", "Lua", 0, 23, 0, 0, 0, 2, 6, 31
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\Locales\zhCN.lua", "Lua", 0, 31, 0, 0, 0, 0, 4, 35
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\README.md", "Markdown", 0, 0, 0, 0, 1, 0, 1, 2
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\UI.lua", "Lua", 0, 111, 0, 0, 0, 0, 18, 129
+"e:\World of Warcraft\_retail_\Interface\AddOns\ImprovedAddonList\pkgmeta.yaml", "YAML", 4, 0, 0, 0, 0, 0, 2, 6
+"Total", "-", 4, 629, 7, 312, 1, 142, 140, 1235
