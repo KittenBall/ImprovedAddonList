@@ -22,7 +22,7 @@ end)
 
 -- 显示红字错误
 function Addon:ShowError(text)
-    UIErrorsFrame:AddMessage(text, 1.0, 0.0, 0.0, 1, 3)
+    UIErrorsFrame:AddMessage(text, 1.0, 0.0, 0.0, 1, 4)
 end
 
 -- 显示黄字消息
