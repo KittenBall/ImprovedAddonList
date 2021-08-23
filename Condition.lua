@@ -304,14 +304,14 @@ function Addon:CheckConfigurationCondition()
         end
     end
 
+    if #meetConditionConfigurations <= 0 then
+        return
+    end
+
     local maxPriorityName, maxPriority = nil, -1
     if ImprovedAddonListDBPC.Active then
         local _, currentConfigurationPriority = self:IsConfigurationMeetCondition(ImprovedAddonListDBPC.Active)
         maxPriority = currentConfigurationPriority or -1
-    end
-
-    if #meetConditionConfigurations <= 0 then
-        return
     end
 
     table.sort(meetConditionConfigurations, function(a, b)
