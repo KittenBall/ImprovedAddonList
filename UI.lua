@@ -38,7 +38,6 @@ end
 
 function ImprovedAddonListConditionDropDownMixin:Refresh(infos)
     self.infos = infos
-    UIDropDownMenu_Initialize(self, self.OnInitialize)
     UIDropDownMenu_SetText(self, self.selected and self.selected.value)
 end
 
@@ -76,12 +75,14 @@ function ImprovedAddonListConditionDetailFrameMixin:SetItems(infos)
 end
 
 function ImprovedAddonListConditionDetailFrameMixin:Reset()
+    if not self.items then return end
     for _, item in ipairs(self.items) do
         item:SetChecked(false)
     end
 end
 
 function ImprovedAddonListConditionDetailFrameMixin:ResetItems(infos)
+    if not infos then return end
     for _, info in ipairs(infos) do
         for _, item in ipairs(self.items) do
             if info.value == item.info.value then
