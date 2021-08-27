@@ -153,6 +153,12 @@
         </Scripts>
     </Button>
 
+    <Button name="ImprovedAddonListRemarkButtonTemplate" inherits="ImprovedAddonListButtonTemplate" virtual="true">
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\remark"/>
+        <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\remark_push"/>
+        <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\remark_highlight"/>
+    </Button>
+
     <!-- 保存按钮 -->
     <Button name="ImprovedAddonListSaveButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" registerForClicks="LeftButtonUp, RightButtonUp">
         <Anchors>
@@ -183,10 +189,17 @@
         <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\delete_highlight"/>
     </Button>
 
+    <!-- 备注按钮 -->
+    <Button name="ImprovedAddonListRemarkButton" parent="AddonList" inherits="ImprovedAddonListRemarkButtonTemplate">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDeleteButton" x="8" y="0"/>
+        </Anchors>
+    </Button>
+
     <!-- 提示按钮 -->
     <Button name="ImprovedAddonListTipsButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" hidden="true">
         <Anchors>
-            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDeleteButton" x="8" y="0"/>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListRemarkButton" x="8" y="0"/>
         </Anchors>
         <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\tips"/>
     </Button>
@@ -426,5 +439,47 @@
                 </Scripts>
             </ScrollFrame>
         </Frames>
+    </Frame>
+
+    <!-- 输入备注 -->
+    <Frame name="ImprovedAddonListInputRemarkDialog" inherits="BasicFrameTemplateWithInset" parent="AddonList" hidden="true" frameStrata="DIALOG" enableMouse="true">
+        <Size x="320" y="100"/>
+        <Layers>
+            <Layer level="ARTWORK">
+				<FontString parentKey="Label" inherits="GameFontNormal">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-30"/>
+					</Anchors>
+				</FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <EditBox parentKey="EditBox" multiLine="true" autoFocus="false" letters="30">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="8" y="-50"/>
+                    <Anchor point="BOTTOMRIGHT"  x="-8" y="8" />
+                </Anchors>
+		        <FontString inherits="GameFontHighlightLarge"/>
+                <Scripts>
+                    <OnEscapePressed>
+                        self:ClearFocus()
+                    </OnEscapePressed>
+                </Scripts>
+            </EditBox>
+        </Frames>
+        <Scripts>
+            <OnShow>
+                self.EditBox:SetFocus()
+            </OnShow>
+            <OnHide>
+                self.addonName = nil
+            </OnHide>
+            <OnKeyDown>
+                if key == "ESCAPE" then
+                    self:Hide()
+                end
+                self:SetPropagateKeyboardInput(key ~= "ESCAPE")
+            </OnKeyDown>
+        </Scripts>
     </Frame>
 </Ui>

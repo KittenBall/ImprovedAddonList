@@ -30,6 +30,47 @@ function Addon:ShowMessage(text)
     UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
 end
 
+-- 输入备注确认弹窗
+StaticPopupDialogs["IMPROVED_ADDON_LIST_REMARK_CONFIRM"] = {
+    text = L["remark_confirm"],
+    button1 = OKAY,
+    button2 = CANCEL,
+    OnAccept = function(self, data)
+        ImprovedAddonListDB.Remarks[data.addonName] = data.remark
+        AddonList_Update()
+    end,
+    hideOnEscape = true
+}
+
+-- 删除备注确认弹窗
+StaticPopupDialogs["IMPROVED_ADDON_LIST_REMARK_DELETE_CONFIRM"] = {
+    text = L["remark_delete_confirm"],
+    button1 = OKAY,
+    button2 = CANCEL,
+    OnAccept = function(self, data)
+        ImprovedAddonListDB.Remarks[data] = nil
+        AddonList_Update()
+    end,
+    hideOnEscape = true
+}
+
+-- 删除配置确认弹窗
+StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
+    text = L["delete_confirm"],
+    button1 = OKAY,
+    button2 = CANCEL,
+    OnAccept = function()
+        -- 两个都删，因为角色配置的name前面一定会有角色图片
+        --所以全部配置和角色配置的名字一定不一样，不会删错，无需判断删的是哪个配置
+        ImprovedAddonListDB.Configurations[ImprovedAddonListDBPC.Active] = nil
+        ImprovedAddonListDBPC.Configurations[ImprovedAddonListDBPC.Active] = nil
+        ImprovedAddonListDBPC.Active = nil
+        Addon:RefreshDropDownAndList()
+    end,
+    showAlert = true,
+    hideOnEscape = true
+}
+
 ----------  Cmd   -----------------
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     msg = strlower(strtrim(msg))
@@ -46,7 +87,6 @@ SLASH_IMPROVED_ADDON_LIST_RESET1 = "/impal"
 function Addon:ADDON_LOADED(name)
     if name ~= addonName then return end
     Addon.Frame:UnregisterEvent("ADDON_LOADED")
-    self:VersionMigrate()
     self:InitData()
     self:InitUI()
 end
@@ -66,23 +106,12 @@ function Addon:ResetAll()
     self:RefreshDropDownAndList()
 end
 
--- 版本迁移
-function Addon:VersionMigrate()
-    ImprovedAddonListVersionControl = ImprovedAddonListVersionControl or {}
-
-    local version = GetAddOnMetadata(addonName, "Version")
-    if not ImprovedAddonListVersionControl[version] then
-        if version == "1.4" then
-            self:ResetAll()
-        end
-        ImprovedAddonListVersionControl[version] = true
-    end
-end
-
+-- 初始化数据
 function Addon:InitData()
     ImprovedAddonListDB = ImprovedAddonListDB or {}
     ImprovedAddonListDBPC = ImprovedAddonListDBPC or {}
     ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
+    ImprovedAddonListDB.Remarks = ImprovedAddonListDB.Remarks or {}
     ImprovedAddonListDBPC.Configurations = ImprovedAddonListDBPC.Configurations or {}
 end
 
@@ -141,6 +170,8 @@ function Addon:InitUI()
     ImprovedAddonListDeleteButton.tooltipText = L["delete"]
     ImprovedAddonListTipsButton.tooltipText = L["tips"]
     ImprovedAddonListTipsButton:SetScript("OnDoubleClick", self.OnTipsButtonClick)
+    ImprovedAddonListRemarkButton.tooltipText = L["remark"]
+    ImprovedAddonListRemarkButton:SetScript("OnClick", self.ShowOrHideRemarkButtons)
 
     ImprovedAddonListInputDialog.ConditionLabel:SetText(L["load_condition_title"])
     ImprovedAddonListInputDialog.ConditionTips:SetText(L["load_condition_tips"])
@@ -148,6 +179,8 @@ function Addon:InitUI()
     ImprovedAddonListInputDialog.SaveToGlobal.Text:SetText(L["save_to_global"])
     ImprovedAddonListInputDialog.SaveToGlobal.tooltipText = L["save_to_global_tips"]
     ImprovedAddonListInputDialog.EditBoxLabel:SetText(L["input_configuration_name"])
+    ImprovedAddonListInputRemarkDialog.TitleText:SetText(L["remark_input_dialog_title"])
+    ImprovedAddonListInputRemarkDialog.EditBox:SetScript("OnEnterPressed", Addon.OnInputRemarkConfirm)
 
     self:InitConditionContent()
     
@@ -165,12 +198,27 @@ end
 -- On AddonList Show
 function Addon.OnAddonListShow()
     ImprovedAddonListInputDialog:Hide()
+    ImprovedAddonListInputRemarkDialog:Hide()
+    Addon.HideRemarkButtons()
 end
 
 -- On AddonList Update
 function Addon.OnAddonListUpdate()
     local result = Addon:IsCurrentConfiguration()
     ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
+
+    -- 设置备注
+    if not ImprovedAddonListDB or not ImprovedAddonListDB.Remarks then return end
+    for i = 1, MAX_ADDONS_DISPLAYED do
+        local entry = _G["AddonListEntry"..i]
+        if entry:IsShown() then
+            local title = _G["AddonListEntry"..i.."Title"]
+            local remark = ImprovedAddonListDB.Remarks[GetAddOnInfo(entry:GetID())]
+            if remark and strlen(remark) > 0 then
+                title:SetText(remark)
+            end
+        end
+    end
 end
 
 -- 点击保存按钮
@@ -234,22 +282,7 @@ function Addon.DeleteConfiguration()
         Addon:ShowError(L["delete_error"])
         return
     end
-    StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
-        text = L["delete_confirm"]:format(ImprovedAddonListDBPC.Active),
-        button1 = OKAY,
-        button2 = CANCEL,
-        OnAccept = function()
-            -- 两个都删，因为角色配置的name前面一定会有角色图片
-            --所以全部配置和角色配置的名字一定不一样，不会删错，无需判断删的是哪个配置
-            ImprovedAddonListDB.Configurations[ImprovedAddonListDBPC.Active] = nil
-            ImprovedAddonListDBPC.Configurations[ImprovedAddonListDBPC.Active] = nil
-            ImprovedAddonListDBPC.Active = nil
-            Addon:RefreshDropDownAndList()
-        end,
-        showAlert = true,
-        hideOnEscape = true
-    }
-    StaticPopup_Show("DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM")
+    StaticPopup_Show("DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM", ImprovedAddonListDBPC.Active)
 end
 
 -- 显示或隐藏输入弹窗
@@ -324,6 +357,69 @@ function Addon.OnInputDialogConfirm()
         Addon.OnConfigurationSelected(nil, text)
     end
     ImprovedAddonListInputDialog:Hide()
+end
+
+-- 显示或隐藏备注按钮
+function Addon.ShowOrHideRemarkButtons()
+    if not AddonList.CreateImpalRemarkButtons then
+        for i = 1, MAX_ADDONS_DISPLAYED do
+            local button = _G["AddonListEntry"..i]
+            button.RemarkButton = CreateFrame("Button", nil, button, "ImprovedAddonListRemarkButtonTemplate")
+            button.RemarkButton:SetPoint("RIGHT", -65, 0)
+            button.RemarkButton.tooltipText = L["remark"]
+            button.RemarkButton:SetScript("OnClick", Addon.OnRemarkButtonClick)
+        end
+        AddonList.CreateImpalRemarkButtons = true
+    else
+        for i = 1, MAX_ADDONS_DISPLAYED do
+            local button = _G["AddonListEntry"..i]
+            button.RemarkButton:SetShown(not button.RemarkButton:IsShown())
+        end
+    end
+end
+
+-- 隐藏备注按钮
+function Addon.HideRemarkButtons()
+    if AddonList.CreateImpalRemarkButtons then
+        for i = 1, MAX_ADDONS_DISPLAYED do
+            local button = _G["AddonListEntry"..i]
+            button.RemarkButton:Hide()
+        end
+    end
+end
+
+-- 点击备注按钮
+function Addon.OnRemarkButtonClick(remarkButton)
+    local parent = remarkButton:GetParent()
+    if not ImprovedAddonListInputRemarkDialog:IsShown() then
+        local addonName = GetAddOnInfo(parent:GetID())
+        -- xml内定义了OnHide时候会清除这个变量
+        ImprovedAddonListInputRemarkDialog.addonName = addonName
+        ImprovedAddonListInputRemarkDialog:ClearAllPoints()
+        ImprovedAddonListInputRemarkDialog:SetPoint("TOP", parent, "BOTTOM", 0, -10)
+        ImprovedAddonListInputRemarkDialog.Label:SetText(addonName)
+        ImprovedAddonListInputRemarkDialog.EditBox:SetText(ImprovedAddonListDB.Remarks[addonName] or "")
+        ImprovedAddonListInputRemarkDialog:Show()
+    else
+        ImprovedAddonListInputRemarkDialog:Hide()
+    end
+end
+
+-- 备注输入确认
+function Addon.OnInputRemarkConfirm(editBox)
+    if not ImprovedAddonListInputRemarkDialog.addonName then return end
+    local text = strtrim(editBox:GetText() or "")
+    if text ~= ImprovedAddonListDB.Remarks[ImprovedAddonListInputRemarkDialog.addonName] then
+        if strlen(text) == 0 then
+            StaticPopup_Show("IMPROVED_ADDON_LIST_REMARK_DELETE_CONFIRM", ImprovedAddonListInputRemarkDialog.addonName, "", ImprovedAddonListInputRemarkDialog.addonName)
+        else
+            StaticPopup_Show("IMPROVED_ADDON_LIST_REMARK_CONFIRM", ImprovedAddonListInputRemarkDialog.addonName, text, {
+                addonName = ImprovedAddonListInputRemarkDialog.addonName,
+                remark = text
+            })
+        end
+    end
+    ImprovedAddonListInputRemarkDialog:Hide()
 end
 
 -- 检查是否重复命名
