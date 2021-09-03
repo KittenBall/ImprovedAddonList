@@ -284,7 +284,7 @@ function Addon:MustbeSaveToGlobal()
 
         for _, info in ipairs(classAndSpecInfos) do
             -- 选择的专精不属于这个职业，则必须全角色通用
-            if not tContains(currentClassSpecs, info.value) then
+            if not tIndexOf(currentClassSpecs, info.value) then
                 return true
             end
         end

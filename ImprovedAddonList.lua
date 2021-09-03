@@ -149,7 +149,7 @@ function Addon.OnConfigurationSelected(_, configurationName)
 
     for i = 1, GetNumAddOns() do
         local name = GetAddOnInfo(i)
-        if tContains(addons, name) then
+        if tIndexOf(addons, name) then
             EnableAddOn(name)
         else
             DisableAddOn(name)
@@ -472,7 +472,7 @@ function Addon:IsCurrentConfiguration()
     end
 
     for _, name in ipairs(configurationAddons) do
-        if not tContains(currentEnabledAddons, name) then
+        if not tIndexOf(currentEnabledAddons, name) then
             return false
         end
     end
