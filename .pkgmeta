@@ -5,5 +5,5 @@ ignore:
   - .vscode
   - .gitattributes
   - ImprovedAddonList_Retail.toc
-  - ImprovedAddonList_BCC.toc
-  - ImprovedAddonList_Classic.toc
+  - ImprovedAddonList-BCC.toc
+  - ImprovedAddonList-Classic.toc
