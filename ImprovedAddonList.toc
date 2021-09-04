@@ -10,8 +10,9 @@
 ## DefaultState: enabled
 ## SavedVariables: ImprovedAddonListDB
 ## SavedVariablesPerCharacter: ImprovedAddonListDBPC
-## X-Website: https://www.curseforge.com/wow/addons/improvedaddonlist
+## X-Website: https://github.com/GreenhairTurtle/ImprovedAddonList
 ## X-Curse-Project-ID: 515814
+## X-Wago-ID: baNDLJNo
 
 
 Lib\LibStub.lua

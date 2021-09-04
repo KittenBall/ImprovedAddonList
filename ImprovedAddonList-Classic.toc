@@ -8,8 +8,7 @@
 ## DefaultState: enabled
 ## SavedVariables: ImprovedAddonListDB, ImprovedAddonListVersionControl
 ## SavedVariablesPerCharacter: ImprovedAddonListDBPC
-## X-Website: https://www.curseforge.com/wow/addons/improvedaddonlist
-## X-Curse-Project-ID: 515814
+## X-Website: https://github.com/GreenhairTurtle/ImprovedAddonList
 
 Lib\LibStub.lua
 Lib\AceLocale-3.0.lua
