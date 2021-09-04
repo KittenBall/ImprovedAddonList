@@ -1,0 +1,6 @@
+package-as: ImprovedAddonList
+
+ignore:
+  - README.md
+  - .vscode
+  - .gitattributes
