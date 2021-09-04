@@ -1,6 +1,6 @@
 ## Interface: 11307
 ## Author: 绿毛龟12138
-## Version: 1.6
+## Version: 1.7
 ## Title: ImprovedAddonList
 ## Title-zhCN: 暴雪插件列表增强
 ## Notes: Improved Blizzard addon list, you can save different interface loading scenes
