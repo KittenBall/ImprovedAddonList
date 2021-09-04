@@ -1,6 +1,6 @@
 ## Interface: 20501
 ## Author: 绿毛龟12138
-## Version: 1.7
+## Version: @project-version@
 ## Title: ImprovedAddonList
 ## Title-zhCN: 暴雪插件列表增强
 ## Notes: Improved Blizzard addon list, you can save different interface loading scenes
@@ -8,7 +8,8 @@
 ## DefaultState: enabled
 ## SavedVariables: ImprovedAddonListDB, ImprovedAddonListVersionControl
 ## SavedVariablesPerCharacter: ImprovedAddonListDBPC
-## X-Website: https://bbs.nga.cn/read.php?tid=28082464
+## X-Website: https://www.curseforge.com/wow/addons/improvedaddonlist
+## X-Curse-Project-ID: 515814
 
 Lib\LibStub.lua
 Lib\AceLocale-3.0.lua

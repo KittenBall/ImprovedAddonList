@@ -1,5 +1,6 @@
 package-as: ImprovedAddonList
-enable-nolib-creation: no
 
 ignore:
   - README.md
+  - .vscode
+  - .gitattributes
