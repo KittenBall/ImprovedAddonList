@@ -24,10 +24,10 @@ Locales\zhCN.lua
 WidgetCompat.xml
 #@end-version-retail@#
 #@version-classic@#
-#WidgetCompat-Classic.xml
+# WidgetCompat-Classic.xml
 #@end-version-classic@#
 #@version-bcc@#
-#WidgetCompat-BCC.xml
+# WidgetCompat-BCC.xml
 #@end-version-bcc@#
 UI.lua
 ImprovedAddonList.xml
