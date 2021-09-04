@@ -21,15 +21,7 @@ Lib\LibCustomGlow-1.0.lua
 Locales\enUS.lua
 Locales\zhCN.lua
 
-#@version-retail@
 WidgetCompat.xml
-#@end-version-retail@
-#@version-classic@
-#WidgetCompat-Classic.xml
-#@end-version-classic@
-#@version-bcc@
-#WidgetCompat-BCC.xml
-#@end-version-bcc@
 UI.lua
 ImprovedAddonList.xml
 ImprovedAddonList.lua
