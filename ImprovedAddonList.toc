@@ -22,13 +22,13 @@ Locales\zhCN.lua
 
 #@version-retail@#
 WidgetCompat.xml
-#@version-retail@#
+#@end-version-retail@#
 #@version-classic@#
 #WidgetCompat-Classic.xml
-#@version-classic@#
+#@end-version-classic@#
 #@version-bcc@#
 #WidgetCompat-BCC.xml
-#@version-bcc@#
+#@end-version-bcc@#
 UI.lua
 ImprovedAddonList.xml
 ImprovedAddonList.lua
