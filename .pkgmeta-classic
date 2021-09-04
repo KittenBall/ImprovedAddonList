@@ -1,8 +1,0 @@
-package-as: ImprovedAddonList
-
-ignore:
-  - README.md
-  - .vscode
-  - .gitattributes
-  - ImprovedAddonList.toc
-  - ImprovedAddonList-BCC.toc

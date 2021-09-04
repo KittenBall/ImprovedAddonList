@@ -4,3 +4,6 @@ ignore:
   - README.md
   - .vscode
   - .gitattributes
+  - ImprovedAddonList_Retail.toc
+  - ImprovedAddonList_BCC.toc
+  - ImprovedAddonList_Classic.toc
