@@ -2,6 +2,8 @@ local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "zhCN")
 
+if not L then return end
+
 L["save"] = "左键点击将当前启用插件保存到当前插件加载方案\n右键点击重新设置当前插件加载方案"
 L["save_as"] = "将当前启用插件另存为一个新的插件加载方案"
 L["delete"] = "删除当前插件加载方案"

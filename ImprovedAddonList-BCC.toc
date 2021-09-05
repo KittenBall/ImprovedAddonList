@@ -14,6 +14,7 @@ Lib\LibStub.lua
 Lib\AceLocale-3.0.lua
 Lib\LibCustomGlow-1.0.lua
 
+Locales\enUS.lua
 Locales\zhCN.lua
 
 WidgetCompat_BCC.xml
