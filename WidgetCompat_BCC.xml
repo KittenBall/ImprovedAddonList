@@ -20,7 +20,7 @@
         </Anchors>
 		<Animations>
 			<AnimationGroup parentKey="Anim">
-				<Alpha parentKey="Alpha" duration="8" order="1" fromAlpha="1" toAlpha="0"/>
+				<Alpha parentKey="Alpha" duration="20" order="1" fromAlpha="1" toAlpha="0"/>
                 <Scripts>
                     <OnFinished>
                         self:GetParent():Hide()

@@ -410,6 +410,7 @@ end
 
 -- 显示提示弹窗
 function Addon:ShowConfigurationSwitchPromptDialog(meetConditionConfigurations)
+    ImprovedAddonListSwitchConfigurationPromptDialog:Hide()
     local content = ImprovedAddonListSwitchConfigurationPromptDialog.List.Content
     content.buttons = {}
     for index, v in ipairs(meetConditionConfigurations) do

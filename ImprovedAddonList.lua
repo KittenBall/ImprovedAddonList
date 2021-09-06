@@ -113,6 +113,11 @@ function Addon:InitData()
     ImprovedAddonListDB.Configurations = ImprovedAddonListDB.Configurations or {}
     ImprovedAddonListDB.Remarks = ImprovedAddonListDB.Remarks or {}
     ImprovedAddonListDBPC.Configurations = ImprovedAddonListDBPC.Configurations or {}
+
+    -- 初始化的做个检查，如果当前角色的配置被删了，则重置当前选择
+    if ImprovedAddonListDBPC.Active and not self:GetConfiguration(ImprovedAddonListDBPC.Active) then
+        ImprovedAddonListDBPC.Active = nil
+    end
 end
 
 local function GetDropDownInfo(name)
