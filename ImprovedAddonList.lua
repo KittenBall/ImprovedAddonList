@@ -207,21 +207,58 @@ function Addon.OnAddonListShow()
     Addon.HideRemarkButtons()
 end
 
+-- hook AddonToolTip_Update
+function Addon.OnAddonTooltipUpdate(owner)
+	local name, title, notes, _, _, security = GetAddOnInfo(owner:GetID());
+    if security ~= "BANNED" then
+        local version = GetAddOnMetadata(name, "Version")
+        if version then
+            AddonTooltip:AddLine(format(L["version"], version))
+        end
+    end
+end
+
 -- On AddonList Update
 function Addon.OnAddonListUpdate()
+    if not Addon.LastUpdateMemoryUsageTime or GetTime() - Addon.LastUpdateMemoryUsageTime > 5 then
+        Addon.LastUpdateMemoryUsageTime = GetTime()
+        UpdateAddOnMemoryUsage()
+    end
     local result = Addon:IsCurrentConfiguration()
     ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
 
-    -- 设置备注
+    -- 显示备注和内存占用
     if not ImprovedAddonListDB or not ImprovedAddonListDB.Remarks then return end
     for i = 1, MAX_ADDONS_DISPLAYED do
         local entry = _G["AddonListEntry"..i]
-        if entry:IsShown() then
-            local title = _G["AddonListEntry"..i.."Title"]
-            local remark = ImprovedAddonListDB.Remarks[GetAddOnInfo(entry:GetID())]
-            if remark and strlen(remark) > 0 then
-                title:SetText(remark)
-            end
+        Addon:ShowMemoryUsage(entry)
+        Addon:ShowRemark(entry)
+    end
+end
+
+-- 显示内存占用
+function Addon:ShowMemoryUsage(entry)
+    if not entry.MemUsage then
+        entry.MemUsage = entry:CreateFontString(nil, "BACKGROUND", "GameFontWhiteSmall")
+        entry.MemUsage:SetPoint("RIGHT", entry.Status, "LEFT", -2, 0)
+        entry.MemUsage:SetJustifyH("RIGHT")
+    end
+    local memSize = GetAddOnMemoryUsage(entry:GetID())
+    if memSize > 0 then
+        entry.MemUsage:SetText(format("%.1fM", memSize/1000))
+        entry.MemUsage:Show()
+    else
+        entry.MemUsage:Hide()
+    end
+end
+
+-- 显示备注
+function Addon:ShowRemark(entry)
+    if entry:IsShown() then
+        local title = _G[entry:GetName() .."Title"]
+        local remark = ImprovedAddonListDB.Remarks[GetAddOnInfo(entry:GetID())]
+        if remark and strlen(remark) > 0 then
+            title:SetText(remark)
         end
     end
 end
@@ -516,3 +553,4 @@ end
 
 AddonList:HookScript("OnShow", Addon.OnAddonListShow)
 hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
+hooksecurefunc("AddonTooltip_Update", Addon.OnAddonTooltipUpdate)

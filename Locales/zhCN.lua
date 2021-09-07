@@ -25,6 +25,7 @@ L["save_success"] = "保存成功"
 L["reset_error"] = "当前没有选中任意插件加载方案"
 L["delete_error"] = "当前没有选中任意插件加载方案"
 L["unselect_configuration"] = "取消选择"
+L["version"] = "版本：%s"
 
 L["save_to_global"] = "所有角色通用"
 L["save_to_global_tips"] = "新建的插件加载方案默认属于当前角色，勾选按钮后会使其对所有角色可见"

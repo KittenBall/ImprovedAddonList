@@ -23,6 +23,7 @@ L["save_success"] = "Saved successfully"
 L["reset_error"] = "No addon loading scheme is currently selected"
 L["delete_error"] = "No addon loading scheme is currently selected"
 L["unselect_configuration"] = "Cancel selection"
+L["version"] = "Version:%s"
 
 L["save_to_global"] = "Global"
 L["save_to_global_tips"] = "The newly created addon loading scheme belongs to the current role by default, and it will be visible to all roles after checking the button"
