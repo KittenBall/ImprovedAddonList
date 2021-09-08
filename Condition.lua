@@ -5,6 +5,22 @@ local LCG = LibStub("LibCustomGlow-1.0")
 local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IsBCC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 
+-- 提示切换弹窗
+StaticPopupDialogs["IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH"] = {
+    text = L["configuration_switch_text"],
+    button1 = OKAY,
+    button2 = CANCEL,
+    timeout = 20,
+    OnAccept = function(self, data)
+        Addon.OnConfigurationSelected(nil, data)
+        ReloadUI()
+    end,
+    OnUpdate = function(self)
+        self.button1:SetText((OKAY .. "|cffffffff(%d)|r"):format(math.ceil(self.timeleft)))
+    end,
+    hideOnEscape = true
+}
+
 -- 战争模式
 local WarModeInfos = {
     {
@@ -125,7 +141,7 @@ Addon.Frame:RegisterEvent("PLAYER_LOGIN")
 Addon.Frame:RegisterEvent("PLAYER_FLAGS_CHANGED")
 Addon.Frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+if IsRetail then
     Addon.Frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     ConditionItems.warModes = {
         item = ImprovedAddonListConditionContent.WarModeItem,
@@ -171,7 +187,7 @@ function Addon:InitConditionContent()
     ImprovedAddonListConditionContent.InstanceTypeItem:SetItems(L["condition_instance_type_label"], instanceTypeInfos)
     ImprovedAddonListConditionContent.ClassAndSpecItem:SetItems(L["condition_class_and_spec_label"], self:GetClassAndSpecInfos())
 
-    if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+    if IsRetail then
         ImprovedAddonListConditionContent.WarModeItem:SetItems(PVP_LABEL_WAR_MODE, WarModeInfos)
     else
         ImprovedAddonListConditionContent.WarModeItem:Hide()
@@ -388,21 +404,7 @@ function Addon:ShowConfigurationSwitchPrompt(bestConfigurationName, meetConditio
     local bestConfiguration = self:GetConfiguration(bestConfigurationName)
 
     if bestConfiguration.showStaticPop then
-        StaticPopupDialogs["IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH"] = {
-            text = L["configuration_switch_text"]:format(bestConfigurationName),
-            button1 = OKAY,
-            button2 = CANCEL,
-            timeout = 20,
-            OnAccept = function(self)
-                Addon.OnConfigurationSelected(nil, bestConfigurationName)
-                ReloadUI()
-            end,
-            OnUpdate = function(self)
-                self.button1:SetText((OKAY .. "|cffffffff(%d)|r"):format(math.ceil(self.timeleft)))
-            end,
-            hideOnEscape = true
-        }
-        StaticPopup_Show("IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH")
+        StaticPopup_Show("IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH", bestConfigurationName, "", bestConfigurationName)
     else
         self:ShowConfigurationSwitchPromptDialog(meetConditionConfigurations)
     end
@@ -412,7 +414,7 @@ end
 function Addon:ShowConfigurationSwitchPromptDialog(meetConditionConfigurations)
     ImprovedAddonListSwitchConfigurationPromptDialog:Hide()
     local content = ImprovedAddonListSwitchConfigurationPromptDialog.List.Content
-    content.buttons = {}
+    content.buttons = content.buttons or {}
     for index, v in ipairs(meetConditionConfigurations) do
         local button = content.buttons[index]
         if not button then

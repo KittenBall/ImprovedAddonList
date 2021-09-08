@@ -75,7 +75,7 @@ StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     msg = strlower(strtrim(msg))
     if msg == "reset" then
-         Addon:Reset()
+        Addon:Reset()
     elseif msg == "reset all" then
         Addon:ResetAll()
     end
