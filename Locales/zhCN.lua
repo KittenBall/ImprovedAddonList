@@ -27,6 +27,11 @@ L["delete_error"] = "当前没有选中任意插件加载方案"
 L["unselect_configuration"] = "取消选择"
 L["version"] = "版本：%s"
 
+L["cmd_help_reset"] = "/imapl reset：重置角色配置"
+L["cmd_help_reset_all"] = "/impal reset all：重置通用配置"
+L["cmd_help_switch_configuration"] = "/impal switch 配置名：切换通用配置"
+L["cmd_help_switch_char_configuration"] = "/impal switch 配置名：切换角色配置"
+
 L["save_to_global"] = "所有角色通用"
 L["save_to_global_tips"] = "新建的插件加载方案默认属于当前角色，勾选按钮后会使其对所有角色可见"
 L["show_static_pop"] = "弹窗提示"

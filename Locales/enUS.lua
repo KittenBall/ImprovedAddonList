@@ -25,6 +25,11 @@ L["delete_error"] = "No addon loading scheme is currently selected"
 L["unselect_configuration"] = "Cancel selection"
 L["version"] = "Version:%s"
 
+L["cmd_help_reset"] = "/imapl reset: reset role configuration"
+L["cmd_help_reset_all"] = "/impal reset all: reset global configuration"
+L["cmd_help_switch_configuration"] = "/impal switch (configuration name): switch global configuration"
+L["cmd_help_switch_char_configuration"] = "/impal switch (configuration name): switch role configuration"
+
 L["save_to_global"] = "Global"
 L["save_to_global_tips"] = "The newly created addon loading scheme belongs to the current role by default, and it will be visible to all roles after checking the button"
 L["show_static_pop"] = "Pop-up prompt"

@@ -73,11 +73,39 @@ StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
 
 ----------  Cmd   -----------------
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
-    msg = strlower(strtrim(msg))
-    if msg == "reset" then
-        Addon:Reset()
-    elseif msg == "reset all" then
-        Addon:ResetAll()
+    msg = strtrim(msg)
+    if strlen(msg) <= 0 then return end
+    
+    local params = {}
+    for v in string.gmatch(msg, "[^ ]+") do
+        tinsert(params, v)
+    end
+    if #params <=0 then return end
+    
+    local mode = params[1]
+    local param = params[2]
+    if mode == "help" then
+        print(L["cmd_help_reset"])
+        print(L["cmd_help_reset_all"])
+        print(L["cmd_help_switch_configuration"])
+        print(L["cmd_help_switch_char_configuration"])
+    elseif mode == "reset" then
+        if param == "all" then
+            Addon:ResetAll()
+        elseif param == nil then
+            Addon:Reset()
+        end
+    elseif mode == "switch" then
+        local configurationName
+        if param == "char" then
+            configurationName = CHAR_INDICATOR..params[3]
+        else
+            configurationName = param
+        end
+        if configurationName and Addon:GetConfiguration(configurationName) then
+            Addon.OnConfigurationSelected(nil, configurationName)
+            ReloadUI()
+        end
     end
 end
 SLASH_IMPROVED_ADDON_LIST_RESET1 = "/impal"
