@@ -266,17 +266,19 @@ end
 
 -- 显示内存占用
 function Addon:ShowMemoryUsage(entry)
-    if not entry.MemUsage then
-        entry.MemUsage = entry:CreateFontString(nil, "BACKGROUND", "GameFontWhiteSmall")
-        entry.MemUsage:SetPoint("RIGHT", entry.Status, "LEFT", -2, 0)
-        entry.MemUsage:SetJustifyH("RIGHT")
-    end
-    local memSize = GetAddOnMemoryUsage(entry:GetID())
-    if memSize > 0 then
-        entry.MemUsage:SetText(format("%.1fM", memSize/1000))
-        entry.MemUsage:Show()
-    else
-        entry.MemUsage:Hide()
+    if entry:IsShown() then
+        if not entry.MemUsage then
+            entry.MemUsage = entry:CreateFontString(nil, "BACKGROUND", "GameFontWhiteSmall")
+            entry.MemUsage:SetPoint("RIGHT", entry.Status, "LEFT", -2, 0)
+            entry.MemUsage:SetJustifyH("RIGHT")
+        end
+        local memSize = GetAddOnMemoryUsage(entry:GetID())
+        if memSize > 0 then
+            entry.MemUsage:SetText(format("%.1fM", memSize/1000))
+            entry.MemUsage:Show()
+        else
+            entry.MemUsage:Hide()
+        end
     end
 end
 
