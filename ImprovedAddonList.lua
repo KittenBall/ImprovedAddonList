@@ -252,6 +252,7 @@ function Addon.OnAddonListUpdate()
         Addon.LastUpdateMemoryUsageTime = GetTime()
         UpdateAddOnMemoryUsage()
     end
+    
     local result = Addon:IsCurrentConfiguration()
     ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
 

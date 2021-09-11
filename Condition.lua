@@ -12,13 +12,32 @@ StaticPopupDialogs["IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH"] = {
     button2 = CANCEL,
     timeout = 20,
     OnAccept = function(self, data)
-        Addon.OnConfigurationSelected(nil, data)
+        Addon.OnConfigurationSelected(nil, data.name)
         ReloadUI()
     end,
-    OnUpdate = function(self)
-        self.button1:SetText((OKAY .. "|cffffffff(%d)|r"):format(math.ceil(self.timeleft)))
+    OnUpdate = function(self, elapsed)
+        self.interval = (self.interval or 0) + elapsed
+        if self.interval < 0.2 then
+            return
+        else
+            self.interval = 0
+        end
+        if self.data and self.data.autoDismiss then
+            self.button1:SetText((OKAY .. "|cffffffff(%d)|r"):format(math.ceil(self.timeleft)))
+        end
     end,
     hideOnEscape = true
+}
+
+-- 重新设置当前激活方案
+StaticPopupDialogs["IMRPOVED_ADDON_LIST_ACTIVE_CONFIGURATION_RESET"] = {
+    text = L["configuration_active_reset"],
+    button1 = OKAY,
+    button2 = CANCEL,
+    OnAccept = function(self, data)
+        Addon.OnConfigurationSelected(nil, data)
+        ReloadUI()
+    end
 }
 
 -- 战争模式
@@ -161,13 +180,19 @@ function Addon:PLAYER_LOGIN()
 
     ImprovedAddonListInputDialog.ShowStaticPop.Text:SetText(L["show_static_pop"])
     ImprovedAddonListInputDialog.ShowStaticPop.tooltipText = L["show_static_pop_tips"]
+    ImprovedAddonListInputDialog.ShowStaticPop:SetScript("OnClick", function(button)
+        ImprovedAddonListInputDialog.AutoDismiss:SetEnabled(button:GetChecked())
+        local color = button:GetChecked() and NORMAL_FONT_COLOR or DISABLED_FONT_COLOR
+        ImprovedAddonListInputDialog.AutoDismiss.Text:SetTextColor(color.r, color.g, color.b)
+    end)
+    ImprovedAddonListInputDialog.AutoDismiss.Text:SetText(L["auto_dismiss"])
     ImprovedAddonListSwitchConfigurationPromptDialog.TitleText:SetText(L["configuration_switch_prompt_dialog_title"])
 
     ImprovedAddonListConditionContent.PlayerNameItem:SetItems(L["condition_player_name_label"], self:GetPlayerInfos())
 end
 
-function Addon:PLAYER_ENTERING_WORLD()
-    self:CheckConfigurationCondition()
+function Addon:PLAYER_ENTERING_WORLD(isLogin, isReload)
+    self:CheckConfigurationCondition(isLogin or isReload)
 end
 
 function Addon:PLAYER_SPECIALIZATION_CHANGED(unit)
@@ -328,6 +353,7 @@ function Addon:GetConfigurationWithConditions()
 
     configuration.conditions = conditions
     configuration.showStaticPop = ImprovedAddonListInputDialog.ShowStaticPop:GetChecked()
+    configuration.autoDismiss = ImprovedAddonListInputDialog.AutoDismiss:GetChecked()
     return configuration
 end
 
@@ -336,7 +362,17 @@ function Addon:ResetConditions(configuration)
     for key in pairs(ConditionItems) do
         ConditionItems[key].item:ResetItems(configuration and configuration.conditions[key])
     end
-    ImprovedAddonListInputDialog.ShowStaticPop:SetChecked(configuration and configuration.showStaticPop)
+    local showStaticPop = configuration and configuration.showStaticPop
+    local autoDismiss = configuration and configuration.autoDismiss
+    ImprovedAddonListInputDialog.ShowStaticPop:SetChecked(showStaticPop)
+    ImprovedAddonListInputDialog.AutoDismiss:SetEnabled(showStaticPop)
+    local color = showStaticPop and NORMAL_FONT_COLOR or DISABLED_FONT_COLOR
+    ImprovedAddonListInputDialog.AutoDismiss.Text:SetTextColor(color.r, color.g, color.b)
+    ImprovedAddonListInputDialog.AutoDismiss:SetChecked(autoDismiss ~= false)
+end
+
+-- 设置是否显示弹窗
+function Addon:SetShowStaticPop(checked, autoDismiss)
 end
 
 -- 配置是否满足条件
@@ -351,11 +387,12 @@ function Addon:IsConfigurationMeetCondition(name)
         totalPriority = totalPriority + priority
     end
 
-    return true, totalPriority + (configuration.showStaticPop and 200 or 0) + (self:IsConfigurationGlobal(name) and 0 or 100)
+    return true, totalPriority + (configuration.showStaticPop and 200 or 0) + (configuration.autoDismiss and 50 or 0) + (self:IsConfigurationGlobal(name) and 0 or 100)
 end
 
 -- 检查满足条件的Configuration
-function Addon:CheckConfigurationCondition()
+-- @param checkActive:检查当前激活的方案
+function Addon:CheckConfigurationCondition(checkActive)
     local configurations = Addon:GetConfigurations()
     if configurations == nil or #configurations == 0 then return end
 
@@ -365,6 +402,15 @@ function Addon:CheckConfigurationCondition()
         if name ~= ImprovedAddonListDBPC.Active then
             local meetCondition, priority = self:IsConfigurationMeetCondition(name)
             if meetCondition then
+                tinsert(meetConditionConfigurations, {
+                    name = name,
+                    priority = priority
+                })
+            end
+        elseif checkActive then
+            -- 如果检查当前激活方案且当前激活方案没有完全启用，则加入满足条件列表
+            local meetCondition, priority = self:IsConfigurationMeetCondition(name)
+            if meetCondition and self:IsCurrentConfiguration() == false then
                 tinsert(meetConditionConfigurations, {
                     name = name,
                     priority = priority
@@ -388,7 +434,8 @@ function Addon:CheckConfigurationCondition()
     end)
 
     for _, v in ipairs(meetConditionConfigurations) do
-        if v.priority > maxPriority then
+        -- >= 就会检查当前激活的方案
+        if (checkActive and v.priority >= maxPriority) or v.priority > maxPriority then
             maxPriority = v.priority
             maxPriorityName = v.name
         end
@@ -401,10 +448,19 @@ end
 
 -- 显示提示
 function Addon:ShowConfigurationSwitchPrompt(bestConfigurationName, meetConditionConfigurations)
+    -- 提示完全启用当前插件
+    if bestConfigurationName == ImprovedAddonListDBPC.Active then
+        StaticPopup_Show("IMRPOVED_ADDON_LIST_ACTIVE_CONFIGURATION_RESET", bestConfigurationName, "", bestConfigurationName)
+        return
+    end
+
     local bestConfiguration = self:GetConfiguration(bestConfigurationName)
 
     if bestConfiguration.showStaticPop then
-        StaticPopup_Show("IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH", bestConfigurationName, "", bestConfigurationName)
+        StaticPopup_Show("IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH", bestConfigurationName, "", {
+            name        = bestConfigurationName,
+            autoDismiss = bestConfiguration.autoDismiss and true or false
+        })
     else
         self:ShowConfigurationSwitchPromptDialog(meetConditionConfigurations)
     end

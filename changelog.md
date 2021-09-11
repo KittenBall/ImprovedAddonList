@@ -1,3 +1,7 @@
+## v1.9.1
+- After login or reload, if the currently enabled addons does not match the current addon scheme, a system prompt dialog will now be displayed
+- Now you can configure whether the prompt dialog disappears automatically
+
 ## v1.9
 - Addon list show addon memory usage now
 - Addon tooltip show addon version now

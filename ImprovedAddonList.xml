@@ -277,6 +277,17 @@
                     </OnLoad>
                 </Scripts>
             </CheckButton>
+            <!-- 自动消失 -->
+            <CheckButton parentKey="AutoDismiss" inherits="ImprovedAddonListCheckButtonTemplate">
+                <Anchors>
+                    <Anchor point="BOTTOMLEFT" x="296" y="2"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        self.Text:SetFontObject(GameFontNormal)
+                    </OnLoad>
+                </Scripts>
+            </CheckButton>
 
             <!-- 载入条件容器 -->
             <ScrollFrame name="$parentConditionContainer" parentKey="ConditionContainer" inherits="UIPanelScrollFrameTemplate, BackdropTemplate">
@@ -342,16 +353,16 @@
                     <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentInstanceTypeItem" y="-10"/>
                 </Anchors>
             </Frame>
-            <!-- 战争模式 -->
-            <Frame name="$parentWarModeItem" parentKey="WarModeItem" inherits="ImprovedAddonListConditionItemTemplate">
+            <!-- 阵营 -->
+            <Frame name="$parentFactionItem" parentKey="FactionItem" inherits="ImprovedAddonListConditionItemTemplate">
                 <Anchors>
                     <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentClassAndSpecItem" y="-10"/>
                 </Anchors>
             </Frame>
-            <!-- 阵营 -->
-            <Frame name="$parentFactionItem" parentKey="FactionItem" inherits="ImprovedAddonListConditionItemTemplate">
+            <!-- 战争模式 -->
+            <Frame name="$parentWarModeItem" parentKey="WarModeItem" inherits="ImprovedAddonListConditionItemTemplate">
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentWarModeItem" y="-10"/>
+                    <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentFactionItem" y="-10"/>
                 </Anchors>
             </Frame>
         </Frames>
