@@ -1,4 +1,4 @@
-## v1.9.1
+## v1.9.2
 - After login or reload, if the currently enabled addons does not match the current addon scheme, a system prompt dialog will now be displayed
 - Now you can configure whether the prompt dialog disappears automatically
 
