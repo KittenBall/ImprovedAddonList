@@ -186,6 +186,7 @@ function Addon:PLAYER_LOGIN()
         ImprovedAddonListInputDialog.AutoDismiss.Text:SetTextColor(color.r, color.g, color.b)
     end)
     ImprovedAddonListInputDialog.AutoDismiss.Text:SetText(L["auto_dismiss"])
+    ImprovedAddonListInputDialog.AutoDismiss.tooltipText = (L["auto_dismiss_tooltip"])
     ImprovedAddonListSwitchConfigurationPromptDialog.TitleText:SetText(L["configuration_switch_prompt_dialog_title"])
 
     ImprovedAddonListConditionContent.PlayerNameItem:SetItems(L["condition_player_name_label"], self:GetPlayerInfos())
