@@ -372,10 +372,6 @@ function Addon:ResetConditions(configuration)
     ImprovedAddonListInputDialog.AutoDismiss:SetChecked(autoDismiss ~= false)
 end
 
--- 设置是否显示弹窗
-function Addon:SetShowStaticPop(checked, autoDismiss)
-end
-
 -- 配置是否满足条件
 function Addon:IsConfigurationMeetCondition(name)
     local configuration = self:GetConfiguration(name)
@@ -388,7 +384,8 @@ function Addon:IsConfigurationMeetCondition(name)
         totalPriority = totalPriority + priority
     end
 
-    return true, totalPriority + (configuration.showStaticPop and 200 or 0) + (configuration.autoDismiss and 50 or 0) + (self:IsConfigurationGlobal(name) and 0 or 100)
+    -- 不勾选任何选项且没有勾选弹窗提示，则优先级为0
+    return true, (totalPriority == 0 and not configuration.showStaticPop) and 0 or totalPriority + (configuration.showStaticPop and 200 or 0) + (configuration.autoDismiss and 50 or 0) + (self:IsConfigurationGlobal(name) and 0 or 100)
 end
 
 -- 检查满足条件的Configuration
@@ -402,7 +399,7 @@ function Addon:CheckConfigurationCondition(checkActive)
     for _, name in ipairs(configurations) do
         if name ~= ImprovedAddonListDBPC.Active then
             local meetCondition, priority = self:IsConfigurationMeetCondition(name)
-            if meetCondition then
+            if meetCondition and priority > 0 then
                 tinsert(meetConditionConfigurations, {
                     name = name,
                     priority = priority
@@ -424,10 +421,10 @@ function Addon:CheckConfigurationCondition(checkActive)
         return
     end
 
-    local maxPriorityName, maxPriority = nil, -1
+    local maxPriorityName, maxPriority = nil, 0
     if ImprovedAddonListDBPC.Active then
         local _, currentConfigurationPriority = self:IsConfigurationMeetCondition(ImprovedAddonListDBPC.Active)
-        maxPriority = currentConfigurationPriority or -1
+        maxPriority = currentConfigurationPriority or 0
     end
 
     table.sort(meetConditionConfigurations, function(a, b)
