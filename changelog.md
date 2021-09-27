@@ -1,3 +1,6 @@
+## v1.9.4
+- Addon tooltip will show author, credit, websit and remark now
+
 ## v1.9.3
 - Now, if a addon loading scheme does not check any condition options and does not check the pop-up prompt, it will not participate in the condition check
 

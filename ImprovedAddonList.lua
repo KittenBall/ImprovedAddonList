@@ -239,9 +239,27 @@ end
 function Addon.OnAddonTooltipUpdate(owner)
 	local name, title, notes, _, _, security = GetAddOnInfo(owner:GetID());
     if security ~= "BANNED" then
+        local author = GetAddOnMetadata(name, "Author")
         local version = GetAddOnMetadata(name, "Version")
+        local credit = GetAddOnMetadata(name, "X-Credit")
+        local website = GetAddOnMetadata(name, "X-Website")
+        if author then
+            AddonTooltip:AddLine(format(L["author"], author))
+        end
         if version then
             AddonTooltip:AddLine(format(L["version"], version))
+        end
+        if credit then
+            AddonTooltip:AddLine(format(L["credit"], credit))
+        end
+        if website then
+            AddonTooltip:AddLine(format(L["website"], website))
+        end
+
+        local remark = ImprovedAddonListDB.Remarks[name]
+        if remark then
+            AddonTooltip:AddLine(" ")
+            AddonTooltip:AddLine(format(L["remark"], remark))
         end
     end
 end
