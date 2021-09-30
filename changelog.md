@@ -1,3 +1,6 @@
+## 1.9.5
+- Fix classic bug
+
 ## v1.9.4
 - Addon tooltip will show author, credit, websit and remark now
 

@@ -1,6 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
-    <Frame name="BackdropTemplate" virtual="true"/>
+    <!-- <Frame name="BackdropTemplate" virtual="true"/> -->
 
     <Button name="ImprovedAddonListOkayButtonTemplate" inherits="MagicButtonTemplate" virtual="true"/>
 
