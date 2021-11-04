@@ -29,7 +29,7 @@ L["version"] = "版本：%s"
 L["author"] = "作者：%s"
 L["credit"] = "鸣谢：%s"
 L["website"] = "发布页：%s"
-L["remark"] = "备注：%s"
+L["addon_tooltip_remark"] = "备注：%s"
 
 L["cmd_help_reset"] = "/imapl reset：重置角色配置"
 L["cmd_help_reset_all"] = "/impal reset all：重置通用配置"

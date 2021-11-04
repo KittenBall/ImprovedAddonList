@@ -259,7 +259,7 @@ function Addon.OnAddonTooltipUpdate(owner)
         local remark = ImprovedAddonListDB.Remarks[name]
         if remark then
             AddonTooltip:AddLine(" ")
-            AddonTooltip:AddLine(format(L["remark"], remark))
+            AddonTooltip:AddLine(format(L["addon_tooltip_remark"], remark))
         end
     end
 end

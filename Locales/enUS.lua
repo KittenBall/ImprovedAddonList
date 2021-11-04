@@ -27,7 +27,7 @@ L["version"] = "Version:%s"
 L["author"] = "Author:%s"
 L["credit"] = "Credit:%s"
 L["website"] = "Website:%s"
-L["remark"] = "Remark:%s"
+L["addon_tooltip_remark"] = "Remark:%s"
 
 L["cmd_help_reset"] = "/imapl reset: reset role configuration"
 L["cmd_help_reset_all"] = "/impal reset all: reset global configuration"
