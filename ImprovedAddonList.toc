@@ -1,6 +1,6 @@
-## Interface: 90150
+## Interface: 90105
 ## Interface-Classic: 11400
-## Interface-BCC: 20502
+## Interface-BCC: 20503
 ## Author: 绿毛龟12138
 ## Version: @project-version@
 ## Title: ImprovedAddonList
@@ -22,8 +22,19 @@ Lib\LibCustomGlow-1.0.lua
 Locales\enUS.lua
 Locales\zhCN.lua
 
+#@retail@
 WidgetCompat.xml
+#@end-retail@
+#@non-version-retail@
+# #@version-classic@
+# WidgetCompat_Classic.xml
+# #@end-version-classic@
+# #@version-bcc@
+# WidgetCompat_BCC.xml
+# #@end-version-bcc@
+#@end-non-version-retail@
 UI.lua
 ImprovedAddonList.xml
 ImprovedAddonList.lua
 Condition.lua
+Export.lua

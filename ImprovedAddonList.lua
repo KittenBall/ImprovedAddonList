@@ -74,17 +74,14 @@ StaticPopupDialogs["DELETE_IMPROVED_ADDON_LIST_CONFIGURATION_CONFIRM"] = {
 ----------  Cmd   -----------------
 SlashCmdList["IMPROVED_ADDON_LIST_RESET"] = function(msg)
     msg = strtrim(msg)
-    if strlen(msg) <= 0 then return end
-    
     local params = {}
     for v in string.gmatch(msg, "[^ ]+") do
         tinsert(params, v)
     end
-    if #params <=0 then return end
-    
+
     local mode = params[1]
     local param = params[2]
-    if mode == "help" then
+    if mode == "help" or mode == nil then
         print(L["cmd_help_reset"])
         print(L["cmd_help_reset_all"])
         print(L["cmd_help_switch_configuration"])
@@ -205,6 +202,8 @@ function Addon:InitUI()
     ImprovedAddonListTipsButton:SetScript("OnDoubleClick", self.OnTipsButtonClick)
     ImprovedAddonListRemarkButton.tooltipText = L["remark"]
     ImprovedAddonListRemarkButton:SetScript("OnClick", self.ShowOrHideRemarkButtons)
+    ImprovedAddonListExportButton.tooltipText = L["export"]
+    ImprovedAddonListExportButton:SetScript("OnClick", self.OnExportButtonClick)
 
     ImprovedAddonListInputDialog.ConditionLabel:SetText(L["load_condition_title"])
     ImprovedAddonListInputDialog.ConditionTips:SetText(L["load_condition_tips"])
@@ -237,7 +236,17 @@ end
 
 -- hook AddonToolTip_Update
 function Addon.OnAddonTooltipUpdate(owner)
-	local name, title, notes, _, _, security = GetAddOnInfo(owner:GetID());
+	local name, title, notes, _, _, security = GetAddOnInfo(owner:GetID())
+    
+    -- 如果显示本地化名字，则显示插件名
+    local addonTitleText = _G["GameTooltipTextLeft1"]
+    if addonTitleText then
+        local addonTitle = string.gsub(addonTitleText:GetText(), "%s+", "")
+        if addonTitle ~= name  then
+            addonTitleText:SetText(format("%s(%s)", addonTitle, name))
+        end
+    end
+
     if security ~= "BANNED" then
         local author = GetAddOnMetadata(name, "Author")
         local version = GetAddOnMetadata(name, "Version")
@@ -254,6 +263,11 @@ function Addon.OnAddonTooltipUpdate(owner)
         end
         if website then
             AddonTooltip:AddLine(format(L["website"], website))
+        end
+
+        local deps = strjoin(",", GetAddOnDependencies(owner:GetID()))
+        if #deps > 0 then
+            AddonTooltip:AddLine(format(L["dependencies"], deps))
         end
 
         local remark = ImprovedAddonListDB.Remarks[name]
@@ -511,6 +525,11 @@ function Addon.OnInputRemarkConfirm(editBox)
         end
     end
     ImprovedAddonListInputRemarkDialog:Hide()
+end
+
+-- 点击导出按钮
+function Addon.OnExportButtonClick()
+    Addon:ExportAddonList()
 end
 
 -- 检查是否重复命名

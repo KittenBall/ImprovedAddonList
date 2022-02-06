@@ -1,3 +1,6 @@
+## 1.9.7
+- Add 'Export' feature
+
 ## 1.9.5
 - Fix classic bug
 

@@ -162,7 +162,7 @@
     <!-- 保存按钮 -->
     <Button name="ImprovedAddonListSaveButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" registerForClicks="LeftButtonUp, RightButtonUp">
         <Anchors>
-            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDropDown" x="0" y="2"/>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDropDown" x="-8" y="2"/>
         </Anchors>
         <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\save"/>
         <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\save_push"/>
@@ -196,10 +196,20 @@
         </Anchors>
     </Button>
 
+    <!-- 导出按钮 -->
+    <Button name="ImprovedAddonListExportButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListRemarkButton" x="8" y="0"/>
+        </Anchors>
+        <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\export"/>
+        <PushedTexture file="Interface\AddOns\ImprovedAddonList\Media\export_push"/>
+        <HighlightTexture file="Interface\AddOns\ImprovedAddonList\Media\export_highlight"/>
+    </Button>
+
     <!-- 提示按钮 -->
     <Button name="ImprovedAddonListTipsButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" hidden="true">
         <Anchors>
-            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListRemarkButton" x="8" y="0"/>
+            <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListExportButton" x="8" y="0"/>
         </Anchors>
         <NormalTexture file="Interface\AddOns\ImprovedAddonList\Media\tips"/>
     </Button>
