@@ -4,12 +4,15 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local LCG = LibStub("LibCustomGlow-1.0")
 local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IsBCC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+-- 不再提示
+local IgnoreConfigurationSwitch = false
 
 -- 提示切换弹窗
 StaticPopupDialogs["IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH"] = {
     text = L["configuration_switch_text"],
     button1 = OKAY,
     button2 = CANCEL,
+    button3 = L["configuration_switch_ignore"],
     timeout = 20,
     OnAccept = function(self, data)
         Addon.OnConfigurationSelected(nil, data.name)
@@ -25,6 +28,10 @@ StaticPopupDialogs["IMRPOVED_ADDON_LIST_CONFIGURATION_SWITCH"] = {
         if self.data and self.data.autoDismiss then
             self.button1:SetText((OKAY .. "|cffffffff(%d)|r"):format(math.ceil(self.timeleft)))
         end
+    end,
+    OnAlt = function(self)
+        IgnoreConfigurationSwitch = true
+        print(L["configuration_switch_ignore_tips"])
     end,
     hideOnEscape = true
 }
@@ -391,6 +398,8 @@ end
 -- 检查满足条件的Configuration
 -- @param checkActive:检查当前激活的方案
 function Addon:CheckConfigurationCondition(checkActive)
+    if IgnoreConfigurationSwitch then return end
+
     local configurations = Addon:GetConfigurations()
     if configurations == nil or #configurations == 0 then return end
 
