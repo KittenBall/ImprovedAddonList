@@ -4,7 +4,7 @@
 
     <Button name="ImprovedAddonListOkayButtonTemplate" inherits="MagicButtonTemplate" virtual="true"/>
 
-    <Frame name="ImprovedAddonListSwitchConfigurationPromptDialogTemplate" parent="UIParent" virtual="true" inherits="BasicFrameTemplateWithInset" frameStrata="DIALOG" topLevel="true" hidden="true">
+    <Frame name="ImprovedAddonListSwitchConfigurationPromptDialogTemplate" parent="UIParent" virtual="true" inherits="BasicFrameTemplateWithInset" frameStrata="DIALOG" hidden="true">
         <Size x="170" y="260"/>
         <Layers>
 			<Layer level="OVERLAY">
