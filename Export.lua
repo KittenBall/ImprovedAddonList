@@ -150,11 +150,13 @@ function Addon:GetExportAddonData()
     for i = 1, GetNumAddOns() do
         local name, _, _, loadable = GetAddOnInfo(i)
         local version = GetAddOnMetadata(i, "Version")
-        local data = { Version = version, Name = name }
-        if loadable then
-            tinsert(enabledData, data)
-        else
-            tinsert(disabledData, data)
+        if name then
+            local data = { Version = version or "", Name = name or "" }
+            if loadable then
+                tinsert(enabledData, data)
+            else
+                tinsert(disabledData, data)
+            end
         end
     end
     return enabledData, disabledData
