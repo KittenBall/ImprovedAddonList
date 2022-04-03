@@ -1,6 +1,6 @@
 ## Interface: 90105
 ## Interface-Classic: 11400
-## Interface-BCC: 20503
+## Interface-BCC: 20504
 ## Author: 绿毛龟12138
 ## Version: @project-version@
 ## Title: ImprovedAddonList
