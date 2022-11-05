@@ -190,14 +190,14 @@
     </Button>
 
     <!-- 备注按钮 -->
-    <Button name="ImprovedAddonListRemarkButton" parent="AddonList" inherits="ImprovedAddonListRemarkButtonTemplate">
+    <Button name="ImprovedAddonListRemarkButton" parent="AddonList" inherits="ImprovedAddonListRemarkButtonTemplate" hidden = "true">
         <Anchors>
             <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListDeleteButton" x="8" y="0"/>
         </Anchors>
     </Button>
 
     <!-- 导出按钮 -->
-    <Button name="ImprovedAddonListExportButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate">
+    <Button name="ImprovedAddonListExportButton" parent="AddonList" inherits="ImprovedAddonListButtonTemplate" hidden = "true" >
         <Anchors>
             <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="ImprovedAddonListRemarkButton" x="8" y="0"/>
         </Anchors>

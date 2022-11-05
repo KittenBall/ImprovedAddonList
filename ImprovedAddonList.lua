@@ -279,23 +279,23 @@ function Addon.OnAddonTooltipUpdate(owner)
 end
 
 -- On AddonList Update
-function Addon.OnAddonListUpdate()
-    if not Addon.LastUpdateMemoryUsageTime or GetTime() - Addon.LastUpdateMemoryUsageTime > 5 then
-        Addon.LastUpdateMemoryUsageTime = GetTime()
-        UpdateAddOnMemoryUsage()
-    end
+-- function Addon.OnAddonListUpdate()
+--     if not Addon.LastUpdateMemoryUsageTime or GetTime() - Addon.LastUpdateMemoryUsageTime > 5 then
+--         Addon.LastUpdateMemoryUsageTime = GetTime()
+--         UpdateAddOnMemoryUsage()
+--     end
     
-    local result = Addon:IsCurrentConfiguration()
-    ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
+--     local result = Addon:IsCurrentConfiguration()
+--     ImprovedAddonListTipsButton:SetShown(result ~=nil and not result)
 
-    -- 显示备注和内存占用
-    if not ImprovedAddonListDB or not ImprovedAddonListDB.Remarks then return end
-    for i = 1, MAX_ADDONS_DISPLAYED do
-        local entry = _G["AddonListEntry"..i]
-        Addon:ShowMemoryUsage(entry)
-        Addon:ShowRemark(entry)
-    end
-end
+--     -- 显示备注和内存占用
+--     if not ImprovedAddonListDB or not ImprovedAddonListDB.Remarks then return end
+--     for i = 1, MAX_ADDONS_DISPLAYED do
+--         local entry = _G["AddonListEntry"..i]
+--         Addon:ShowMemoryUsage(entry)
+--         Addon:ShowRemark(entry)
+--     end
+-- end
 
 -- 显示内存占用
 function Addon:ShowMemoryUsage(entry)
@@ -396,12 +396,12 @@ function Addon:ShowOrHideInputDialog()
         ImprovedAddonListInputDialog:Hide()
     else
         if inputType == INPUT_TYPE_RESET then
-            ImprovedAddonListInputDialog.TitleText:SetText(L["save_input_dialog_title"])
+            ImprovedAddonListInputDialog.TitleContainer.TitleText:SetText(L["save_input_dialog_title"])
             ImprovedAddonListInputDialog.EditBox:SetText(ImprovedAddonListDBPC.Active:gsub(CHAR_INDICATOR, ""))
             ImprovedAddonListInputDialog.SaveToGlobal:SetChecked(Addon:IsConfigurationGlobal())
             self:ResetConditions(self:GetConfiguration(ImprovedAddonListDBPC.Active))
         else
-            ImprovedAddonListInputDialog.TitleText:SetText(L["save_as_input_dialog_title"])
+            ImprovedAddonListInputDialog.TitleContainer.TitleText:SetText(L["save_as_input_dialog_title"])
             ImprovedAddonListInputDialog.EditBox:SetText("")
             ImprovedAddonListInputDialog.SaveToGlobal:SetChecked(false)
             self:ResetConditions()
@@ -620,5 +620,5 @@ function Addon:GetConfigurationsSize()
 end
 
 AddonList:HookScript("OnShow", Addon.OnAddonListShow)
-hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
+-- hooksecurefunc("AddonList_Update", Addon.OnAddonListUpdate)
 hooksecurefunc("AddonTooltip_Update", Addon.OnAddonTooltipUpdate)
