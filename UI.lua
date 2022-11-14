@@ -2,166 +2,109 @@ local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
-ImprovedAddonListConditionCheckButtonMixin = {}
+-- 创建带背景和边框的容器
+local function CreateContainer(parent)
+    local Container = CreateFrame("Frame", nil, parent)
 
-function ImprovedAddonListConditionCheckButtonMixin:OnClick()
-    local parent = self:GetParent()
-    parent:SetType(parent.type + 1)
+    -- 背景
+    local Background = Container:CreateTexture(nil, "BACKGROUND")
+    Background:SetAtlas("Professions-background-summarylist")
+    Background:SetAllPoints()
+    Container.Background = Background
+
+    -- 边框
+    local BackgroundNineSlice = CreateFrame("Frame", nil, Container, "NineSlicePanelTemplate")
+    BackgroundNineSlice.layoutType = "InsetFrameTemplate"
+    BackgroundNineSlice:SetAllPoints(Background)
+    BackgroundNineSlice:SetFrameLevel(Container:GetFrameLevel())
+    BackgroundNineSlice:OnLoad()
+    Container.BackgroundNineSlice = BackgroundNineSlice
+
+    return Container
 end
 
-function ImprovedAddonListConditionCheckButtonMixin:SetLabel(text)
-    self.Text:SetText(text)
-end
+-- 创建AddonList
+local UI = CreateFrame("Frame", "ImprovedAddonListDialog", UIParent, "PortraitFrameTemplate")
+Addon.UI = UI
 
-ImprovedAddonListConditionDropDownMixin = {}
+-- 基本样式
+UI:SetSize(500, 600)
+UI:ClearAllPoints()
+UI:SetPoint("CENTER")
+UI:SetTitle(ADDON_LIST)
+UI:SetFrameStrata("HIGH")
+-- UI:Hide()
+ButtonFrameTemplateMinimizable_HidePortrait(UI)
 
-function ImprovedAddonListConditionDropDownMixin.OnItemSelected(itemButton, info)
-    if itemButton and itemButton:GetParent() and itemButton:GetParent().dropdown then
-        local self = itemButton:GetParent().dropdown
-        self.selected = info
-        UIDropDownMenu_SetText(self, info.text)
-    end
-    CloseDropDownMenus()
-end
-
-function ImprovedAddonListConditionDropDownMixin:OnInitialize(level, menuList)
-    if not self.infos then return end
-    for _, info in ipairs(self.infos) do
-        local dropDownInfo = UIDropDownMenu_CreateInfo()
-        dropDownInfo.arg1 = info
-        dropDownInfo.text = info.text
-        dropDownInfo.checked = self.selected and (self.selected.value == info.value) or false
-        dropDownInfo.func = self.OnItemSelected
-        UIDropDownMenu_AddButton(dropDownInfo, level)
-    end
-end
-
-function ImprovedAddonListConditionDropDownMixin:Refresh(infos)
-    self.infos = infos
-    UIDropDownMenu_SetText(self, self.selected and self.selected.value)
-end
-
-function ImprovedAddonListConditionDropDownMixin:SetLabel(text)
-    self.Label:SetText(text)
-end
-
-function ImprovedAddonListConditionDropDownMixin:Reset()
-    self.selected = nil
-    UIDropDownMenu_SetText(self, "")
-end
-
-ImprovedAddonListConditionDetailFrameMixin = {}
-ImprovedAddonListConditionDetailFrameMixin.ROW_MARGIN = 15
-
-function ImprovedAddonListConditionDetailFrameMixin:SetItems(infos)
-    self.infos = infos
-    if not infos then return end
-    self.items = self.items or {}
-    for index, info in ipairs(infos) do
-        local item = CreateFrame("CheckButton", nil, self, "ImprovedAddonListCheckButtonTemplate")
-        local tRelativeTo = (index == 1 or index == 2) and self or self.items[index-2]
-        local lRelativePoint = (index % 2 == 0) and "CENTER" or "LEFT"
-        local tRelativePoint = (index == 1 or index == 2) and "TOP" or "BOTTOM"
-        item:SetPoint("LEFT", self, lRelativePoint, self.ROW_MARGIN, 0)
-        item:SetPoint("TOP", tRelativeTo, tRelativePoint, 0, -self.ROW_MARGIN)
-
-        item.info = info
-        item.Text:SetText(info.text)
-        self.items[index] = item
-    end
-
-    local rowCount = math.floor(#infos / 2) + (#infos % 2 > 0 and 1 or 0)
-    self:SetHeight(rowCount * 26 + (rowCount+1) * self.ROW_MARGIN)
-end
-
-function ImprovedAddonListConditionDetailFrameMixin:Reset()
-    if not self.items then return end
-    for _, item in ipairs(self.items) do
-        item:SetChecked(false)
-    end
-end
-
-function ImprovedAddonListConditionDetailFrameMixin:ResetItems(infos)
-    if not infos then return end
-    for _, info in ipairs(infos) do
-        for _, item in ipairs(self.items) do
-            if info.value == item.info.value then
-                item:SetChecked(true)
-                break
-            end
-        end
-    end
-end
-
-ImprovedAddonListConditionItemMixin = {}
-ImprovedAddonListConditionItemMixin.TYPE_DEFAULT = 0
-ImprovedAddonListConditionItemMixin.TYPE_SINGLE_CHOICE = 1
-ImprovedAddonListConditionItemMixin.TYPE_MULTIPLE_CHOIC = 2
-
-function ImprovedAddonListConditionItemMixin:SetType(type)
-    self.type = type % 3
-    if self.type == self.TYPE_DEFAULT then
-        self.CheckButton:SetChecked(false)
-        self.DetailFrame:Hide()
-        self.DropDown:Show()
-        UIDropDownMenu_DisableDropDown(self.DropDown)
-        self:SetHeight(self.CollapseHeight)
-    elseif self.type == self.TYPE_SINGLE_CHOICE then
-        self.CheckButton:SetChecked(true)
-        self.DetailFrame:Hide()
-        self.DropDown:Show()
-        UIDropDownMenu_EnableDropDown(self.DropDown)
-        self:SetHeight(self.CollapseHeight)
-    elseif self.type == self.TYPE_MULTIPLE_CHOIC then
-        self.CheckButton:SetChecked(true)
-        self.DetailFrame:Show()
-        self.DropDown:Hide()
-        self:SetHeight(self.ExpandHeight)
-    end
-end
-
-function ImprovedAddonListConditionItemMixin:SetItems(name, infos)
-    self.CheckButton.tooltipText = L["condition_check_button_tooltip"]
-    self.CheckButton:SetLabel(name)
-    self.DropDown:SetLabel(name)
-    self.DropDown:Refresh(infos)
-    self.DetailFrame:SetItems(infos)
-    self.ExpandHeight = self.DetailFrame:GetHeight() + 85
-    self.CollapseHeight = 75
-    self:SetType(self.TYPE_DEFAULT)
-end
-
-function ImprovedAddonListConditionItemMixin:ResetItems(infos)
-    self.DropDown:Reset()
-    self.DetailFrame:Reset()
-    if not infos or #infos == 0 then
-        self:SetType(self.TYPE_DEFAULT)
-    elseif #infos == 1 then
-        self:SetType(self.TYPE_SINGLE_CHOICE)
-        self.DropDown.selected = infos[1]
-        UIDropDownMenu_SetText(self, infos[1].text)
+-- 响应Escape
+local function OnEscapePressed(self, key)
+    if key == "ESCAPE" then
+        self:Hide()
+        self:SetPropagateKeyboardInput(false)
     else
-        self:SetType(self.TYPE_MULTIPLE_CHOIC)
-        self.DetailFrame:ResetItems(infos)
+        self:SetPropagateKeyboardInput(true)
     end
 end
 
-function ImprovedAddonListConditionItemMixin:GetSelectedItems()
-    if self.type == self.TYPE_DEFAULT then
-        return
-    elseif self.type == self.TYPE_SINGLE_CHOICE then
-        local dropDown = self.DropDown
-        if dropDown.selected then
-            return { dropDown.selected }
-        end
-    elseif self.type == self.TYPE_MULTIPLE_CHOIC then
-        local detailFrame = self.DetailFrame
-        local infos = {}
-        for _, item in ipairs(detailFrame.items) do
-            if item:GetChecked() then
-                tinsert(infos, item.info)
-            end
-        end
-        return #infos > 0 and infos or nil
-    end
+UI:SetScript("OnKeyDown", OnEscapePressed)
+
+-- 拖动
+UI:SetMovable(true)
+UI:EnableMouse(true)
+UI:RegisterForDrag("LeftButton")
+UI:SetClampedToScreen(true)
+UI:SetScript("OnDragStart", function(self)
+    self:StartMoving()
+    self:SetUserPlaced(false)
+end)
+UI:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+end)
+
+-- 创建插件列表页
+local AddonList = CreateContainer(UI)
+UI.AddonList = AddonList
+AddonList:SetSize(300, 505)
+AddonList:SetPoint("TOPLEFT", 10, -40)
+
+-- 创建插件列表搜索框
+local AddonListSearchBox = CreateFrame("EditBox", nil, AddonList, "SearchBoxTemplate")
+AddonList.SearchBox = AddonListSearchBox
+AddonListSearchBox:SetPoint("TOPLEFT", 13, -8)
+AddonListSearchBox:SetPoint("TOPRIGHT", -13, -8)
+AddonListSearchBox:SetHeight(20)
+
+-- 创建插件列表
+-- 滚动框
+local AddonListScrollBox = CreateFrame("Frame", nil, AddonList, "WowScrollBoxList")
+AddonList.ScrollBox = AddonListScrollBox
+AddonListScrollBox:SetPoint("TOPLEFT", AddonListSearchBox, "BOTTOMLEFT", -5, -7)
+AddonListScrollBox:SetPoint("BOTTOMRIGHT", -20, 5)
+-- 滚动条
+local AddonListScrollBar = CreateFrame("EventFrame", nil, AddonList, "MinimalScrollBar")
+AddonList.ScrollBar =  AddonListScrollBar
+AddonListScrollBar:SetPoint("TOPLEFT", AddonListScrollBox, "TOPRIGHT")
+AddonListScrollBar:SetPoint("BOTTOMLEFT", AddonListScrollBox, "BOTTOMRIGHT")
+
+
+-- 暴雪插件列表显示的时候，鸠占鹊巢
+-- local function OnBlizzardAddonListShow()
+--     PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+--     Addon:HideUIPanel(GameMenuFrame)
+--     UI:Show()
+-- end
+
+-- GameMenuButtonAddons:SetScript("OnClick", OnBlizzardAddonListShow)
+
+-- UI函数
+function Addon:GetAddonList()
+    return self.UI.AddonList
+end
+
+function Addon:GetAddonListScrollBox()
+    return self.UI.AddonList.ScrollBox
+end
+
+function Addon:GetAddonListScrollBar()
+    return self.UI.AddonList.ScrollBar
 end

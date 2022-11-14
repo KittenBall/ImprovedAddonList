@@ -1,4 +1,4 @@
-## Interface: 90105
+## Interface: 100000
 ## Interface-Classic: 11400
 ## Interface-BCC: 20504
 ## Author: 绿毛龟12138
@@ -22,19 +22,7 @@ Lib\LibCustomGlow-1.0.lua
 Locales\enUS.lua
 Locales\zhCN.lua
 
-#@retail@
-WidgetCompat.xml
-#@end-retail@
-#@non-version-retail@
-# #@version-classic@
-# WidgetCompat_Classic.xml
-# #@end-version-classic@
-# #@version-bcc@
-# WidgetCompat_BCC.xml
-# #@end-version-bcc@
-#@end-non-version-retail@
+Tools.lua
+Repository.lua
 UI.lua
-ImprovedAddonList.xml
-ImprovedAddonList.lua
-Condition.lua
-Export.lua
+AddonList.xml
