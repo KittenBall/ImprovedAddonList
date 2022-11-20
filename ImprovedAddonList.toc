@@ -8,8 +8,7 @@
 ## Notes: Improved Blizzard addon list, you can save different interface loading scenes
 ## Notes-zhCN: 增强暴雪的插件列表，你可以保存不同的插件加载方案
 ## DefaultState: enabled
-## SavedVariables: ImprovedAddonListDB
-## SavedVariablesPerCharacter: ImprovedAddonListDBPC
+## SavedVariables: ImprovedAddonListSaved
 ## X-Website: https://github.com/GreenhairTurtle/ImprovedAddonList
 ## X-Curse-Project-ID: 515814
 ## X-Wago-ID: baNDLJNo
@@ -26,3 +25,4 @@ Tools.lua
 Repository.lua
 UI.lua
 AddonList.xml
+Init.lua

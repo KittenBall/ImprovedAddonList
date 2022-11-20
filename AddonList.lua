@@ -1,11 +1,5 @@
 local addonName, Addon = ...
 
-local indent = 10
-local padLeft = 0
-local pad = 5
-local spacing = 1
-local AddonListTreeView = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing)
-
 -- 插件列表项函数集
 ImprovedAddonListAddonItemMixin = {}
 
@@ -46,7 +40,6 @@ function ImprovedAddonListAddonItemMixin:SetSelected(selected)
 	self.HighlightOverlay:SetShown(not selected);
 end
 
-local addonListScrollBox = Addon:GetAddonListScrollBox()
 
 -- 插件列表节点更新
 local function AddonListTreeNodeUpdater(factory, node)
@@ -54,7 +47,7 @@ local function AddonListTreeNodeUpdater(factory, node)
     if elementData.addonInfo then
         local function Initializer(button, node)
             button:Init(node)
-
+        
             -- 重置选中状态
             local selected = Addon:GetAddonListScrollBox().selectionBehavior:IsElementDataSelected(node)
             button:SetSelected(selected)
@@ -71,13 +64,22 @@ local function AddonListNodeOnSelectionChanged(_, elementData, selected)
     end
 end
 
---添加选中特性
-addonListScrollBox.selectionBehavior = ScrollUtil.AddSelectionBehavior(addonListScrollBox)
-addonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
+-- 插件列表加载
+function Addon:OnAddonListLoad()
+    local addonListScrollBox = self:GetAddonListScrollBox()
+    
+    local indent = 10
+    local padLeft = 0
+    local pad = 5
+    local spacing = 1
+    local addonListTreeView = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing)
 
-AddonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
-ScrollUtil.InitScrollBoxListWithScrollBar(addonListScrollBox, Addon:GetAddonListScrollBar(), AddonListTreeView)
+    --添加选中特性
+    addonListScrollBox.selectionBehavior = ScrollUtil.AddSelectionBehavior(addonListScrollBox)
+    addonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
 
-Addon:RegisterEvent("PLAYER_ENTERING_WORLD", function()
-    addonListScrollBox:SetDataProvider(Addon:GetAddonDataProvider())
-end)
+    addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
+    ScrollUtil.InitScrollBoxListWithScrollBar(addonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
+    
+    addonListScrollBox:SetDataProvider(self:GetAddonDataProvider())
+end
