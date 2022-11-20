@@ -50,27 +50,6 @@ function Addon:GetAddonInfo(query)
     return info
 end
 
--- 根据插件index更新插件信息
-function Addon:UpdateAddonInfoByIndex(index)
-    local addonInfo = self:GetAddonInfo(index)
-    self.AddonInfos = self.AddonInfos or {}
-    -- 按插件index存储
-    self.AddonInfos[index] = addonInfo
-    -- 插件名和index映射
-    self.AddonInfos[addonInfo.Name] = index
-end
-
--- 根据插件名更新插件信息
-function Addon:UpdateAddonInfoByName(name)
-    self.AddonInfos = self.AddonInfos or {}
-    local addonIndex = self.AddonInfos[name]
-    
-    -- 获取不到插件索引，就没有必要存了
-    if not addonIndex then return end
-
-    self:UpdateAddonInfoByIndex(addonIndex)
-end
-
 -- 根据插件名获取插件信息，可能为nil
 -- @param update:是否先刷新，再获取
 function Addon:GetAddonInfoByNameOrNil(name, update)
@@ -114,6 +93,30 @@ function Addon:GetAddonInfoByIndex(index, update)
     return addonInfo
 end
 
+-- 根据插件index更新插件信息
+-- 返回对应插件信息
+function Addon:UpdateAddonInfoByIndex(index)
+    local addonInfo = self:GetAddonInfo(index)
+    self.AddonInfos = self.AddonInfos or {}
+    -- 按插件index存储
+    self.AddonInfos[index] = addonInfo
+    -- 插件名和index映射
+    self.AddonInfos[addonInfo.Name] = index
+
+    return addonInfo
+end
+
+-- 根据插件名更新插件信息
+function Addon:UpdateAddonInfoByName(name)
+    self.AddonInfos = self.AddonInfos or {}
+    local addonIndex = self.AddonInfos[name]
+    
+    -- 获取不到插件索引，就没有必要存了
+    if not addonIndex then return end
+
+    return self:UpdateAddonInfoByIndex(addonIndex)
+end
+
 -- 获取插件信息
 -- @param query:如果为nil，则更新所有插件信息吗，否则只更新指定插件信息
 function Addon:UpdateAddonInfos(query)
@@ -125,9 +128,17 @@ function Addon:UpdateAddonInfos(query)
         end
     else
         if self.AddonInfos then wipe(self.AddonInfos) end
+        
+        local addonLoaded = 0
         for i = 1, GetNumAddOns() do
-            self:UpdateAddonInfoByIndex(i)
+            local addonInfo = self:UpdateAddonInfoByIndex(i)
+            if addonInfo and addonInfo.Loaded then
+                addonLoaded = addonLoaded + 1
+            end
         end
+
+        -- 已加载数量
+        self.AddonInfos.LoadedNumber = addonLoaded
     end
 end
 
