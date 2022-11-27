@@ -25,4 +25,5 @@ Tools.lua
 Repository.lua
 UI.lua
 AddonList.xml
+AddonDetail.lua
 Init.lua

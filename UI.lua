@@ -2,6 +2,27 @@ local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+-- 字体
+local ImprovedAddonListLabelFont = CreateFont("ImprovedAddonListLabelFont")
+ImprovedAddonListLabelFont:CopyFontObject(GameFontWhite)
+ImprovedAddonListLabelFont:SetTextColor(0.8039, 0.6039, 0.3568)
+
+local ImprovedAddonListBodyFont = CreateFont("ImprovedAddonListBodyFont")
+ImprovedAddonListBodyFont:CopyFontObject(GameFontWhite)
+ImprovedAddonListBodyFont:SetJustifyH("LEFT")
+
+local ImprovedAddonListButtonNormalFont = CreateFont("ImprovedAddonListButtonNormalFont")
+ImprovedAddonListButtonNormalFont:CopyFontObject(GameFontWhite)
+ImprovedAddonListButtonNormalFont:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
+
+local ImprovedAddonListButtonHighlightFont = CreateFont("ImprovedAddonListButtonHighlightFont")
+ImprovedAddonListButtonHighlightFont:CopyFontObject(GameFontWhite)
+ImprovedAddonListButtonHighlightFont:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
+
+local ImprovedAddonListButtonDisabledFont = CreateFont("ImprovedAddonListButtonDisabledFont")
+ImprovedAddonListButtonDisabledFont:CopyFontObject(GameFontWhite)
+ImprovedAddonListButtonDisabledFont:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
+
 -- 创建带背景和边框的容器
 local function CreateContainer(parent)
     local Container = CreateFrame("Frame", nil, parent)
@@ -33,7 +54,7 @@ function Addon:GetOrCreateUI()
     self.UI = UI
 
     -- 基本样式
-    UI:SetSize(500, 600)
+    UI:SetSize(650, 600)
     UI:ClearAllPoints()
     UI:SetPoint("CENTER")
     UI:SetTitle(ADDON_LIST)
@@ -69,7 +90,7 @@ function Addon:GetOrCreateUI()
     local AddonList = CreateContainer(UI)
     UI.AddonList = AddonList
     AddonList:SetSize(300, 505)
-    AddonList:SetPoint("TOPLEFT", 10, -40)
+    AddonList:SetPoint("TOPLEFT", 10, -80)
 
     -- 创建插件列表搜索框
     local AddonListSearchBox = CreateFrame("EditBox", nil, AddonList, "SearchBoxTemplate")
@@ -90,6 +111,31 @@ function Addon:GetOrCreateUI()
     AddonListScrollBar:SetPoint("TOPLEFT", AddonListScrollBox, "TOPRIGHT")
     AddonListScrollBar:SetPoint("BOTTOMLEFT", AddonListScrollBox, "BOTTOMRIGHT")
 
+    -- 创建插件详情
+
+    -- 插件详情容器
+    local AddonDetailContainer = CreateContainer(UI)
+    UI.AddonDetailContainer = AddonDetailContainer
+    AddonDetailContainer:SetWidth(300)
+    AddonDetailContainer:SetPoint("TOPLEFT", AddonList, "TOPRIGHT", 10, 0)
+    AddonDetailContainer:SetPoint("BOTTOMLEFT", AddonList, "BOTTOMRIGHT", 10, 0)
+
+    -- 滚动框
+    local AddonDetailScrollBox = CreateFrame("Frame", nil, AddonDetailContainer, "WowScrollBox")
+    UI.AddonDetailScrollBox = AddonDetailScrollBox
+    AddonDetailScrollBox:SetPoint("TOPLEFT", 0, -10)
+    AddonDetailScrollBox:SetPoint("BOTTOMRIGHT", -20, 40)
+
+    --插件详情
+    local AddonDetail = CreateFrame("Frame", nil, AddonDetailScrollBox)
+    UI.AddonDetail = AddonDetail
+    AddonDetail.scrollable = true
+    AddonDetail:SetWidth(AddonDetailScrollBox:GetWidth())
+
+    AddonDetailScrollBox:Init(CreateScrollBoxLinearView(1, 1, 1, 1))
+
+    -- 初始化
+    self:OnAddonDetailLoaded()
     self:OnAddonListLoad()
 
     return UI
@@ -112,6 +158,17 @@ function Addon:GetAddonListScrollBar()
     return self.UI.AddonList.ScrollBar
 end
 
+function Addon:GetAddonDetail()
+    return self.UI.AddonDetail
+end
+
+function Addon:GetAddonDetailContainer()
+    return self.UI.AddonDetailContainer
+end
+
+function Addon:GetAddonDetailScrollBox()
+    return self.UI.AddonDetailScrollBox
+end
 
 -- 暴雪插件列表显示的时候，鸠占鹊巢
 local function OnBlizzardAddonListShow()

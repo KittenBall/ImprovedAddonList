@@ -35,6 +35,16 @@ function Addon:UnregisterEvent(event, func)
     end
 end
 
+-- 显示红字错误
+function Addon:ShowError(text)
+    UIErrorsFrame:AddMessage(text, 1.0, 0.0, 0.0, 1, 4)
+end
+
+-- 显示黄字消息
+function Addon:ShowMessage(text)
+    UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
+end
+
 -- 绕过暴雪的战斗中Show/HideUIPanel检查
 local Delegate = EnumerateFrames()
 while Delegate do

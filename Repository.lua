@@ -1,5 +1,17 @@
 local AddonName, Addon = ...
 
+-- 插件是否被收藏
+function Addon:IsAddonFavoirte(name)
+    if type(name) ~= "string" then return end
+    return self.Saved.FavoirteAddons[name]
+end
+
+-- 插件备注
+function Addon:GetAddonRemark(name)
+    if type(name) ~= "string" then return end
+    return self.Saved.AddonRemarks[name]
+end
+
 -- 获取插件信息，返回值可能为nil
 -- query:要么为index:与GetNumAddOns对应的插件位置；要么为name：插件名
 function Addon:GetAddonInfoOrNil(query)
@@ -30,8 +42,8 @@ function Addon:GetAddonInfoOrNil(query)
     addonInfo.LoadOnDemand = IsAddOnLoadOnDemand(query)
     -- 是否启用
     addonInfo.Enabled = GetAddOnEnableState(UnitName("player"), query) > 0
-    -- 不可加载原因，可能为nil
-    addonInfo.UnLoadableReason = reason
+    -- 不可加载原因
+    addonInfo.UnLoadableReason = not loadable and reason and _G["ADDON_" .. reason] or ""
     -- 可能值：不安全，安全，非法
     addonInfo.Security = security
     -- 插件依赖
@@ -152,8 +164,32 @@ function Addon:GetAddonDataProvider()
     local node = dataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        node:Insert({ addonInfo = addonInfo })
+        node:Insert({ AddonInfo = addonInfo })
     end
 
     return dataProvider
 end
+
+-- 插件排序
+
+-- 按索引排序
+Addon.SORT_BY_INDEX = 0
+-- 按名称排序
+Addon.SORT_BY_NAME = 1
+
+-- 升序
+Addon.ORDER_ASCENDING = 0
+-- 降序
+Addon.ORDER_DESCENDING = 1
+
+
+-- 插件分组
+
+-- 不分组
+Addon.GROUP_BY_NONE = 0
+-- 按名字分组
+Addon.GROUP_BY_NAME = 1
+-- 按依赖分组
+Addon.GROUP_BY_DEP = 2
+-- 按作者分组
+Addon.GROUP_BY_AUTHOR = 3
