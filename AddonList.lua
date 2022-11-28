@@ -80,6 +80,12 @@ local function AddonListNodeOnSelectionChanged(_, elementData, selected)
     end
 end
 
+-- 列表长度
+local function ElementExtentCalculator(index, node)
+    local data = node:GetData()
+    return 30
+end
+
 -- 插件列表加载
 function Addon:OnAddonListLoad()
     local addonListScrollBox = self:GetAddonListScrollBox()
@@ -95,6 +101,7 @@ function Addon:OnAddonListLoad()
     addonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
 
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
+    addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(addonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
     
     addonListScrollBox:SetDataProvider(self:GetAddonDataProvider())

@@ -86,21 +86,21 @@ local ADDON_DETAILS = {
 }
 
 function Addon:UpdateAddonDetailFramesPosition()
-    local addonDetail = self:GetAddonDetail()
+    local addonDetailFrame = self:GetAddonDetailContainer()
 
     local categoryOffsetX, categoryOffsetY = 10, -10
     local addonDetailOffsetX, addonDetailFirstOffsetY, addonDetailOffsetY = 15, -10, -8
 
     local preFrame, usedHeight = nil, 0
     for categoryIndex, category in pairs(ADDON_DETAILS) do
-        local categoryFrame = addonDetail[category.Name]
+        local categoryFrame = addonDetailFrame[category.Name]
         categoryFrame:ClearAllPoints()
         categoryFrame:SetPoint("TOPLEFT", categoryOffsetX, -usedHeight + categoryOffsetY)
         usedHeight = usedHeight + categoryFrame:GetHeight() - categoryOffsetY
 
         for detailIndex, detail in pairs(category.Details) do
-            local detailLabel = addonDetail[detail.Name .. "Label"]
-            local detailBody = addonDetail[detail.Name]
+            local detailLabel = addonDetailFrame[detail.Name .. "Label"]
+            local detailBody = addonDetailFrame[detail.Name]
             local detailContent = detailBody:GetText() or ""
             if strlen(detailContent) <= 0 then
                 detailLabel:SetShown(false)
@@ -118,7 +118,7 @@ function Addon:UpdateAddonDetailFramesPosition()
     end
 
     -- 动态高度，方便滚动
-    addonDetail:SetHeight(usedHeight + 20)
+    addonDetailFrame:SetHeight(usedHeight + 20)
 	self:GetAddonDetailScrollBox():FullUpdate();
 	self:GetAddonDetailScrollBox():ScrollToBegin(ScrollBoxConstants.NoScrollInterpolation)
 end
@@ -138,23 +138,23 @@ local function onLoadButtonLeave(self)
 end
 
 function Addon:OnAddonDetailLoaded()
-    local addonDetail = self:GetAddonDetail()
+    local addonDetailFrame = self:GetAddonDetailContainer()
 
     for _, category in pairs(ADDON_DETAILS) do
-        local categoryFrame = addonDetail:CreateFontString(nil, nil, "GameFontNormal")
-        addonDetail[category.Name] = categoryFrame
+        local categoryFrame = addonDetailFrame:CreateFontString(nil, nil, "GameFontNormal")
+        addonDetailFrame[category.Name] = categoryFrame
         categoryFrame:SetText(category.Label)
 
         for _, detail in pairs(category.Details) do
-            local detailLabel = addonDetail:CreateFontString(nil, nil, "ImprovedAddonListLabelFont")
-            addonDetail[detail.Name .. "Label"] = detailLabel
+            local detailLabel = addonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListLabelFont")
+            addonDetailFrame[detail.Name .. "Label"] = detailLabel
             detailLabel:SetText(detail.Label)
 
-            local detailBody = addonDetail:CreateFontString(nil, nil, "ImprovedAddonListBodyFont")
-            addonDetail[detail.Name] = detailBody
+            local detailBody = addonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListBodyFont")
+            addonDetailFrame[detail.Name] = detailBody
             detailBody:SetNonSpaceWrap(true)
             detailBody:SetPoint("TOPLEFT", detailLabel, "TOPRIGHT", 5, 0)
-            detailBody:SetPoint("RIGHT", addonDetail, "RIGHT", -10, 0)
+            detailBody:SetPoint("RIGHT", addonDetailFrame, "RIGHT", -10, 0)
 
             if detail.Color then
                 detailBody:SetTextColor(detail.Color:GetRGB())
@@ -162,16 +162,16 @@ function Addon:OnAddonDetailLoaded()
         end
     end
 
-    local addonDetailContainer = self:GetAddonDetailContainer()
+    local addonDetail = self:GetAddonDetail()
     
     -- 加载按钮
-    local loadButton = CreateDetailButton(addonDetailContainer)
-    addonDetailContainer.LoadButton = loadButton
+    local loadButton = CreateDetailButton(addonDetail)
+    addonDetail.LoadButton = loadButton
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetMotionScriptsWhileDisabled(true)
     loadButton:SetText(L["load_addon"])
-    loadButton:SetPoint("BOTTOMRIGHT", -10, 5)
+    loadButton:SetPoint("BOTTOMRIGHT", 0, 5)
     loadButton:SetSize(88, 22)
 
     self:UpdateAddonDetailFramesPosition()
@@ -216,28 +216,28 @@ end
 
 -- 显示插件详情
 function Addon:ShowAddonDetail(addonInfo)
-    local addonDetail = self:GetAddonDetail()
-    addonDetail.AddonInfo = addonInfo
+    local addonDetailFrame = self:GetAddonDetailContainer()
+    addonDetailFrame.AddonInfo = addonInfo
 
-    addonDetail.Name:SetText(addonInfo.Name)
-    addonDetail.Title:SetText(addonInfo.Title)
-    addonDetail.Remark:SetText(self:GetAddonRemark(addonInfo.Name))
-    addonDetail.Notes:SetText(addonInfo.Notes)
-    addonDetail.Author:SetText(addonInfo.Author)
-    addonDetail.Version:SetText(getAddonVersion(addonInfo.Version))
-    addonDetail.LoadOnDemand:SetText(addonInfo.LoadOnDemand and L["true"] or L["false"])
+    addonDetailFrame.Name:SetText(addonInfo.Name)
+    addonDetailFrame.Title:SetText(addonInfo.Title)
+    addonDetailFrame.Remark:SetText(self:GetAddonRemark(addonInfo.Name))
+    addonDetailFrame.Notes:SetText(addonInfo.Notes)
+    addonDetailFrame.Author:SetText(addonInfo.Author)
+    addonDetailFrame.Version:SetText(getAddonVersion(addonInfo.Version))
+    addonDetailFrame.LoadOnDemand:SetText(addonInfo.LoadOnDemand and L["true"] or L["false"])
 
-    addonDetail.Dependencies:SetText(getAddonDeps(addonInfo.Deps))
-    addonDetail.OptionalDeps:SetText(table.concat(addonInfo.OptionalDeps, "\n"))
+    addonDetailFrame.Dependencies:SetText(getAddonDeps(addonInfo.Deps))
+    addonDetailFrame.OptionalDeps:SetText(table.concat(addonInfo.OptionalDeps, "\n"))
 
-    addonDetail.LoadStatus:SetText(addonInfo.Loaded and L["addon_detail_loaded"] or L["addon_detail_unload"])
-    addonDetail.LoadStatus:SetTextColor(getStatusColor(addonInfo.Loaded):GetRGB())
-    addonDetail.UnloadReason:SetText(addonInfo.UnLoadableReason)
-    addonDetail.EnableStatus:SetText(addonInfo.Enabled and L["addon_detail_enabled"] or L["addon_detail_disabled"])
-    addonDetail.EnableStatus:SetTextColor(getStatusColor(addonInfo.Enabled):GetRGB())
+    addonDetailFrame.LoadStatus:SetText(addonInfo.Loaded and L["addon_detail_loaded"] or L["addon_detail_unload"])
+    addonDetailFrame.LoadStatus:SetTextColor(getStatusColor(addonInfo.Loaded):GetRGB())
+    addonDetailFrame.UnloadReason:SetText(addonInfo.UnLoadableReason)
+    addonDetailFrame.EnableStatus:SetText(addonInfo.Enabled and L["addon_detail_enabled"] or L["addon_detail_disabled"])
+    addonDetailFrame.EnableStatus:SetTextColor(getStatusColor(addonInfo.Enabled):GetRGB())
 
     UpdateAddOnMemoryUsage()
-    addonDetail.MemoryUsage:SetText(formatMemUsage(GetAddOnMemoryUsage(addonInfo.Index)))
+    addonDetailFrame.MemoryUsage:SetText(formatMemUsage(GetAddOnMemoryUsage(addonInfo.Index)))
 
     self:UpdateAddonDetailFramesPosition()
 
