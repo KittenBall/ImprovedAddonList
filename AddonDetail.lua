@@ -1,5 +1,4 @@
 local addonName, Addon = ...
-
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 -- 更新label位置，计算其上面的label和body哪个更高，然后将其锚定至高的那个框体
@@ -137,36 +136,47 @@ end
 local function onLoadButtonLeave(self)
 end
 
-function Addon:OnAddonDetailLoaded()
-    local addonDetailFrame = self:GetAddonDetailContainer()
+function Addon:OnAddonDetailLoad()
+    local AddonDetail = self:GetAddonDetail()
+    -- 滚动框
+    local AddonDetailScrollBox = CreateFrame("Frame", nil, AddonDetail, "WowScrollBox")
+    AddonDetail.ScrollBox = AddonDetailScrollBox
+    AddonDetailScrollBox:SetPoint("TOPLEFT", 5, -7)
+    AddonDetailScrollBox:SetPoint("BOTTOMRIGHT", -5, 40)
+
+    --插件详情框体
+    local AddonDetailFrame = CreateFrame("Frame", nil, AddonDetailScrollBox)
+    AddonDetailScrollBox.Container = AddonDetailFrame
+    AddonDetailFrame.scrollable = true
+    AddonDetailFrame:SetWidth(AddonDetailScrollBox:GetWidth())
+
+    AddonDetailScrollBox:Init(CreateScrollBoxLinearView(1, 1, 1, 1))
 
     for _, category in pairs(ADDON_DETAILS) do
-        local categoryFrame = addonDetailFrame:CreateFontString(nil, nil, "GameFontNormal")
-        addonDetailFrame[category.Name] = categoryFrame
+        local categoryFrame = AddonDetailFrame:CreateFontString(nil, nil, "GameFontNormal")
+        AddonDetailFrame[category.Name] = categoryFrame
         categoryFrame:SetText(category.Label)
 
         for _, detail in pairs(category.Details) do
-            local detailLabel = addonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListLabelFont")
-            addonDetailFrame[detail.Name .. "Label"] = detailLabel
+            local detailLabel = AddonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListLabelFont")
+            AddonDetailFrame[detail.Name .. "Label"] = detailLabel
             detailLabel:SetText(detail.Label)
 
-            local detailBody = addonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListBodyFont")
-            addonDetailFrame[detail.Name] = detailBody
+            local detailBody = AddonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListBodyFont")
+            AddonDetailFrame[detail.Name] = detailBody
             detailBody:SetNonSpaceWrap(true)
             detailBody:SetPoint("TOPLEFT", detailLabel, "TOPRIGHT", 5, 0)
-            detailBody:SetPoint("RIGHT", addonDetailFrame, "RIGHT", -10, 0)
+            detailBody:SetPoint("RIGHT", AddonDetailFrame, "RIGHT", -10, 0)
 
             if detail.Color then
                 detailBody:SetTextColor(detail.Color:GetRGB())
             end
         end
     end
-
-    local addonDetail = self:GetAddonDetail()
     
     -- 加载按钮
-    local loadButton = CreateDetailButton(addonDetail)
-    addonDetail.LoadButton = loadButton
+    local loadButton = CreateDetailButton(AddonDetail)
+    AddonDetail.LoadButton = loadButton
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetMotionScriptsWhileDisabled(true)
@@ -175,6 +185,14 @@ function Addon:OnAddonDetailLoaded()
     loadButton:SetSize(88, 22)
 
     self:UpdateAddonDetailFramesPosition()
+end
+
+function Addon:GetAddonDetailScrollBox()
+    return self:GetAddonDetail().ScrollBox
+end
+
+function Addon:GetAddonDetailContainer()
+    return self:GetAddonDetail().ScrollBox.Container
 end
 
 local function getAddonVersion(version)

@@ -1,4 +1,5 @@
 local addonName, Addon = ...
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 -- 插件列表项函数集
 ImprovedAddonListAddonItemMixin = {}
@@ -61,6 +62,12 @@ function ImprovedAddonListAddonItemMixin:IsSelected()
     return Addon:GetAddonListScrollBox().selectionBehavior:IsElementDataSelected(self:GetElementData())
 end
 
+function Addon:GetOrCreateOptionDropDown()
+    local AddonList = self:GetAddonList()
+    local OptionDropDown = AddonList.OptionDropDown
+    if OptionDropDown then return OptionDropDown end
+end
+
 -- 插件列表节点更新
 local function AddonListTreeNodeUpdater(factory, node)
     local elementData = node:GetData()
@@ -88,8 +95,43 @@ end
 
 -- 插件列表加载
 function Addon:OnAddonListLoad()
-    local addonListScrollBox = self:GetAddonListScrollBox()
-    
+    local AddonList = self:GetAddonList()
+
+    -- 选项
+    local OptionButton = CreateFrame("Button", nil, AddonList, "UIResettableDropdownButtonTemplate")
+    AddonList.OptionButton = OptionButton
+    OptionButton:SetSize(80, 22)
+    OptionButton:SetPoint("TOPRIGHT", -5, -8)
+    OptionButton.Text:SetText(L["options"])
+
+    -- 弹出菜单
+    local OptionDropDown = CreateFrame("Frame", nil, AddonList)
+    AddonList.OptionDropDown = OptionDropDown
+    OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
+    OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
+    OptionDropDown.Backdrop:SetAllPoints()
+
+    -- 创建插件列表搜索框
+    local AddonListSearchBox = CreateFrame("EditBox", nil, AddonList, "SearchBoxTemplate")
+    AddonList.SearchBox = AddonListSearchBox
+    AddonListSearchBox:SetPoint("LEFT", 14, 0)
+    AddonListSearchBox:SetPoint("TOPRIGHT", OptionButton, "TOPLEFT", -5, 0)
+    AddonListSearchBox:SetPoint("BOTTOMRIGHT", OptionButton, "BOTTOMLEFT", -5, 0)
+    AddonListSearchBox:SetHeight(20)
+
+    -- 创建插件列表
+    -- 滚动框
+    local AddonListScrollBox = CreateFrame("Frame", nil, AddonList, "WowScrollBoxList")
+    AddonList.ScrollBox = AddonListScrollBox
+    AddonListScrollBox:SetPoint("TOP", AddonListSearchBox, "BOTTOM", 0, -5)
+    AddonListScrollBox:SetPoint("LEFT", 5, 0)
+    AddonListScrollBox:SetPoint("BOTTOMRIGHT", -20, 7)
+    -- 滚动条
+    local AddonListScrollBar = CreateFrame("EventFrame", nil, AddonList, "MinimalScrollBar")
+    AddonList.ScrollBar =  AddonListScrollBar
+    AddonListScrollBar:SetPoint("TOPLEFT", AddonListScrollBox, "TOPRIGHT")
+    AddonListScrollBar:SetPoint("BOTTOMLEFT", AddonListScrollBox, "BOTTOMRIGHT")
+
     local indent = 10
     local padLeft = 0
     local pad = 5
@@ -97,17 +139,25 @@ function Addon:OnAddonListLoad()
     local addonListTreeView = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing)
 
     --添加选中特性
-    addonListScrollBox.selectionBehavior = ScrollUtil.AddSelectionBehavior(addonListScrollBox)
-    addonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
+    AddonListScrollBox.selectionBehavior = ScrollUtil.AddSelectionBehavior(AddonListScrollBox)
+    AddonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
 
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
-    addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
-    ScrollUtil.InitScrollBoxListWithScrollBar(addonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
+    -- addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
+    ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
     
-    addonListScrollBox:SetDataProvider(self:GetAddonDataProvider())
+    AddonListScrollBox:SetDataProvider(self:GetAddonDataProvider())
 
     -- 默认选中第一个
-    addonListScrollBox.selectionBehavior:SelectElementDataByPredicate(function(node)
+    AddonListScrollBox.selectionBehavior:SelectElementDataByPredicate(function(node)
         return node:GetData().AddonInfo
     end)
+end
+
+function Addon:GetAddonListScrollBox()
+    return self:GetAddonList().ScrollBox
+end
+
+function Addon:GetAddonListScrollBar()
+    return self:GetAddonList().ScrollBar
 end

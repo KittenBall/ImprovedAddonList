@@ -71,6 +71,8 @@ L["instance_type_scenario"] = "场景战役"
 L["true"] = "是"
 L["false"] = "否"
 
+L["options"] = "选项"
+
 L["addon_detail_basic_info"] = "基本信息"
 L["addon_detail_name"] = "名称："
 L["addon_detail_title"] = "标题："
