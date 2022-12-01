@@ -24,14 +24,14 @@ function ImprovedAddonListAddonItemMixin:GetLabelColor()
     local addonInfo = self:GetAddonInfo()
 
     if addonInfo.Loaded then
-        return WHITE_FONT_COLOR
+        return NORMAL_FONT_COLOR
     else
         return DISABLED_FONT_COLOR
     end
 end
 
 function ImprovedAddonListAddonItemMixin:OnEnter()
-    self:SetLabelFontColor(NORMAL_FONT_COLOR) 
+    self:SetLabelFontColor(WHITE_FONT_COLOR) 
 end
 
 function ImprovedAddonListAddonItemMixin:OnLeave()
@@ -41,7 +41,7 @@ end
 function ImprovedAddonListAddonItemMixin:OnClick()
     if self:IsSelected() then return end
 
-    Addon:GetAddonListScrollBox().selectionBehavior:Select(self)
+    Addon:GetAddonListScrollBox().SelectionBehavior:Select(self)
     PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
 end
 
@@ -50,7 +50,7 @@ function ImprovedAddonListAddonItemMixin:SetSelected(selected)
 	self.HighlightOverlay:SetShown(not selected)
 
     if selected then
-        Addon:ShowAddonDetail(self:GetAddonInfo())
+        Addon:ShowAddonDetail(self:GetAddonInfo().Name)
     end
 end
 
@@ -59,7 +59,7 @@ function ImprovedAddonListAddonItemMixin:GetAddonInfo()
 end
 
 function ImprovedAddonListAddonItemMixin:IsSelected()
-    return Addon:GetAddonListScrollBox().selectionBehavior:IsElementDataSelected(self:GetElementData())
+    return Addon:GetAddonListScrollBox().SelectionBehavior:IsElementDataSelected(self:GetElementData())
 end
 
 function Addon:GetOrCreateOptionDropDown()
@@ -139,19 +139,35 @@ function Addon:OnAddonListLoad()
     local addonListTreeView = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing)
 
     --添加选中特性
-    AddonListScrollBox.selectionBehavior = ScrollUtil.AddSelectionBehavior(AddonListScrollBox)
-    AddonListScrollBox.selectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
+    AddonListScrollBox.SelectionBehavior = ScrollUtil.AddSelectionBehavior(AddonListScrollBox)
+    AddonListScrollBox.SelectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
 
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
     -- addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
     
-    AddonListScrollBox:SetDataProvider(self:GetAddonDataProvider())
+    self:RefreshAddonList()
+end
 
-    -- 默认选中第一个
-    AddonListScrollBox.selectionBehavior:SelectElementDataByPredicate(function(node)
-        return node:GetData().AddonInfo
-    end)
+-- 刷新插件列表
+function Addon:RefreshAddonList()
+    local currentFocusAddonName = self:CurrentFocusAddonName()
+
+    self:UpdateAddonInfos()
+    self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(), ScrollBoxConstants.RetainScrollPosition)
+
+    local predicate = function(node)
+        local addonInfo = node:GetData().AddonInfo
+        if currentFocusAddonName then
+            -- 之前有选中插件，则刷新后再次选中
+            return addonInfo and addonInfo.Name == currentFocusAddonName
+        else
+            -- 否则默认选中第一个
+            return addonInfo
+        end
+    end
+
+    self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(predicate)
 end
 
 function Addon:GetAddonListScrollBox()

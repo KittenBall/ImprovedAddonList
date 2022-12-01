@@ -76,6 +76,17 @@ local function GetEnvInfo()
     return format("%s.%d(%s) on %s %s\nBuild in %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)
 end
 
+local function OnEnableExpiredAddonsButtonCheckedChange(self)
+    if self:GetChecked() then
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+        SetAddonVersionCheck(false);
+    else
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+        SetAddonVersionCheck(true);
+    end
+    Addon:RefreshAddonList()
+end
+
 -- UI函数
 function Addon:GetOrCreateUI()
     local UI = self.UI
@@ -86,7 +97,7 @@ function Addon:GetOrCreateUI()
     self.UI = UI
 
     -- 基本样式
-    UI:SetSize(650, 600)
+    UI:SetSize(630, 600)
     UI:ClearAllPoints()
     UI:SetPoint("CENTER")
     UI:SetTitle(ADDON_LIST)
@@ -118,6 +129,16 @@ function Addon:GetOrCreateUI()
         self:StopMovingOrSizing()
     end)
 
+    -- 启用过期插件按钮
+    local EnableExpiredAddonsButton = CreateFrame("CheckButton", nil, UI, "UICheckButtonTemplate")
+    UI.EnableExpiredAddonsButton = EnableExpiredAddonsButton
+    EnableExpiredAddonsButton:SetSize(26, 26)
+    EnableExpiredAddonsButton.text:SetFontObject(GameFontWhite)
+    EnableExpiredAddonsButton.text:SetText(ADDON_FORCE_LOAD)
+    EnableExpiredAddonsButton:SetChecked(not IsAddonVersionCheckEnabled())
+    EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -(EnableExpiredAddonsButton.text:GetStringWidth() + 20), -30)
+    EnableExpiredAddonsButton:SetScript("OnClick", OnEnableExpiredAddonsButtonCheckedChange)
+
     -- 游戏Build信息
     local BuildInfo = UI:CreateFontString(nil, nil, "GameFontDisableTiny")
     UI.BuildInfo = BuildInfo
@@ -130,7 +151,7 @@ function Addon:GetOrCreateUI()
     UI.AddonList = AddonList
     AddonList:SetWidth(300)
     AddonList:SetPoint("BOTTOMLEFT", 10, 40)
-    AddonList:SetPoint("TOPLEFT", 10, -40)
+    AddonList:SetPoint("TOPLEFT", 10, -60)
 
     -- 创建插件详情页
     local AddonDetail = self:CreateContainer()

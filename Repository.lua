@@ -1,5 +1,18 @@
 local AddonName, Addon = ...
 
+-- 插件初始启用状态
+local AddonInfoInitialStates = {}
+for i = 1, GetNumAddOns() do
+    local name, title, notes, loadable, reason, security = GetAddOnInfo(i)
+    local enabled = GetAddOnEnableState(UnitName("player"), i) > 0
+    AddonInfoInitialStates[name] = { Enabled = enabled, Expired = (reason == "INTERFACE_VERSION") }
+end
+
+-- 更新插件初始启用状态
+function Addon:UpdateAddonInitialEnableState(addonName, enabled)
+    AddonInfoInitialStates[addonName].Enabled = enabled
+end
+
 -- 插件是否被收藏
 function Addon:IsAddonFavoirte(name)
     if type(name) ~= "string" then return end
@@ -42,8 +55,12 @@ function Addon:GetAddonInfoOrNil(query)
     addonInfo.LoadOnDemand = IsAddOnLoadOnDemand(query)
     -- 是否启用
     addonInfo.Enabled = GetAddOnEnableState(UnitName("player"), query) > 0
+    -- 初始启用状态
+    addonInfo.InitialEnabled = AddonInfoInitialStates[name].Enabled
+    -- 初始过期状态
+    addonInfo.InitialExpired = AddonInfoInitialStates[name].Expired
     -- 不可加载原因
-    addonInfo.UnLoadableReason = not loadable and reason and _G["ADDON_" .. reason] or ""
+    addonInfo.UnloadableReason = not loadable and reason and _G["ADDON_" .. reason] or ""
     -- 可能值：不安全，安全，非法
     addonInfo.Security = security
     -- 插件依赖
@@ -154,6 +171,7 @@ function Addon:UpdateAddonInfos(query)
     end
 end
 
+-- 获取所有插件信息
 function Addon:GetAddonInfos()
     return self.AddonInfos
 end
@@ -168,6 +186,21 @@ function Addon:GetAddonDataProvider()
     end
 
     return dataProvider
+end
+
+-- 插件是否可以按需加载
+function Addon:CanAddonLoadOnDemand(query)
+    local addonInfo = self:GetAddonInfo(query)
+    
+    if not addonInfo.Enabled or not addonInfo.LoadOnDemand or addonInfo.Loaded then return false end
+
+    for _, dep in pairs(addonInfo.Deps) do
+        if dep and not IsAddOnLoaded(dep) then
+            return false
+        end
+    end
+
+    return true
 end
 
 -- 插件排序

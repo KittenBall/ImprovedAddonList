@@ -21,7 +21,7 @@ end
 local function OnInitialize()
     presetSaved()
 
-    -- 刷新插件信息，大部分情况下，获取这一次就足够了
+    --刷新插件信息
     Addon:UpdateAddonInfos()
 end
 

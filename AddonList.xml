@@ -9,7 +9,7 @@
 				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT">
 					<Size y="12"/>
 					<Anchors>
-						<Anchor point="LEFT" x="4"/>
+						<Anchor point="LEFT" x="4" y="0"/>
 					</Anchors>
 				</FontString>
 			</Layer>

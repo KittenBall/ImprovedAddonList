@@ -1,4 +1,4 @@
-## Interface: 100000
+## Interface: 100002
 ## Interface-Classic: 11400
 ## Interface-BCC: 20504
 ## Author: 绿毛龟12138

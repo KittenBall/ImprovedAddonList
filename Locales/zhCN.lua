@@ -97,6 +97,5 @@ L["addon_detail_disabled"] = "未启用"
 L["addon_detail_version_debug"] = "调试版本"
 
 L["load_addon"] = "加载此插件"
-L["load_addon_unnecessary"] = "插件已加载"
-L["load_addon_not_allowed_reason_not_on_demand"] = "此插件非按需加载，你可以先启用它并重载界面来加载此插件。"
-L["load_addon_not_allowed_reason_dep_not_load"] = "此插件的依赖插件尚未加载"
+L["enable_addon"] = "启用插件"
+L["disable_addon"] = "禁用插件"

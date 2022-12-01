@@ -131,9 +131,35 @@ local function CreateDetailButton(container)
 end
 
 local function onLoadButtonEnter(self)
+    if self.tooltipText then
+        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
+        GameTooltip:SetOwner(self)
+        GameTooltip:Show()
+    end
 end
 
 local function onLoadButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+local function OnLoadButtonClick(self)
+    local addonInfo = Addon:CurrentFocusAddonInfo()
+    -- 加载按需加载的插件并修改其初始状态
+    LoadAddOn(addonInfo.Name)
+    if IsAddOnLoaded(addonInfo.Name) then
+        Addon:UpdateAddonInitialEnableState(addonInfo.Name, true)
+    end
+    Addon:RefreshAddonList()
+end
+
+local function onEnableButtonClick(self)
+    local addonInfo = Addon:CurrentFocusAddonInfo()
+    if addonInfo.Enabled then
+        DisableAddOn(addonInfo.Name)
+    else
+        EnableAddOn(addonInfo.Name)
+    end
+    Addon:RefreshAddonList()
 end
 
 function Addon:OnAddonDetailLoad()
@@ -173,15 +199,23 @@ function Addon:OnAddonDetailLoad()
             end
         end
     end
+
+    -- 启用按钮
+    local enableButton = CreateDetailButton(AddonDetail)
+    AddonDetail.EnableButton = enableButton
+    enableButton:SetScript("OnClick", onEnableButtonClick)
+    enableButton:SetPoint("BOTTOMRIGHT", 0, 5)
+    enableButton:SetSize(88, 22)
     
     -- 加载按钮
     local loadButton = CreateDetailButton(AddonDetail)
     AddonDetail.LoadButton = loadButton
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
+    loadButton:SetScript("OnClick", OnLoadButtonClick)
     loadButton:SetMotionScriptsWhileDisabled(true)
     loadButton:SetText(L["load_addon"])
-    loadButton:SetPoint("BOTTOMRIGHT", 0, 5)
+    loadButton:SetPoint("RIGHT", enableButton, "LEFT", 0, 0)
     loadButton:SetSize(88, 22)
 
     self:UpdateAddonDetailFramesPosition()
@@ -213,6 +247,14 @@ local function getStatusColor(loaded)
     end
 end
 
+local function GetEnableButtonColor(enabled)
+    if enabled then
+        return RED_FONT_COLOR
+    else
+        return NORMAL_FONT_COLOR        
+    end
+end
+
 local function formatMemUsage(size)
     if size <= 0 then
         return ""
@@ -233,9 +275,10 @@ local function getAddonDeps(deps)
 end
 
 -- 显示插件详情
-function Addon:ShowAddonDetail(addonInfo)
+function Addon:ShowAddonDetail(addonName)
     local addonDetailFrame = self:GetAddonDetailContainer()
-    addonDetailFrame.AddonInfo = addonInfo
+    local addonInfo = self:GetAddonInfoByName(addonName)
+    self.FocusAddonInfo = addonInfo
 
     addonDetailFrame.Name:SetText(addonInfo.Name)
     addonDetailFrame.Title:SetText(addonInfo.Title)
@@ -250,7 +293,8 @@ function Addon:ShowAddonDetail(addonInfo)
 
     addonDetailFrame.LoadStatus:SetText(addonInfo.Loaded and L["addon_detail_loaded"] or L["addon_detail_unload"])
     addonDetailFrame.LoadStatus:SetTextColor(getStatusColor(addonInfo.Loaded):GetRGB())
-    addonDetailFrame.UnloadReason:SetText(addonInfo.UnLoadableReason)
+    addonDetailFrame.UnloadReason:SetShown(not addonInfo.Loaded)
+    addonDetailFrame.UnloadReason:SetText(addonInfo.UnloadableReason)
     addonDetailFrame.EnableStatus:SetText(addonInfo.Enabled and L["addon_detail_enabled"] or L["addon_detail_disabled"])
     addonDetailFrame.EnableStatus:SetTextColor(getStatusColor(addonInfo.Enabled):GetRGB())
 
@@ -259,18 +303,20 @@ function Addon:ShowAddonDetail(addonInfo)
 
     self:UpdateAddonDetailFramesPosition()
 
-    -- local addonDetailContainer = self:GetAddonDetailContainer()
+    
+    local addonDetail = self:GetAddonDetail()
+    
+    local enableButton = addonDetail.EnableButton
+    enableButton:SetText(WrapTextInColor(addonInfo.Enabled and L["disable_addon"] or L["enable_addon"], GetEnableButtonColor(addonInfo.Enabled)))
+    
+    addonDetail.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
+end
 
-    -- @todo 加载按钮启用条件
-    -- local loadButton = addonDetailContainer.LoadButton
-    -- if addonInfo.Loaded then
-    --     loadButton.tooltipText = L["load_addon_unnecessary"]
-    --     loadButton:SetEnabled(false)
-    -- else
-    --     if addonInfo.LoadOnDemand then
-    --     else
-    --         loadButton.tooltipText = L["load_addon_not_allowed_reason_not_on_demand"]
-    --         loadButton:SetEnabled(false)
-    --     end
-    -- end
+-- 当前聚焦的插件
+function Addon:CurrentFocusAddonName()
+    return self.FocusAddonInfo and self.FocusAddonInfo.Name
+end
+
+function Addon:CurrentFocusAddonInfo()
+    return self.FocusAddonInfo
 end
