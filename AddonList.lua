@@ -48,10 +48,6 @@ end
 function ImprovedAddonListAddonItemMixin:SetSelected(selected)
 	self.SelectedOverlay:SetShown(selected)
 	self.HighlightOverlay:SetShown(not selected)
-
-    if selected then
-        Addon:ShowAddonDetail(self:GetAddonInfo().Name)
-    end
 end
 
 function ImprovedAddonListAddonItemMixin:GetAddonInfo()
@@ -60,12 +56,6 @@ end
 
 function ImprovedAddonListAddonItemMixin:IsSelected()
     return Addon:GetAddonListScrollBox().SelectionBehavior:IsElementDataSelected(self:GetElementData())
-end
-
-function Addon:GetOrCreateOptionDropDown()
-    local AddonList = self:GetAddonList()
-    local OptionDropDown = AddonList.OptionDropDown
-    if OptionDropDown then return OptionDropDown end
 end
 
 -- 插件列表节点更新
@@ -82,8 +72,15 @@ end
 -- 选中变化
 local function AddonListNodeOnSelectionChanged(_, elementData, selected)
     local button = Addon:GetAddonListScrollBox():FindFrame(elementData)
+    
     if button then
         button:SetSelected(selected)
+    end
+
+    -- 显示插件详情
+    local addonInfo = elementData:GetData().AddonInfo
+    if addonInfo and selected then
+        Addon:ShowAddonDetail(addonInfo.Name)
     end
 end
 
@@ -93,30 +90,78 @@ local function ElementExtentCalculator(index, node)
     return 30
 end
 
+local function onEnableAllButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["enable_all_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function onEnableAllButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+local function onEnableAllButtonClick(self)
+    Addon:EnableAllAddons()
+    Addon:RefreshAddonList()
+end
+
+local function onDisableAllButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["disable_all_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function onDisableAllButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+local function onDisableAllButtonClick(self)
+    Addon:DisableAllAddons()
+    Addon:RefreshAddonList()
+end
+
 -- 插件列表加载
 function Addon:OnAddonListLoad()
     local AddonList = self:GetAddonList()
 
     -- 选项
-    local OptionButton = CreateFrame("Button", nil, AddonList, "UIResettableDropdownButtonTemplate")
-    AddonList.OptionButton = OptionButton
-    OptionButton:SetSize(80, 22)
-    OptionButton:SetPoint("TOPRIGHT", -5, -8)
-    OptionButton.Text:SetText(L["options"])
-
+    -- local OptionButton = CreateFrame("Button", nil, AddonList, "UIResettableDropdownButtonTemplate")
+    -- AddonList.OptionButton = OptionButton
+    -- OptionButton:SetSize(80, 22)
+    -- OptionButton:SetPoint("TOPRIGHT", -5, -8)
+    -- OptionButton.Text:SetText(L["options"])
+    
     -- 弹出菜单
-    local OptionDropDown = CreateFrame("Frame", nil, AddonList)
-    AddonList.OptionDropDown = OptionDropDown
-    OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
-    OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
-    OptionDropDown.Backdrop:SetAllPoints()
+    -- local OptionDropDown = CreateFrame("Frame", nil, AddonList)
+    -- AddonList.OptionDropDown = OptionDropDown
+    -- OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
+    -- OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
+    -- OptionDropDown.Backdrop:SetAllPoints()
+
+    -- 启用全部按钮
+    local EnableAllButton = CreateFrame("Button", nil, AddonList)
+    AddonList.EnableAllButton = EnableAllButton
+    EnableAllButton:SetSize(16, 16)
+    EnableAllButton:SetPoint("TOPRIGHT", -8, -8)
+    EnableAllButton:SetScript("OnEnter", onEnableAllButtonEnter)
+    EnableAllButton:SetScript("OnLeave", onEnableAllButtonLeave)
+    EnableAllButton:SetScript("OnClick", onEnableAllButtonClick)
+
+    -- 禁用全部按钮
+    local DisableAllButton = CreateFrame("Button", nil, AddonList)
+    AddonList.DisableAllButton = DisableAllButton
+    DisableAllButton:SetSize(16, 16)
+    DisableAllButton:SetPoint("RIGHT", EnableAllButton, "LEFT", -4, 0)
+    DisableAllButton:SetScript("OnEnter", onDisableAllButtonEnter)
+    DisableAllButton:SetScript("OnLeave", onDisableAllButtonLeave)
+    DisableAllButton:SetScript("OnClick", onDisableAllButtonClick)
 
     -- 创建插件列表搜索框
     local AddonListSearchBox = CreateFrame("EditBox", nil, AddonList, "SearchBoxTemplate")
     AddonList.SearchBox = AddonListSearchBox
     AddonListSearchBox:SetPoint("LEFT", 14, 0)
-    AddonListSearchBox:SetPoint("TOPRIGHT", OptionButton, "TOPLEFT", -5, 0)
-    AddonListSearchBox:SetPoint("BOTTOMRIGHT", OptionButton, "BOTTOMLEFT", -5, 0)
+    AddonListSearchBox:SetPoint("TOPRIGHT", DisableAllButton, "TOPLEFT", -5, 0)
+    AddonListSearchBox:SetPoint("BOTTOMRIGHT", DisableAllButton, "BOTTOMLEFT", -5, 0)
     AddonListSearchBox:SetHeight(20)
 
     -- 创建插件列表
@@ -143,10 +188,31 @@ function Addon:OnAddonListLoad()
     AddonListScrollBox.SelectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonListNodeOnSelectionChanged)
 
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
-    -- addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
+    addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
     
     self:RefreshAddonList()
+end
+
+-- 刷新插件列表选项按钮的状态
+function Addon:RefreshAddonListOptionButtonsStatus()
+    local AddonList = self:GetAddonList()
+    
+    -- 更新启用全部按钮
+    local EnableAllButton = AddonList.EnableAllButton
+    local isAllAddonsEnabled = self:IsAllAddonsEnabled()
+    local enableAllTexture = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all" )
+    EnableAllButton:SetNormalTexture(enableAllTexture)
+    EnableAllButton:SetHighlightTexture(enableAllTexture)
+    EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
+    
+    -- 更新禁用全部按钮
+    local DisableAllButton = AddonList.DisableAllButton
+    local isAllAddonsDisabled = self:IsAllAddonsDisabled()
+    local disableAllTexture = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all" )
+    DisableAllButton:SetNormalTexture(disableAllTexture)
+    DisableAllButton:SetHighlightTexture(disableAllTexture)
+    DisableAllButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
 -- 刷新插件列表
@@ -168,6 +234,9 @@ function Addon:RefreshAddonList()
     end
 
     self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(predicate)
+
+    -- 刷新按钮状态
+    self:RefreshAddonListOptionButtonsStatus()
 end
 
 function Addon:GetAddonListScrollBox()

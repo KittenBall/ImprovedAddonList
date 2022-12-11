@@ -118,15 +118,15 @@ function Addon:GetOrCreateUI()
 
     -- 拖动
     UI:SetMovable(true)
-    UI:EnableMouse(true)
-    UI:RegisterForDrag("LeftButton")
+    UI.TitleContainer:EnableMouse(true)
+    UI.TitleContainer:RegisterForDrag("LeftButton")
     UI:SetClampedToScreen(true)
-    UI:SetScript("OnDragStart", function(self)
-        self:StartMoving()
-        self:SetUserPlaced(false)
+    UI.TitleContainer:SetScript("OnDragStart", function(self)
+        self:GetParent():StartMoving()
+        self:GetParent():SetUserPlaced(false)
     end)
-    UI:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
+    UI.TitleContainer:SetScript("OnDragStop", function(self)
+        self:GetParent():StopMovingOrSizing()
     end)
 
     -- 启用过期插件按钮
@@ -170,6 +170,11 @@ end
 function Addon:ShowUI()
     self:HideUIPanel(GameMenuFrame)
     self:GetOrCreateUI():Show()
+end
+
+-- 显示编辑窗口
+function Addon:ShowEditDialog()
+    -- @todo
 end
 
 function Addon:GetAddonList()

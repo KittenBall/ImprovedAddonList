@@ -72,6 +72,8 @@ L["true"] = "是"
 L["false"] = "否"
 
 L["options"] = "选项"
+L["enable_all_tips"] = "启用所有插件"
+L["disable_all_tips"] = "禁用所有插件"
 
 L["addon_detail_basic_info"] = "基本信息"
 L["addon_detail_name"] = "名称："
@@ -99,3 +101,4 @@ L["addon_detail_version_debug"] = "调试版本"
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"
 L["disable_addon"] = "禁用插件"
+L["edit_remark"] = "编辑备注"

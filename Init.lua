@@ -3,7 +3,7 @@ local AddonName, Addon = ...
 local function presetSaved()
     ImprovedAddonListSaved = ImprovedAddonListSaved or {}
     -- 插件偏好
-    ImprovedAddonListSaved.FavoirteAddons = ImprovedAddonListSaved.FavoirteAddons or {}
+    ImprovedAddonListSaved.FavoriteAddons = ImprovedAddonListSaved.FavoriteAddons or {}
     -- 插件分组
     ImprovedAddonListSaved.AddonCategories = ImprovedAddonListSaved.AddonCategories or {}
     -- 插件备注

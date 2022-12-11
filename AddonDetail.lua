@@ -132,8 +132,8 @@ end
 
 local function onLoadButtonEnter(self)
     if self.tooltipText then
-        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
         GameTooltip:SetOwner(self)
+        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
         GameTooltip:Show()
     end
 end
@@ -160,6 +160,43 @@ local function onEnableButtonClick(self)
         EnableAddOn(addonInfo.Name)
     end
     Addon:RefreshAddonList()
+end
+
+local function onFavoriteButtonEnter(self)
+    if self.tooltipText then
+        GameTooltip:SetOwner(self)
+        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
+        GameTooltip:Show()
+    end
+end
+
+local function onFavoriteButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+local function onFavoriteButtonClick(self)
+    local addonInfo = Addon:CurrentFocusAddonInfo()
+    Addon:SetAddonFavorite(addonInfo.Name, not addonInfo.IsFavorite)
+    PlaySound(SOUNDKIT.UI_PROFESSION_TRACK_RECIPE_CHECKBOX)
+    Addon:RefreshAddonList()
+
+    if GameTooltip:IsOwned(self) then
+        onFavoriteButtonEnter(self)
+    end
+end
+
+local function onRemarkButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["edit_remark"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function onRemarkButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+local function onRemarkButtonClick(self)
+    -- @todo
 end
 
 function Addon:OnAddonDetailLoad()
@@ -200,6 +237,27 @@ function Addon:OnAddonDetailLoad()
         end
     end
 
+    -- 收藏按钮
+    local favoriteButton = CreateDetailButton(AddonDetailFrame)
+    AddonDetail.FavoriteButton = favoriteButton
+    favoriteButton:SetScript("OnEnter", onFavoriteButtonEnter)
+    favoriteButton:SetScript("OnLeave", onFavoriteButtonLeave)
+    favoriteButton:SetScript("OnClick", onFavoriteButtonClick)
+    favoriteButton:SetSize(16, 16)
+    favoriteButton:SetPoint("TOPRIGHT", -10, -10)
+
+    -- 备注按钮
+    local remarkButton = CreateDetailButton(AddonDetailFrame)
+    AddonDetail.RemarkButton = remarkButton
+    remarkButton:SetScript("OnEnter", onRemarkButtonEnter)
+    remarkButton:SetScript("OnLeave", onRemarkButtonLeave)
+    remarkButton:SetScript("OnClick", onRemarkButtonClick)
+    remarkButton:SetNormalTexture("Interface\\Addons\\ImprovedAddonList\\Media\\remark")
+    remarkButton:SetHighlightTexture("Interface\\Addons\\ImprovedAddonList\\Media\\remark")
+    remarkButton:GetHighlightTexture():SetAlpha(0.2)
+    remarkButton:SetSize(16, 16)
+    remarkButton:SetPoint("RIGHT", favoriteButton, "LEFT", -4, 0)
+
     -- 启用按钮
     local enableButton = CreateDetailButton(AddonDetail)
     AddonDetail.EnableButton = enableButton
@@ -213,7 +271,6 @@ function Addon:OnAddonDetailLoad()
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetScript("OnClick", OnLoadButtonClick)
-    loadButton:SetMotionScriptsWhileDisabled(true)
     loadButton:SetText(L["load_addon"])
     loadButton:SetPoint("RIGHT", enableButton, "LEFT", 0, 0)
     loadButton:SetSize(88, 22)
@@ -274,6 +331,14 @@ local function getAddonDeps(deps)
     end
 end
 
+local function syncFavoriteStatus(button, isFavorite)
+    local tex = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isFavorite and "favorite" or "unfavorite")
+    button:SetNormalTexture(tex)
+    button:SetHighlightTexture(tex, "ADD")
+    button:GetHighlightTexture():SetAlpha(0.2)
+    button.tooltipText = isFavorite and BATTLE_PET_UNFAVORITE or BATTLE_PET_FAVORITE
+end
+
 -- 显示插件详情
 function Addon:ShowAddonDetail(addonName)
     local addonDetailFrame = self:GetAddonDetailContainer()
@@ -282,7 +347,7 @@ function Addon:ShowAddonDetail(addonName)
 
     addonDetailFrame.Name:SetText(addonInfo.Name)
     addonDetailFrame.Title:SetText(addonInfo.Title)
-    addonDetailFrame.Remark:SetText(self:GetAddonRemark(addonInfo.Name))
+    addonDetailFrame.Remark:SetText(addonInfo.Remark)
     addonDetailFrame.Notes:SetText(addonInfo.Notes)
     addonDetailFrame.Author:SetText(addonInfo.Author)
     addonDetailFrame.Version:SetText(getAddonVersion(addonInfo.Version))
@@ -302,14 +367,21 @@ function Addon:ShowAddonDetail(addonName)
     addonDetailFrame.MemoryUsage:SetText(formatMemUsage(GetAddOnMemoryUsage(addonInfo.Index)))
 
     self:UpdateAddonDetailFramesPosition()
-
     
     local addonDetail = self:GetAddonDetail()
     
+    -- 启用/禁用按钮
     local enableButton = addonDetail.EnableButton
-    enableButton:SetText(WrapTextInColor(addonInfo.Enabled and L["disable_addon"] or L["enable_addon"], GetEnableButtonColor(addonInfo.Enabled)))
-    
+    if self:IsAddonShouldEnableAlways(addonInfo.Name) then
+        enableButton:Hide()
+    else
+        enableButton:Show()
+        enableButton:SetText(WrapTextInColor(addonInfo.Enabled and L["disable_addon"] or L["enable_addon"], GetEnableButtonColor(addonInfo.Enabled)))
+    end
+    -- 加载按钮
     addonDetail.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
+    -- 收藏按钮
+    syncFavoriteStatus(addonDetail.FavoriteButton, addonInfo.IsFavorite)
 end
 
 -- 当前聚焦的插件

@@ -13,16 +13,36 @@ function Addon:UpdateAddonInitialEnableState(addonName, enabled)
     AddonInfoInitialStates[addonName].Enabled = enabled
 end
 
+-- 应当一直被启用的插件，默认只有此插件
+local ShouldAlwaysEnabledAddons = {
+    [AddonName] = true
+}
+-- 插件是否应当被一直启用
+function Addon:IsAddonShouldEnableAlways(addonName)
+    return ShouldAlwaysEnabledAddons[addonName]
+end
+
 -- 插件是否被收藏
-function Addon:IsAddonFavoirte(name)
+function Addon:IsAddonFavorite(name)
     if type(name) ~= "string" then return end
-    return self.Saved.FavoirteAddons[name]
+    return self.Saved.FavoriteAddons[name]
+end
+
+-- 设置插件收藏状态
+function Addon:SetAddonFavorite(name, favorite)
+    self.Saved.FavoriteAddons[name] = favorite
 end
 
 -- 插件备注
 function Addon:GetAddonRemark(name)
     if type(name) ~= "string" then return end
     return self.Saved.AddonRemarks[name]
+end
+
+-- 设置插件备注
+function Addon:SetAddonRemark(name, remark)
+    if type(name) ~= "string" then return end
+    self.Saved.AddonRemarks[name] = remark
 end
 
 -- 获取插件信息，返回值可能为nil
@@ -67,6 +87,10 @@ function Addon:GetAddonInfoOrNil(query)
     addonInfo.Deps = { GetAddOnDependencies(query) }
     -- 可选依赖
     addonInfo.OptionalDeps = { GetAddOnOptionalDependencies(query) }
+    -- 备注
+    addonInfo.Remark = self:GetAddonRemark(name)
+    -- 是否收藏
+    addonInfo.IsFavorite = self:IsAddonFavorite(name)
 
     return addonInfo
 end
@@ -159,15 +183,24 @@ function Addon:UpdateAddonInfos(query)
         if self.AddonInfos then wipe(self.AddonInfos) end
         
         local addonLoaded = 0
+        local addonEnabled = 0
         for i = 1, GetNumAddOns() do
             local addonInfo = self:UpdateAddonInfoByIndex(i)
-            if addonInfo and addonInfo.Loaded then
-                addonLoaded = addonLoaded + 1
+            if addonInfo then
+                if addonInfo.Loaded then
+                    addonLoaded = addonLoaded + 1
+                end
+
+                if addonInfo.Enabled then
+                    addonEnabled = addonEnabled + 1
+                end
             end
         end
 
         -- 已加载数量
         self.AddonInfos.LoadedNumber = addonLoaded
+        -- 已启用数量
+        self.AddonInfos.EnabledNumber = addonEnabled
     end
 end
 
@@ -196,6 +229,47 @@ function Addon:CanAddonLoadOnDemand(query)
 
     for _, dep in pairs(addonInfo.Deps) do
         if dep and not IsAddOnLoaded(dep) then
+            return false
+        end
+    end
+
+    return true
+end
+
+-- 启用所有插件
+function Addon:EnableAllAddons()
+    EnableAllAddOns()
+end
+
+-- 禁用所有插件
+function Addon:DisableAllAddons()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if self:IsAddonShouldEnableAlways(addonInfo.Name) then
+            EnableAddOn(addonInfo.Name)
+        else
+            DisableAddOn(addonInfo.Name)
+        end
+    end
+end
+
+-- 所有插件是否都已启用
+function Addon:IsAllAddonsEnabled()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if not addonInfo.Enabled then
+            return false
+        end
+    end
+
+    return true
+end
+
+-- 所有插件是否都已禁用
+function Addon:IsAllAddonsDisabled()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if not self:IsAddonShouldEnableAlways(addonInfo.Name) and addonInfo.Enabled then
             return false
         end
     end
