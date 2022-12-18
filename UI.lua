@@ -139,6 +139,15 @@ function Addon:GetOrCreateUI()
     EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -(EnableExpiredAddonsButton.text:GetStringWidth() + 20), -30)
     EnableExpiredAddonsButton:SetScript("OnClick", OnEnableExpiredAddonsButtonCheckedChange)
 
+    -- 重载界面按钮
+    local ReloadUIButton = CreateFrame("Button", nil, UI, "SharedButtonSmallTemplate")
+    UI.ReloadUIButton = ReloadUIButton
+    ReloadUIButton:SetSize(120, 22)
+    ReloadUIButton:SetText(RELOADUI)
+    ReloadUIButton:SetPoint("BOTTOMRIGHT", -10, 10)
+    -- 点击重载界面
+    ReloadUIButton:SetScript("OnClick", function() ReloadUI() end)
+
     -- 游戏Build信息
     local BuildInfo = UI:CreateFontString(nil, nil, "GameFontDisableTiny")
     UI.BuildInfo = BuildInfo
