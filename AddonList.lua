@@ -11,7 +11,7 @@ end
 function ImprovedAddonListAddonItemMixin:Update()
     local addonInfo = self:GetAddonInfo()
 
-    self.Label:SetText(addonInfo.Title)
+    self.Label:SetText(addonInfo.Title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
     self:SetLabelFontColor(self:GetLabelColor())
     self:SetSelected(self:IsSelected())
 end
@@ -101,6 +101,8 @@ local function onEnableAllButtonLeave(self)
 end
 
 local function onEnableAllButtonClick(self)
+    if Addon:IsAllAddonsEnabled() then return end
+
     Addon:EnableAllAddons()
     Addon:RefreshAddonList()
 end
@@ -116,6 +118,8 @@ local function onDisableAllButtonLeave(self)
 end
 
 local function onDisableAllButtonClick(self)
+    if Addon:IsAllAddonsDisabled() then return end
+
     Addon:DisableAllAddons()
     Addon:RefreshAddonList()
 end
@@ -190,7 +194,7 @@ function Addon:OnAddonListLoad()
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
-    
+
     self:RefreshAddonList()
 end
 
@@ -217,11 +221,10 @@ end
 
 -- 刷新插件列表
 function Addon:RefreshAddonList()
-    local currentFocusAddonName = self:CurrentFocusAddonName()
-
     self:UpdateAddonInfos()
     self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(), ScrollBoxConstants.RetainScrollPosition)
 
+    local currentFocusAddonName = self:CurrentFocusAddonName()
     local predicate = function(node)
         local addonInfo = node:GetData().AddonInfo
         if currentFocusAddonName then
@@ -236,6 +239,20 @@ function Addon:RefreshAddonList()
     self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(predicate)
 
     -- 刷新按钮状态
+    self:RefreshAddonListOptionButtonsStatus()
+end
+
+-- 刷新插件信息
+function Addon:RefreshAddonInfo(addonName)
+    self:UpdateAddonInfoByName(addonName)
+
+    local predicate = function(frame, node)
+        local addonInfo = node:GetData().AddonInfo
+        return addonInfo and addonInfo.Name == addonName
+    end
+
+    self:GetAddonListScrollBox():FindFrameByPredicate(predicate):Update()
+    self:RefreshAddonDetail()
     self:RefreshAddonListOptionButtonsStatus()
 end
 

@@ -149,7 +149,7 @@ local function OnLoadButtonClick(self)
     if IsAddOnLoaded(addonInfo.Name) then
         Addon:UpdateAddonInitialEnableState(addonInfo.Name, true)
     end
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonInfo(addonInfo.Name)
 end
 
 local function onEnableButtonClick(self)
@@ -159,7 +159,7 @@ local function onEnableButtonClick(self)
     else
         EnableAddOn(addonInfo.Name)
     end
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonInfo(addonInfo.Name)
 end
 
 local function onFavoriteButtonEnter(self)
@@ -178,7 +178,7 @@ local function onFavoriteButtonClick(self)
     local addonInfo = Addon:CurrentFocusAddonInfo()
     Addon:SetAddonFavorite(addonInfo.Name, not addonInfo.IsFavorite)
     PlaySound(SOUNDKIT.UI_PROFESSION_TRACK_RECIPE_CHECKBOX)
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonInfo(addonInfo.Name)
 
     if GameTooltip:IsOwned(self) then
         onFavoriteButtonEnter(self)
@@ -337,6 +337,11 @@ local function syncFavoriteStatus(button, isFavorite)
     button:SetHighlightTexture(tex, "ADD")
     button:GetHighlightTexture():SetAlpha(0.2)
     button.tooltipText = isFavorite and BATTLE_PET_UNFAVORITE or BATTLE_PET_FAVORITE
+end
+
+-- 刷新插件详情
+function Addon:RefreshAddonDetail()
+    self:ShowAddonDetail(self:CurrentFocusAddonName())
 end
 
 -- 显示插件详情

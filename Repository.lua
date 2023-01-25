@@ -1,5 +1,7 @@
 local AddonName, Addon = ...
 
+Addon.AddonInfos = {}
+
 -- 插件初始启用状态
 local AddonInfoInitialStates = {}
 for i = 1, GetNumAddOns() do
@@ -47,7 +49,7 @@ end
 
 -- 获取插件信息，返回值可能为nil
 -- query:要么为index:与GetNumAddOns对应的插件位置；要么为name：插件名
-function Addon:GetAddonInfoOrNil(query)
+function Addon:GetAddonInfoOrNil(query, addonInfo)
     if not query then return end
     if type(query) ~= "string" and type(query) ~= "number" then return end
 
@@ -55,18 +57,19 @@ function Addon:GetAddonInfoOrNil(query)
     if reason == "MISSING" then
         return
     end
-    
-    local addonInfo = {}
+
+    addonInfo = addonInfo or {}
     
     if type(query) == "number" then
         addonInfo.Index = query
     end
 
     addonInfo.Name = name
+    -- 标题
     addonInfo.Title = title
     addonInfo.Notes = notes
-    addonInfo.Author = GetAddOnMetadata(query, "Author")
-    addonInfo.Version = GetAddOnMetadata(query, "Version")
+    addonInfo.Author = addonInfo.Author or GetAddOnMetadata(query, "Author")
+    addonInfo.Version = addonInfo.Version or GetAddOnMetadata(query, "Version")
     -- 是否可加载（或已加载）
     addonInfo.Loadable = loadable
     -- 是否已加载
@@ -84,9 +87,9 @@ function Addon:GetAddonInfoOrNil(query)
     -- 可能值：不安全，安全，非法
     addonInfo.Security = security
     -- 插件依赖
-    addonInfo.Deps = { GetAddOnDependencies(query) }
+    addonInfo.Deps = addonInfo.Deps or { GetAddOnDependencies(query) }
     -- 可选依赖
-    addonInfo.OptionalDeps = { GetAddOnOptionalDependencies(query) }
+    addonInfo.OptionalDeps = addonInfo.OptionalDeps or { GetAddOnOptionalDependencies(query) }
     -- 备注
     addonInfo.Remark = self:GetAddonRemark(name)
     -- 是否收藏
@@ -96,8 +99,8 @@ function Addon:GetAddonInfoOrNil(query)
 end
 
 -- 获取插件信息，返回值不为nil
-function Addon:GetAddonInfo(query)
-    local info = self:GetAddonInfoOrNil(query)
+function Addon:GetAddonInfo(query, addonInfo)
+    local info = self:GetAddonInfoOrNil(query, addonInfo)
     if not info then error("You cannot get a unexists addon's info by " .. query) end
 
     return info
@@ -106,16 +109,11 @@ end
 -- 根据插件名获取插件信息，可能为nil
 -- @param update:是否先刷新，再获取
 function Addon:GetAddonInfoByNameOrNil(name, update)
-    if update then
-        self:UpdateAddonInfoByName(name)
-    end
-
-    if not self.AddonInfos then return end
-
-    local addonIndex = self.AddonInfos[name]
+    local addonInfos = self:GetAddonInfos()
+    local addonIndex = addonInfos[name]
     if not addonIndex then return end
 
-    return self.AddonInfos[addonIndex]
+    return self:GetAddonInfoByIndexOrNil(addonIndex, update)
 end
 
 -- 根据插件名获取插件信息，返回值不为nil
@@ -129,13 +127,12 @@ end
 -- 根据插件index获取插件信息，可能为nil
 -- @param update:是否先刷新，再获取
 function Addon:GetAddonInfoByIndexOrNil(index, update)
+    local addonInfos = self:GetAddonInfos()
     if update then
         self:UpdateAddonInfoByIndex(index)
     end
 
-    if not self.AddonInfos then return end
-
-    return self.AddonInfos[index]
+    return addonInfos[index]
 end
 
 -- 根据插件index获取插件信息，返回值不为nil
@@ -149,20 +146,20 @@ end
 -- 根据插件index更新插件信息
 -- 返回对应插件信息
 function Addon:UpdateAddonInfoByIndex(index)
-    local addonInfo = self:GetAddonInfo(index)
-    self.AddonInfos = self.AddonInfos or {}
+    local addonInfos = self:GetAddonInfos()
+    local addonInfo = self:GetAddonInfo(index, addonInfos[index])
     -- 按插件index存储
-    self.AddonInfos[index] = addonInfo
+    addonInfos[index] = addonInfo
     -- 插件名和index映射
-    self.AddonInfos[addonInfo.Name] = index
+    addonInfos[addonInfo.Name] = index
 
     return addonInfo
 end
 
 -- 根据插件名更新插件信息
 function Addon:UpdateAddonInfoByName(name)
-    self.AddonInfos = self.AddonInfos or {}
-    local addonIndex = self.AddonInfos[name]
+    local addonInfos = self:GetAddonInfos()
+    local addonIndex = addonInfos[name]
     
     -- 获取不到插件索引，就没有必要存了
     if not addonIndex then return end
@@ -180,27 +177,12 @@ function Addon:UpdateAddonInfos(query)
             self:UpdateAddonInfoByName(query)
         end
     else
-        if self.AddonInfos then wipe(self.AddonInfos) end
+        local addonInfos = self:GetAddonInfos()
+        wipe(addonInfos)
         
-        local addonLoaded = 0
-        local addonEnabled = 0
         for i = 1, GetNumAddOns() do
-            local addonInfo = self:UpdateAddonInfoByIndex(i)
-            if addonInfo then
-                if addonInfo.Loaded then
-                    addonLoaded = addonLoaded + 1
-                end
-
-                if addonInfo.Enabled then
-                    addonEnabled = addonEnabled + 1
-                end
-            end
+            self:UpdateAddonInfoByIndex(i)
         end
-
-        -- 已加载数量
-        self.AddonInfos.LoadedNumber = addonLoaded
-        -- 已启用数量
-        self.AddonInfos.EnabledNumber = addonEnabled
     end
 end
 
@@ -209,21 +191,34 @@ function Addon:GetAddonInfos()
     return self.AddonInfos
 end
 
+-- 查询插件信息
+function Addon:QueryAddonInfo(query)
+    local addonInfos = self:GetAddonInfos()
+    local addonInfo
+    if type(query) == "string" then
+        addonInfo = addonInfos[addonInfos[query]]
+    elseif type(query) == "number" then
+        addonInfo = addonInfos[query]
+    end
+    return addonInfo
+end
+
 -- 获取插件列表数据提供者
 function Addon:GetAddonDataProvider()
-    local dataProvider = CreateLinearizedTreeListDataProvider()
-    local node = dataProvider:GetRootNode()
+    self.AddonDataProvider = self.AddonDataProvider or CreateLinearizedTreeListDataProvider()
+    self.AddonDataProvider:Flush()
+    local node = self.AddonDataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         node:Insert({ AddonInfo = addonInfo })
     end
 
-    return dataProvider
+    return self.AddonDataProvider
 end
 
 -- 插件是否可以按需加载
 function Addon:CanAddonLoadOnDemand(query)
-    local addonInfo = self:GetAddonInfo(query)
+    local addonInfo = self:QueryAddonInfo(query)
     
     if not addonInfo.Enabled or not addonInfo.LoadOnDemand or addonInfo.Loaded then return false end
 
