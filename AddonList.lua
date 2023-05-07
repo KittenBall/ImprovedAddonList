@@ -1,19 +1,51 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+-- 插件列表项启用状态按钮函数集
+ImprovedAddonListAddonItemEnableStatusButtonMixin = {}
+
+function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnEnter()
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["enable_switch"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnLeave()
+    GameTooltip:Hide()
+end
+
+function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnClick()
+    local addonInfo = self:GetParent():GetAddonInfo()
+    if addonInfo.Enabled then
+        DisableAddOn(addonInfo.Name)
+    else
+        EnableAddOn(addonInfo.Name)
+    end
+    Addon:RefreshAddonInfo(addonInfo.Name)
+end
+
+-- 插件列表组函数集
+ImprovedAddonListAddonCategoryMixin = {}
+
+function ImprovedAddonListAddonCategoryMixin:Update()
+    local categoryInfo = self:GetCategoryInfo()
+    self.Label:SetText(categoryInfo.Name)
+end
+
+function ImprovedAddonListAddonCategoryMixin:GetCategoryInfo()
+    return self:GetElementData():GetData().CategoryInfo
+end
+
 -- 插件列表项函数集
 ImprovedAddonListAddonItemMixin = {}
-
-function ImprovedAddonListAddonItemMixin:Init()
-    self:Update()
-end
 
 function ImprovedAddonListAddonItemMixin:Update()
     local addonInfo = self:GetAddonInfo()
 
-    self.Label:SetText(addonInfo.Title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+    self.Label:SetText(addonInfo.Label)
     self:SetLabelFontColor(self:GetLabelColor())
     self:SetSelected(self:IsSelected())
+    self:SyncEnableStatus()
 end
 
 function ImprovedAddonListAddonItemMixin:SetLabelFontColor(color)
@@ -23,11 +55,40 @@ end
 function ImprovedAddonListAddonItemMixin:GetLabelColor()
     local addonInfo = self:GetAddonInfo()
 
-    if addonInfo.Loaded then
-        return NORMAL_FONT_COLOR
+    if Addon:IsAddonShouldReload(addonInfo.Name) then
+        return RARE_BLUE_COLOR
+    elseif addonInfo.Loadable or (addonInfo.Enabled and addonInfo.LoadOnDemand) then
+        return WHITE_FONT_COLOR
+    elseif addonInfo.Enabled and not addonInfo.Loadable then
+        return RED_FONT_COLOR
+    elseif addonInfo.Loaded then
+        return WHITE_FONT_COLOR
     else
         return DISABLED_FONT_COLOR
     end
+end
+
+function ImprovedAddonListAddonItemMixin:SyncEnableStatus()
+    local addonInfo = self:GetAddonInfo()
+    local enableStatusButton = self.EnableStatus
+    
+    if Addon:IsAddonShouldEnableAlways(addonInfo.Name) then
+        enableStatusButton:Hide()
+        return
+    else
+        enableStatusButton:Show()
+    end
+
+    local enableStatusTex
+    if addonInfo.Enabled then
+        enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enabled.png]]
+    else
+        enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enable_status_border.png]]
+    end
+
+    enableStatusButton:SetNormalTexture(enableStatusTex)
+    enableStatusButton:SetHighlightTexture(enableStatusTex, "ADD")
+    enableStatusButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
 function ImprovedAddonListAddonItemMixin:OnEnter()
@@ -61,9 +122,14 @@ end
 -- 插件列表节点更新
 local function AddonListTreeNodeUpdater(factory, node)
     local elementData = node:GetData()
-    if elementData.AddonInfo then
+    if elementData.CategoryInfo then
         local function Initializer(button, node)
-            button:Init()
+            button:Update()
+        end
+        factory("ImprovedAddonListAddonCategoryTemplate", Initializer)
+    elseif elementData.AddonInfo then
+        local function Initializer(button, node)
+            button:Update()
         end
         factory("ImprovedAddonListAddonItemTemplate", Initializer)
     end
@@ -86,7 +152,6 @@ end
 
 -- 列表长度
 local function ElementExtentCalculator(index, node)
-    local data = node:GetData()
     return 30
 end
 
@@ -122,6 +187,15 @@ local function onDisableAllButtonClick(self)
 
     Addon:DisableAllAddons()
     Addon:RefreshAddonList()
+end
+
+local function onAddonListSearchBoxTextChanged(self, userInput)
+    if self.searchJob then
+        self.searchJob:Cancel()
+    end
+    self.searchJob = C_Timer.NewTimer(0.2, function()
+        Addon:RefreshAddonList(true)
+    end)
 end
 
 -- 插件列表加载
@@ -167,6 +241,7 @@ function Addon:OnAddonListLoad()
     AddonListSearchBox:SetPoint("TOPRIGHT", DisableAllButton, "TOPLEFT", -5, 0)
     AddonListSearchBox:SetPoint("BOTTOMRIGHT", DisableAllButton, "BOTTOMLEFT", -5, 0)
     AddonListSearchBox:SetHeight(20)
+    AddonListSearchBox:HookScript("OnTextChanged", onAddonListSearchBoxTextChanged)
 
     -- 创建插件列表
     -- 滚动框
@@ -219,13 +294,25 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     DisableAllButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
+-- 滚动到选中项
+function Addon:ScrollToSelectedItem()
+    local selectedPredicate = function(elementData)
+        return self:GetAddonListScrollBox().SelectionBehavior:IsElementDataSelected(elementData)
+    end
+    self:GetAddonListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
+end
+
 -- 刷新插件列表
-function Addon:RefreshAddonList()
-    self:UpdateAddonInfos()
-    self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(), ScrollBoxConstants.RetainScrollPosition)
+-- @param doNotRefreshAddons 不要刷新插件信息
+function Addon:RefreshAddonList(doNotRefreshAddons)
+    if not doNotRefreshAddons then
+        self:UpdateAddonInfos()
+    end
+
+    self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(self:GetAddonListSearchBox():GetText()), ScrollBoxConstants.RetainScrollPosition)
 
     local currentFocusAddonName = self:CurrentFocusAddonName()
-    local predicate = function(node)
+    local selectPredicate = function(node)
         local addonInfo = node:GetData().AddonInfo
         if currentFocusAddonName then
             -- 之前有选中插件，则刷新后再次选中
@@ -236,7 +323,9 @@ function Addon:RefreshAddonList()
         end
     end
 
-    self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(predicate)
+    -- 选中并滚动到选中项
+    self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
+    self:ScrollToSelectedItem()
 
     -- 刷新按钮状态
     self:RefreshAddonListOptionButtonsStatus()
@@ -262,4 +351,8 @@ end
 
 function Addon:GetAddonListScrollBar()
     return self:GetAddonList().ScrollBar
+end
+
+function Addon:GetAddonListSearchBox()
+    return self:GetAddonList().SearchBox
 end

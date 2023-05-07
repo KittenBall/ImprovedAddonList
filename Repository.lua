@@ -68,8 +68,27 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     -- 标题
     addonInfo.Title = title
     addonInfo.Notes = notes
-    addonInfo.Author = addonInfo.Author or GetAddOnMetadata(query, "Author")
-    addonInfo.Version = addonInfo.Version or GetAddOnMetadata(query, "Version")
+    addonInfo.Author = addonInfo.Author or C_AddOns.GetAddOnMetadata(query, "Author")
+    addonInfo.Version = addonInfo.Version or C_AddOns.GetAddOnMetadata(query, "Version")
+    
+    -- 图标
+    local iconTexture = C_AddOns.GetAddOnMetadata(query, "IconTexture")
+	local iconAtlas = C_AddOns.GetAddOnMetadata(query, "IconAtlas")
+    if not iconTexture and not iconAtlas then
+		iconTexture = [[Interface\ICONS\INV_Misc_QuestionMark]]
+	end
+
+    local iconText 
+    if iconTexture then
+		iconText = CreateSimpleTextureMarkup(iconTexture, 14, 14)
+	elseif iconAtlas then
+		iconText = CreateAtlasMarkup(iconAtlas, 14, 14)
+	end
+    -- 图标文本
+    addonInfo.IconText = iconText
+    -- 带图标的标题
+    addonInfo.Label = iconText .. " " .. title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+
     -- 是否可加载（或已加载）
     addonInfo.Loadable = loadable
     -- 是否已加载
@@ -204,13 +223,22 @@ function Addon:QueryAddonInfo(query)
 end
 
 -- 获取插件列表数据提供者
-function Addon:GetAddonDataProvider()
+function Addon:GetAddonDataProvider(search)
     self.AddonDataProvider = self.AddonDataProvider or CreateLinearizedTreeListDataProvider()
     self.AddonDataProvider:Flush()
     local node = self.AddonDataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
+    local shouldFilter = search and strlen(search) > 0
+    search = search and search:lower()
     for _, addonInfo in ipairs(addonInfos) do
-        node:Insert({ AddonInfo = addonInfo })
+        node:Insert({ CategoryInfo = { Name = "测试" } })
+        if shouldFilter then
+            if addonInfo.Title:lower():match(search) or addonInfo.Name:lower():match(search) then
+                node:Insert({ AddonInfo = addonInfo })
+            end
+        else
+            node:Insert({ AddonInfo = addonInfo })
+        end
     end
 
     return self.AddonDataProvider
@@ -229,6 +257,12 @@ function Addon:CanAddonLoadOnDemand(query)
     end
 
     return true
+end
+
+-- 插件是否需要重载
+function Addon:IsAddonShouldReload(query)
+    local addonInfo = self:QueryAddonInfo(query)
+    return addonInfo.Enabled ~= addonInfo.InitialEnabled and addonInfo.UnloadableReason ~= ADDON_DEP_DISABLED
 end
 
 -- 启用所有插件

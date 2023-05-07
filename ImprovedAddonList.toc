@@ -1,7 +1,5 @@
-## Interface: 100002
-## Interface-Classic: 11400
-## Interface-BCC: 20504
-## Author: 绿毛龟12138
+## Interface: 100050
+## Author: KittenBall
 ## Version: @project-version@
 ## Title: ImprovedAddonList
 ## Title-zhCN: 暴雪插件列表增强

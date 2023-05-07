@@ -1,15 +1,6 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
--- 更新label位置，计算其上面的label和body哪个更高，然后将其锚定至高的那个框体
-local function UpdateAddonDetailLabelPosition(topLabel, topBody, label)
-    local topFrame = topLabel:GetHeight() > topBody:GetHeight() and topLabel or topBody
-    
-    label:ClearAllPoints()
-    label:SetPoint("LEFT", topLabel, "LEFT", 0, 0)
-    label:SetPoint("TOP", topFrame, "BOTTOM", 0, -8)
-end
-
 local ADDON_DETAILS = {
     {
         Name = "BasicInfo",
@@ -84,6 +75,7 @@ local ADDON_DETAILS = {
     }
 }
 
+-- 更新插件详情各框体的位置
 function Addon:UpdateAddonDetailFramesPosition()
     local addonDetailFrame = self:GetAddonDetailContainer()
 
@@ -108,7 +100,7 @@ function Addon:UpdateAddonDetailFramesPosition()
                 detailLabel:SetShown(true)
                 detailBody:SetShown(true)
 
-                local detailHeight = math.max(detailLabel:GetHeight(), detailBody:GetHeight())
+                local detailHeight = math.max(detailLabel:GetStringHeight(), detailBody:GetStringHeight())
                 local offsetY = detailIndex == 1 and addonDetailFirstOffsetY or addonDetailOffsetY
                 detailLabel:SetPoint("TOPLEFT", addonDetailOffsetX, -usedHeight + offsetY)
                 usedHeight = usedHeight + detailHeight - offsetY
@@ -118,9 +110,10 @@ function Addon:UpdateAddonDetailFramesPosition()
 
     -- 动态高度，方便滚动
     addonDetailFrame:SetHeight(usedHeight + 20)
-	self:GetAddonDetailScrollBox():FullUpdate();
-	self:GetAddonDetailScrollBox():ScrollToBegin(ScrollBoxConstants.NoScrollInterpolation)
+    self:GetAddonDetailScrollBox():FullUpdate();
+    self:GetAddonDetailScrollBox():ScrollToBegin(ScrollBoxConstants.NoScrollInterpolation)
 end
+
 
 local function CreateDetailButton(container)
     local button = CreateFrame("Button", nil, container)
@@ -148,16 +141,6 @@ local function OnLoadButtonClick(self)
     LoadAddOn(addonInfo.Name)
     if IsAddOnLoaded(addonInfo.Name) then
         Addon:UpdateAddonInitialEnableState(addonInfo.Name, true)
-    end
-    Addon:RefreshAddonInfo(addonInfo.Name)
-end
-
-local function onEnableButtonClick(self)
-    local addonInfo = Addon:CurrentFocusAddonInfo()
-    if addonInfo.Enabled then
-        DisableAddOn(addonInfo.Name)
-    else
-        EnableAddOn(addonInfo.Name)
     end
     Addon:RefreshAddonInfo(addonInfo.Name)
 end
@@ -223,6 +206,8 @@ function Addon:OnAddonDetailLoad()
         for _, detail in pairs(category.Details) do
             local detailLabel = AddonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListLabelFont")
             AddonDetailFrame[detail.Name .. "Label"] = detailLabel
+            -- 重要：如果Label不设置Point，则Body的定位无效，这会导致第一次获取Body的文本高度不正确
+            detailLabel:SetPoint("TOPLEFT")
             detailLabel:SetText(detail.Label)
 
             local detailBody = AddonDetailFrame:CreateFontString(nil, nil, "ImprovedAddonListBodyFont")
@@ -257,13 +242,6 @@ function Addon:OnAddonDetailLoad()
     remarkButton:GetHighlightTexture():SetAlpha(0.2)
     remarkButton:SetSize(16, 16)
     remarkButton:SetPoint("RIGHT", favoriteButton, "LEFT", -4, 0)
-
-    -- 启用按钮
-    local enableButton = CreateDetailButton(AddonDetail)
-    AddonDetail.EnableButton = enableButton
-    enableButton:SetScript("OnClick", onEnableButtonClick)
-    enableButton:SetPoint("BOTTOMRIGHT", 0, 5)
-    enableButton:SetSize(88, 22)
     
     -- 加载按钮
     local loadButton = CreateDetailButton(AddonDetail)
@@ -272,7 +250,7 @@ function Addon:OnAddonDetailLoad()
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetScript("OnClick", OnLoadButtonClick)
     loadButton:SetText(L["load_addon"])
-    loadButton:SetPoint("RIGHT", enableButton, "LEFT", 0, 0)
+    loadButton:SetPoint("BOTTOMRIGHT", 0, 5)
     loadButton:SetSize(88, 22)
 
     self:UpdateAddonDetailFramesPosition()
@@ -375,14 +353,6 @@ function Addon:ShowAddonDetail(addonName)
     
     local addonDetail = self:GetAddonDetail()
     
-    -- 启用/禁用按钮
-    local enableButton = addonDetail.EnableButton
-    if self:IsAddonShouldEnableAlways(addonInfo.Name) then
-        enableButton:Hide()
-    else
-        enableButton:Show()
-        enableButton:SetText(WrapTextInColor(addonInfo.Enabled and L["disable_addon"] or L["enable_addon"], GetEnableButtonColor(addonInfo.Enabled)))
-    end
     -- 加载按钮
     addonDetail.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
     -- 收藏按钮

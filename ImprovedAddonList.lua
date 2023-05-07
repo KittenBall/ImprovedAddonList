@@ -248,10 +248,10 @@ function Addon.OnAddonTooltipUpdate(owner)
     end
 
     if security ~= "BANNED" then
-        local author = GetAddOnMetadata(name, "Author")
-        local version = GetAddOnMetadata(name, "Version")
-        local credit = GetAddOnMetadata(name, "X-Credit")
-        local website = GetAddOnMetadata(name, "X-Website")
+        local author = C_AddOns.GetAddOnMetadata(name, "Author")
+        local version = C_AddOns.GetAddOnMetadata(name, "Version")
+        local credit = C_AddOns.GetAddOnMetadata(name, "X-Credit")
+        local website = C_AddOns.GetAddOnMetadata(name, "X-Website")
         if author then
             AddonTooltip:AddLine(format(L["author"], author))
         end
