@@ -44,6 +44,7 @@ function Addon:CreateContainer()
     return Container
 end
 
+-- 获取环境信息
 local function GetEnvInfo()
     local patch, build, date, tocNumber = GetBuildInfo()
     local clientBit = Is64BitClient() and "64" or "32"
@@ -76,6 +77,7 @@ local function GetEnvInfo()
     return format("%s.%d(%s) on %s %s\nBuild in %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)
 end
 
+-- 启用过期插件按钮选中变化
 local function OnEnableExpiredAddonsButtonCheckedChange(self)
     if self:GetChecked() then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)

@@ -96,13 +96,13 @@
 				</Texture>
 			</Layer>
 		</Layers>
-		<Frames>
+		<!-- <Frames>
 			<StatusBar parentKey="RankBar" inherits="ProfessionsStatusBarArtTemplate" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
 				<Anchors>
 					<Anchor point="RIGHT" relativeKey="$parent.CollapseIcon" relativePoint="LEFT" x="-5" y="0"/>
 				</Anchors>
 			</StatusBar>
-		</Frames>
+		</Frames> -->
 		<!-- <Scripts>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>

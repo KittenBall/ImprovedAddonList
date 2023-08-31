@@ -19,6 +19,7 @@ end
 local ShouldAlwaysEnabledAddons = {
     [AddonName] = true
 }
+
 -- 插件是否应当被一直启用
 function Addon:IsAddonShouldEnableAlways(addonName)
     return ShouldAlwaysEnabledAddons[addonName]
@@ -88,6 +89,7 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     addonInfo.IconText = iconText
     -- 带图标的标题
     addonInfo.Label = iconText .. " " .. title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    -- addonInfo.Label = iconText .. " " .. title
 
     -- 是否可加载（或已加载）
     addonInfo.Loadable = loadable
@@ -180,14 +182,14 @@ function Addon:UpdateAddonInfoByName(name)
     local addonInfos = self:GetAddonInfos()
     local addonIndex = addonInfos[name]
     
-    -- 获取不到插件索引，就没有必要存了
+    -- 获取不到插件索引，就没有必要更新了
     if not addonIndex then return end
 
     return self:UpdateAddonInfoByIndex(addonIndex)
 end
 
 -- 获取插件信息
--- @param query:如果为nil，则更新所有插件信息吗，否则只更新指定插件信息
+-- @param query:如果为nil，则更新所有插件信息，否则只更新指定插件信息
 function Addon:UpdateAddonInfos(query)
     if query then
         if type(query) == "number" then
@@ -197,7 +199,6 @@ function Addon:UpdateAddonInfos(query)
         end
     else
         local addonInfos = self:GetAddonInfos()
-        wipe(addonInfos)
         
         for i = 1, GetNumAddOns() do
             self:UpdateAddonInfoByIndex(i)
@@ -224,14 +225,15 @@ end
 
 -- 获取插件列表数据提供者
 function Addon:GetAddonDataProvider(search)
-    self.AddonDataProvider = self.AddonDataProvider or CreateLinearizedTreeListDataProvider()
+    self.AddonDataProvider = self.AddonDataProvider or CreateTreeDataProvider()
     self.AddonDataProvider:Flush()
     local node = self.AddonDataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
-    local shouldFilter = search and strlen(search) > 0
+    search = search and strtrim(search)
     search = search and search:lower()
+    local shouldFilter = search and strlen(search) > 0
     for _, addonInfo in ipairs(addonInfos) do
-        node:Insert({ CategoryInfo = { Name = "测试" } })
+        -- node:Insert({ CategoryInfo = { Name = "测试" } })
         if shouldFilter then
             if addonInfo.Title:lower():match(search) or addonInfo.Name:lower():match(search) then
                 node:Insert({ AddonInfo = addonInfo })

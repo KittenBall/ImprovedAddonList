@@ -1,19 +1,33 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+-- 颜色：需重载
+local ADDON_RELOAD_COLOR = RARE_BLUE_COLOR
+-- 颜色：未加载
+local ADDON_UNLOADED_COLOR = ORANGE_FONT_COLOR
+-- 颜色：无法加载
+local ADDON_UNLOADABLE_COLOR = RED_FONT_COLOR
+-- 颜色：已加载
+local ADDON_LOADED_COLOR = WHITE_FONT_COLOR
+-- 颜色：未启用
+local ADDON_DISABLED_COLOR = DISABLED_FONT_COLOR
+
 -- 插件列表项启用状态按钮函数集
 ImprovedAddonListAddonItemEnableStatusButtonMixin = {}
 
+-- 插件列表项启用状态按钮：鼠标划入 
 function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnEnter()
     GameTooltip:SetOwner(self)
     GameTooltip:AddLine(L["enable_switch"], 1, 1, 1)
     GameTooltip:Show()
 end
 
+-- 插件列表项启用状态按钮：鼠标移出
 function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnLeave()
     GameTooltip:Hide()
 end
 
+-- 插件列表项启用状态按钮：鼠标点击
 function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnClick()
     local addonInfo = self:GetParent():GetAddonInfo()
     if addonInfo.Enabled then
@@ -21,7 +35,7 @@ function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnClick()
     else
         EnableAddOn(addonInfo.Name)
     end
-    Addon:RefreshAddonInfo(addonInfo.Name)
+    Addon:RefreshAddonList()
 end
 
 -- 插件列表组函数集
@@ -39,6 +53,7 @@ end
 -- 插件列表项函数集
 ImprovedAddonListAddonItemMixin = {}
 
+-- 插件列表项：更新
 function ImprovedAddonListAddonItemMixin:Update()
     local addonInfo = self:GetAddonInfo()
 
@@ -56,15 +71,15 @@ function ImprovedAddonListAddonItemMixin:GetLabelColor()
     local addonInfo = self:GetAddonInfo()
 
     if Addon:IsAddonShouldReload(addonInfo.Name) then
-        return RARE_BLUE_COLOR
-    elseif addonInfo.Loadable or (addonInfo.Enabled and addonInfo.LoadOnDemand) then
-        return WHITE_FONT_COLOR
+        return ADDON_RELOAD_COLOR
     elseif addonInfo.Enabled and not addonInfo.Loadable then
-        return RED_FONT_COLOR
+        return ADDON_UNLOADABLE_COLOR
+    elseif addonInfo.Enabled and not addonInfo.Loaded then
+        return ADDON_UNLOADED_COLOR
     elseif addonInfo.Loaded then
-        return WHITE_FONT_COLOR
+        return ADDON_LOADED_COLOR
     else
-        return DISABLED_FONT_COLOR
+        return ADDON_DISABLED_COLOR
     end
 end
 
@@ -91,14 +106,17 @@ function ImprovedAddonListAddonItemMixin:SyncEnableStatus()
     enableStatusButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
+-- 插件列表项：鼠标划入
 function ImprovedAddonListAddonItemMixin:OnEnter()
     self:SetLabelFontColor(WHITE_FONT_COLOR) 
 end
 
+-- 插件列表项：鼠标移出
 function ImprovedAddonListAddonItemMixin:OnLeave()
     self:SetLabelFontColor(self:GetLabelColor())
 end
 
+-- 插件列表项：鼠标点击
 function ImprovedAddonListAddonItemMixin:OnClick()
     if self:IsSelected() then return end
 
@@ -106,15 +124,18 @@ function ImprovedAddonListAddonItemMixin:OnClick()
     PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
 end
 
+-- 插件列表项：设置选中
 function ImprovedAddonListAddonItemMixin:SetSelected(selected)
 	self.SelectedOverlay:SetShown(selected)
 	self.HighlightOverlay:SetShown(not selected)
 end
 
+-- 获取插件列表项对应插件信息
 function ImprovedAddonListAddonItemMixin:GetAddonInfo()
     return self:GetElementData():GetData().AddonInfo
 end
 
+-- 插件列表项是否选中
 function ImprovedAddonListAddonItemMixin:IsSelected()
     return Addon:GetAddonListScrollBox().SelectionBehavior:IsElementDataSelected(self:GetElementData())
 end
@@ -155,16 +176,19 @@ local function ElementExtentCalculator(index, node)
     return 30
 end
 
+-- 启用全部按钮：鼠标划入
 local function onEnableAllButtonEnter(self)
     GameTooltip:SetOwner(self)
     GameTooltip:AddLine(L["enable_all_tips"], 1, 1, 1)
     GameTooltip:Show()
 end
 
+-- 启用全部按钮：鼠标移出
 local function onEnableAllButtonLeave(self)
     GameTooltip:Hide()
 end
 
+-- 启用全部按钮：鼠标点击
 local function onEnableAllButtonClick(self)
     if Addon:IsAllAddonsEnabled() then return end
 
@@ -172,16 +196,19 @@ local function onEnableAllButtonClick(self)
     Addon:RefreshAddonList()
 end
 
+-- 禁用全部按钮：鼠标划入
 local function onDisableAllButtonEnter(self)
     GameTooltip:SetOwner(self)
     GameTooltip:AddLine(L["disable_all_tips"], 1, 1, 1)
     GameTooltip:Show()
 end
 
+-- 禁用全部按钮：鼠标移出
 local function onDisableAllButtonLeave(self)
     GameTooltip:Hide()
 end
 
+-- 禁用全部按钮：鼠标点击
 local function onDisableAllButtonClick(self)
     if Addon:IsAllAddonsDisabled() then return end
 
@@ -189,12 +216,13 @@ local function onDisableAllButtonClick(self)
     Addon:RefreshAddonList()
 end
 
+-- 插件列表搜索框文本变化
 local function onAddonListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
-    self.searchJob = C_Timer.NewTimer(0.2, function()
-        Addon:RefreshAddonList(true)
+    self.searchJob = C_Timer.NewTimer(0.25, function()
+        Addon:UpdateAddonList()
     end)
 end
 
@@ -270,7 +298,7 @@ function Addon:OnAddonListLoad()
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
 
-    self:RefreshAddonList()
+    self:UpdateAddonList()
 end
 
 -- 刷新插件列表选项按钮的状态
@@ -302,10 +330,10 @@ function Addon:ScrollToSelectedItem()
     self:GetAddonListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
 end
 
--- 刷新插件列表
--- @param doNotRefreshAddons 不要刷新插件信息
-function Addon:RefreshAddonList(doNotRefreshAddons)
-    if not doNotRefreshAddons then
+-- 更新插件列表，和RefreshAddonList的区别为：这个函数调用后，插件列表项的数量可能会变更
+-- @param updateAddonInfos 刷新插件信息
+function Addon:UpdateAddonList(updateAddonInfos)
+    if updateAddonInfos then
         self:UpdateAddonInfos()
     end
 
@@ -327,7 +355,17 @@ function Addon:RefreshAddonList(doNotRefreshAddons)
     self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
     self:ScrollToSelectedItem()
 
-    -- 刷新按钮状态
+    self:RefreshAddonDetail()
+    self:RefreshAddonListOptionButtonsStatus()
+end
+
+-- 刷新插件列表，和UpdateAddonList的区别为：这个函数会刷新插件信息，并更新到界面上
+function Addon:RefreshAddonList()
+    self:UpdateAddonInfos()
+    for _, frame in Addon:GetAddonListScrollBox():EnumerateFrames() do
+        frame:Update()
+    end
+    self:RefreshAddonDetail()
     self:RefreshAddonListOptionButtonsStatus()
 end
 
@@ -340,7 +378,10 @@ function Addon:RefreshAddonInfo(addonName)
         return addonInfo and addonInfo.Name == addonName
     end
 
-    self:GetAddonListScrollBox():FindFrameByPredicate(predicate):Update()
+    local frame = self:GetAddonListScrollBox():FindFrameByPredicate(predicate)
+    if frame then
+        frame:Update()
+    end
     self:RefreshAddonDetail()
     self:RefreshAddonListOptionButtonsStatus()
 end

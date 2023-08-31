@@ -1,4 +1,4 @@
-## Interface: 100050
+## Interface: 100105
 ## Author: KittenBall
 ## Version: @project-version@
 ## Title: ImprovedAddonList
