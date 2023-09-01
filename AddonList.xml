@@ -29,6 +29,12 @@
 						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
 					</Anchors>
 				</FontString>
+				<Texture parentKey="LoadIndicator">
+					<Size x = "8" y="8"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="2">
 				<Texture parentKey="SelectedOverlay" atlas="Professions_Recipe_Active" useAtlasSize="true" hidden="true">

@@ -307,27 +307,3 @@ function Addon:IsAllAddonsDisabled()
 
     return true
 end
-
--- 插件排序
-
--- 按索引排序
-Addon.SORT_BY_INDEX = 0
--- 按名称排序
-Addon.SORT_BY_NAME = 1
-
--- 升序
-Addon.ORDER_ASCENDING = 0
--- 降序
-Addon.ORDER_DESCENDING = 1
-
-
--- 插件分组
-
--- 不分组
-Addon.GROUP_BY_NONE = 0
--- 按名字分组
-Addon.GROUP_BY_NAME = 1
--- 按依赖分组
-Addon.GROUP_BY_DEP = 2
--- 按作者分组
-Addon.GROUP_BY_AUTHOR = 3

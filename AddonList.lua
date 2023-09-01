@@ -362,11 +362,11 @@ end
 -- 刷新插件列表，和UpdateAddonList的区别为：这个函数会刷新插件信息，并更新到界面上
 function Addon:RefreshAddonList()
     self:UpdateAddonInfos()
-    for _, frame in Addon:GetAddonListScrollBox():EnumerateFrames() do
-        frame:Update()
-    end
     self:RefreshAddonDetail()
     self:RefreshAddonListOptionButtonsStatus()
+    for _, frame in self:GetAddonListScrollBox():EnumerateFrames() do
+        frame:Update()
+    end
 end
 
 -- 刷新插件信息
