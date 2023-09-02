@@ -145,6 +145,7 @@ local function OnLoadButtonClick(self)
     Addon:RefreshAddonInfo(addonInfo.Name)
 end
 
+-- 收藏按钮：鼠标划入
 local function onFavoriteButtonEnter(self)
     if self.tooltipText then
         GameTooltip:SetOwner(self)
@@ -153,10 +154,12 @@ local function onFavoriteButtonEnter(self)
     end
 end
 
+-- 收藏按钮：鼠标移出
 local function onFavoriteButtonLeave(self)
     GameTooltip:Hide()
 end
 
+-- 收藏按钮：鼠标点击
 local function onFavoriteButtonClick(self)
     local addonInfo = Addon:CurrentFocusAddonInfo()
     Addon:SetAddonFavorite(addonInfo.Name, not addonInfo.IsFavorite)
@@ -165,6 +168,34 @@ local function onFavoriteButtonClick(self)
 
     if GameTooltip:IsOwned(self) then
         onFavoriteButtonEnter(self)
+    end
+end
+
+-- 锁定按钮：鼠标划入
+local function onLockButtonEnter(self)
+    if self.tooltipText then
+        GameTooltip:SetOwner(self)
+        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
+        GameTooltip:Show()
+    end
+end
+
+-- 锁定按钮：鼠标移出
+local function onLockButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 锁定按钮：鼠标点击
+local function onLockButtonClick(self)
+    local addonInfo = Addon:CurrentFocusAddonInfo()
+    if not addonInfo.Unlockable then return end
+
+    Addon:SetAddonLock(addonInfo.Name, not addonInfo.IsLocked)
+    PlaySound(SOUNDKIT.UI_PROFESSION_TRACK_RECIPE_CHECKBOX)
+    Addon:RefreshAddonInfo(addonInfo.Name)
+
+    if GameTooltip:IsOwned(self) then
+        onLockButtonEnter(self)
     end
 end
 
@@ -231,6 +262,15 @@ function Addon:OnAddonDetailLoad()
     favoriteButton:SetSize(16, 16)
     favoriteButton:SetPoint("TOPRIGHT", -10, -10)
 
+    -- 锁定按钮
+    local lockButton = CreateDetailButton(AddonDetailFrame)
+    AddonDetail.LockButton = lockButton
+    lockButton:SetScript("OnEnter", onLockButtonEnter)
+    lockButton:SetScript("OnLeave", onLockButtonLeave)
+    lockButton:SetScript("OnClick", onLockButtonClick)
+    lockButton:SetSize(16, 16)
+    lockButton:SetPoint("RIGHT", favoriteButton, "LEFT", -4, 0)
+
     -- 备注按钮
     local remarkButton = CreateDetailButton(AddonDetailFrame)
     AddonDetail.RemarkButton = remarkButton
@@ -241,7 +281,7 @@ function Addon:OnAddonDetailLoad()
     remarkButton:SetHighlightTexture("Interface\\Addons\\ImprovedAddonList\\Media\\remark")
     remarkButton:GetHighlightTexture():SetAlpha(0.2)
     remarkButton:SetSize(16, 16)
-    remarkButton:SetPoint("RIGHT", favoriteButton, "LEFT", -4, 0)
+    remarkButton:SetPoint("RIGHT", lockButton, "LEFT", -4, 0)
     
     -- 加载按钮
     local loadButton = CreateDetailButton(AddonDetail)
@@ -309,12 +349,31 @@ local function getAddonDeps(deps)
     end
 end
 
-local function syncFavoriteStatus(button, isFavorite)
+-- 同步收藏按钮状态
+local function syncFavoriteButtonStatus(button, isFavorite)
     local tex = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isFavorite and "favorite" or "unfavorite")
     button:SetNormalTexture(tex)
     button:SetHighlightTexture(tex, "ADD")
     button:GetHighlightTexture():SetAlpha(0.2)
     button.tooltipText = isFavorite and BATTLE_PET_UNFAVORITE or BATTLE_PET_FAVORITE
+end
+
+-- 同步锁定按钮状态
+local function syncLockButtonStatus(button, isLocked, unlockable)
+    local tex
+    if not unlockable then
+        tex = "Interface\\Addons\\ImprovedAddonList\\Media\\cannot_unlock.png"
+    else
+        tex = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isLocked and "lock" or "unlock") .. ".png"
+    end
+    button:SetNormalTexture(tex)
+    button:SetHighlightTexture(tex, "ADD")
+    button:GetHighlightTexture():SetAlpha(0.2)
+    if not unlockable then
+        button.tooltipText = L["cannot_unlock_tips"]
+    else
+        button.tooltipText = isLocked and L["addon_detail_unlock_tips"] or L["addon_detail_lock_tips"]
+    end
 end
 
 -- 刷新插件详情
@@ -356,7 +415,9 @@ function Addon:ShowAddonDetail(addonName)
     -- 加载按钮
     addonDetail.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
     -- 收藏按钮
-    syncFavoriteStatus(addonDetail.FavoriteButton, addonInfo.IsFavorite)
+    syncFavoriteButtonStatus(addonDetail.FavoriteButton, addonInfo.IsFavorite)
+    -- 锁定按钮
+    syncLockButtonStatus(addonDetail.LockButton, addonInfo.IsLocked, addonInfo.Unlockable)
 end
 
 -- 当前聚焦的插件

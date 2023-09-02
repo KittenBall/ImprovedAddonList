@@ -15,6 +15,12 @@ function Addon:UpdateAddonInitialEnableState(addonName, enabled)
     AddonInfoInitialStates[addonName].Enabled = enabled
 end
 
+-- 插件是否为管理者，即是否为本插件
+function Addon:IsAddonManager(name)
+    if type(name) ~= "string" then return end
+    return name == AddonName
+end
+
 -- 应当一直被启用的插件，默认只有此插件
 local ShouldAlwaysEnabledAddons = {
     [AddonName] = true
@@ -33,7 +39,20 @@ end
 
 -- 设置插件收藏状态
 function Addon:SetAddonFavorite(name, favorite)
+    if type(name) ~= "string" then return end
     self.Saved.FavoriteAddons[name] = favorite
+end
+
+-- 插件是否被锁定
+function Addon:IsAddonLocked(name)
+    if type(name) ~= "string" then return end
+    return self.Saved.LockedAddons[name]
+end
+
+-- 设置插件锁定状态
+function Addon:SetAddonLock(name, lock)
+    if type(name) ~= "string" then return end
+    self.Saved.LockedAddons[name] = lock
 end
 
 -- 插件备注
@@ -68,6 +87,10 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     addonInfo.Name = name
     -- 标题
     addonInfo.Title = title
+    -- 标题是否具有颜色
+    addonInfo.TitleColorful = title:find("|c%x%x%x%x%x%x%x%x") and true or false
+    -- 不带颜色的标题
+    addonInfo.TitleWithoutColor = title:gsub("|c%x%x%x%x%x%x%x%x", "")
     addonInfo.Notes = notes
     addonInfo.Author = addonInfo.Author or C_AddOns.GetAddOnMetadata(query, "Author")
     addonInfo.Version = addonInfo.Version or C_AddOns.GetAddOnMetadata(query, "Version")
@@ -87,9 +110,6 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
 	end
     -- 图标文本
     addonInfo.IconText = iconText
-    -- 带图标的标题
-    addonInfo.Label = iconText .. " " .. title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    -- addonInfo.Label = iconText .. " " .. title
 
     -- 是否可加载（或已加载）
     addonInfo.Loadable = loadable
@@ -115,6 +135,10 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     addonInfo.Remark = self:GetAddonRemark(name)
     -- 是否收藏
     addonInfo.IsFavorite = self:IsAddonFavorite(name)
+    -- 是否锁定
+    addonInfo.IsLocked = name == AddonName or self:IsAddonLocked(name)
+    -- 是否允许解除锁定
+    addonInfo.Unlockable = not self:IsAddonManager(name)
 
     return addonInfo
 end
@@ -269,16 +293,21 @@ end
 
 -- 启用所有插件
 function Addon:EnableAllAddons()
-    EnableAllAddOns()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if not addonInfo.IsLocked then
+            EnableAddOn(addonInfo.Name)
+        end
+    end
 end
 
 -- 禁用所有插件
 function Addon:DisableAllAddons()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if self:IsAddonShouldEnableAlways(addonInfo.Name) then
+        if self:IsAddonManager(addonInfo.Name) then
             EnableAddOn(addonInfo.Name)
-        else
+        elseif not addonInfo.IsLocked then
             DisableAddOn(addonInfo.Name)
         end
     end
@@ -288,7 +317,7 @@ end
 function Addon:IsAllAddonsEnabled()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if not addonInfo.Enabled then
+        if not addonInfo.IsLocked and not addonInfo.Enabled then
             return false
         end
     end
@@ -300,10 +329,15 @@ end
 function Addon:IsAllAddonsDisabled()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if not self:IsAddonShouldEnableAlways(addonInfo.Name) and addonInfo.Enabled then
+        if not addonInfo.IsLocked and addonInfo.Enabled then
             return false
         end
     end
 
     return true
+end
+
+-- 获取加载指示器显示方式
+function Addon:GetLoadIndicatorDisplayType()
+    return self.Saved.Config.LoadIndicatorDisplayType or Addon.LOAD_INDICATOR_DISPLAY_ALWAYS
 end

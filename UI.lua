@@ -108,11 +108,17 @@ function Addon:GetOrCreateUI()
 
     -- 响应Escape
     local function OnEscapePressed(self, key)
-        if key == "ESCAPE" then
+        if InCombatLockdown() then
+            -- 战斗中，按下任意按键都隐藏面板
+            -- 因为SetPropagateKeyboardInput战斗中无法调用
             self:Hide()
-            self:SetPropagateKeyboardInput(false)
         else
-            self:SetPropagateKeyboardInput(true)
+            if key == "ESCAPE" then
+                self:Hide()
+                self:SetPropagateKeyboardInput(false)
+            else
+                self:SetPropagateKeyboardInput(true)
+            end
         end
     end
     

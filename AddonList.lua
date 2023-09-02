@@ -13,22 +13,22 @@ local ADDON_LOADED_COLOR = WHITE_FONT_COLOR
 local ADDON_DISABLED_COLOR = DISABLED_FONT_COLOR
 
 -- 插件列表项启用状态按钮函数集
-ImprovedAddonListAddonItemEnableStatusButtonMixin = {}
+ImprovedAddonListItemEnableStatusButtonMixin = {}
 
 -- 插件列表项启用状态按钮：鼠标划入 
-function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnEnter()
+function ImprovedAddonListItemEnableStatusButtonMixin:OnEnter()
     GameTooltip:SetOwner(self)
     GameTooltip:AddLine(L["enable_switch"], 1, 1, 1)
     GameTooltip:Show()
 end
 
 -- 插件列表项启用状态按钮：鼠标移出
-function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnLeave()
+function ImprovedAddonListItemEnableStatusButtonMixin:OnLeave()
     GameTooltip:Hide()
 end
 
 -- 插件列表项启用状态按钮：鼠标点击
-function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnClick()
+function ImprovedAddonListItemEnableStatusButtonMixin:OnClick()
     local addonInfo = self:GetParent():GetAddonInfo()
     if addonInfo.Enabled then
         DisableAddOn(addonInfo.Name)
@@ -36,6 +36,21 @@ function ImprovedAddonListAddonItemEnableStatusButtonMixin:OnClick()
         EnableAddOn(addonInfo.Name)
     end
     Addon:RefreshAddonList()
+end
+
+-- 插件列表项锁定状态按钮函数集
+ImprovedAddonListItemLockStatusButtonMixin = {}
+
+-- 插件列表项锁定状态按钮：鼠标划入 
+function ImprovedAddonListItemLockStatusButtonMixin:OnEnter()
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["lock_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+-- 插件列表项锁定状态按钮：鼠标移出
+function ImprovedAddonListItemLockStatusButtonMixin:OnLeave()
+    GameTooltip:Hide()
 end
 
 -- 插件列表组函数集
@@ -57,10 +72,31 @@ ImprovedAddonListAddonItemMixin = {}
 function ImprovedAddonListAddonItemMixin:Update()
     local addonInfo = self:GetAddonInfo()
 
-    self.Label:SetText(addonInfo.Label)
-    self:SetLabelFontColor(self:GetLabelColor())
+    -- 设置标题和加载指示器
+    local loadIndicatorDisplayType = Addon:GetLoadIndicatorDisplayType()
+    local label = addonInfo.IconText
+    if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
+        label = label .. addonInfo.TitleWithoutColor
+        self.LoadIndicator:Hide()
+    elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
+        label = label .. addonInfo.Title
+        self.LoadIndicator:SetShown(addonInfo.TitleColorful)
+    elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ALWAYS then
+        label = label .. addonInfo.Title
+        self.LoadIndicator:Show()
+    end
+
+    self.Label:SetText(label)
+    local labelColor = self:GetLabelColor()
+    self:SetLabelFontColor(labelColor)
+    self:SetLoadIndicatorColor(labelColor)
+
     self:SetSelected(self:IsSelected())
     self:SyncEnableStatus()
+end
+
+function ImprovedAddonListAddonItemMixin:SetLoadIndicatorColor(color)
+    self.LoadIndicator:SetVertexColor(color:GetRGB())
 end
 
 function ImprovedAddonListAddonItemMixin:SetLabelFontColor(color)
@@ -72,38 +108,51 @@ function ImprovedAddonListAddonItemMixin:GetLabelColor()
 
     if Addon:IsAddonShouldReload(addonInfo.Name) then
         return ADDON_RELOAD_COLOR
-    elseif addonInfo.Enabled and not addonInfo.Loadable then
-        return ADDON_UNLOADABLE_COLOR
-    elseif addonInfo.Enabled and not addonInfo.Loaded then
-        return ADDON_UNLOADED_COLOR
     elseif addonInfo.Loaded then
         return ADDON_LOADED_COLOR
+    elseif addonInfo.Enabled and not addonInfo.Loaded then
+        return ADDON_UNLOADED_COLOR
+    elseif addonInfo.Enabled and not addonInfo.Loadable then
+        return ADDON_UNLOADABLE_COLOR
     else
         return ADDON_DISABLED_COLOR
     end
 end
 
+-- 插件列表项：同步启用按钮状态
 function ImprovedAddonListAddonItemMixin:SyncEnableStatus()
     local addonInfo = self:GetAddonInfo()
     local enableStatusButton = self.EnableStatus
+    local lockStatusButton = self.LockStatus
     
-    if Addon:IsAddonShouldEnableAlways(addonInfo.Name) then
+    if addonInfo.IsLocked or not addonInfo.Unlockable then
         enableStatusButton:Hide()
-        return
+        lockStatusButton:Show()
+
+        local lockStatusTex
+        if addonInfo.Unlockable then
+            lockStatusTex = [[Interface\Addons\ImprovedAddonList\Media\lock.png]]
+        else
+            lockStatusTex = [[Interface\Addons\ImprovedAddonList\Media\cannot_unlock.png]]
+        end
+        lockStatusButton:SetNormalTexture(lockStatusTex)
+        lockStatusButton:SetHighlightTexture(lockStatusTex, "ADD")
+        lockStatusButton:GetHighlightTexture():SetAlpha(0.2)
     else
         enableStatusButton:Show()
-    end
+        lockStatusButton:Hide()
 
-    local enableStatusTex
-    if addonInfo.Enabled then
-        enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enabled.png]]
-    else
-        enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enable_status_border.png]]
+        local enableStatusTex
+        if addonInfo.Enabled then
+            enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enabled.png]]
+        else
+            enableStatusTex = [[Interface\Addons\ImprovedAddonList\Media\enable_status_border.png]]
+        end
+    
+        enableStatusButton:SetNormalTexture(enableStatusTex)
+        enableStatusButton:SetHighlightTexture(enableStatusTex, "ADD")
+        enableStatusButton:GetHighlightTexture():SetAlpha(0.2)
     end
-
-    enableStatusButton:SetNormalTexture(enableStatusTex)
-    enableStatusButton:SetHighlightTexture(enableStatusTex, "ADD")
-    enableStatusButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
 -- 插件列表项：鼠标划入

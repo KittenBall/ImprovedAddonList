@@ -13,11 +13,20 @@ local AddonName, Addon = ...
 -- 五：导出插件列表
 -- 六：导出配置字符串
 
+-- 加载指示器：不显示
+Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE = 0
+-- 加载指示器：只对标题带有颜色的插件显示
+Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL = 1
+-- 加载治时期：总是显示
+Addon.LOAD_INDICATOR_DISPLAY_ALWAYS = 2
+
 local function OnInitialize()
     local saved = ImprovedAddonListSaved or {}
     Addon.Saved = saved
     -- 插件偏好
     saved.FavoriteAddons = saved.FavoriteAddons or {}
+    -- 锁定的插件
+    saved.LockedAddons = saved.LockedAddons or {}
     -- 插件分组
     saved.AddonCategories = saved.AddonCategories or {}
     -- 插件备注

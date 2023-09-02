@@ -2,11 +2,18 @@
 
 	<Script file="AddonList.lua"/>
 
-	<Button name="ImprovedAddonListAddonItemEnableStatusButtonTemplate" mixin="ImprovedAddonListAddonItemEnableStatusButtonMixin" virtual="true">
+	<Button name="ImprovedAddonListAddonItemEnableStatusButtonTemplate" mixin="ImprovedAddonListItemEnableStatusButtonMixin" virtual="true">
 		<Scripts>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
 			<OnClick method="OnClick"/>
+		</Scripts>
+	</Button>
+
+	<Button name="ImprovedAddonListAddonItemLockStatusButtonTemplate" mixin="ImprovedAddonListItemLockStatusButtonMixin" virtual="true">
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
 		</Scripts>
 	</Button>
 
@@ -19,6 +26,12 @@
 					<Anchor point="RIGHT" x="-4" />
 				</Anchors>
 			</Button>
+			<Button parentKey="LockStatus" inherits="ImprovedAddonListAddonItemLockStatusButtonTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeKey="$parent.EnableStatus"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" relativeKey="$parent.EnableStatus"/>
+				</Anchors>
+			</Button>
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
@@ -29,10 +42,11 @@
 						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="LoadIndicator">
+				<Texture parentKey="LoadIndicator" file="Interface\Addons\ImprovedAddonList\Media\load_indicator.png">
 					<Size x = "8" y="8"/>
+					<Color color="NORMAL_FONT_COLOR"/>
 					<Anchors>
-						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
+						<Anchor point="CENTER" relativePoint="RIGHT" relativeKey="$parent.Label" x="-4" y="0"/>
 					</Anchors>
 				</Texture>
 			</Layer>
