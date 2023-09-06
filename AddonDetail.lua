@@ -1,6 +1,7 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+-- 插件详情，组件
 local ADDON_DETAILS = {
     {
         Name = "BasicInfo",
@@ -13,6 +14,11 @@ local ADDON_DETAILS = {
             {
                 Name = "Title",
                 Label = L["addon_detail_title"]
+            },
+            {
+                Name = "Remark",
+                Label = L["addon_detail_remark"],
+                Color = LEGENDARY_ORANGE_COLOR
             },
             {
                 Name = "Notes",
@@ -29,10 +35,6 @@ local ADDON_DETAILS = {
             {
                 Name = "LoadOnDemand",
                 Label = L["addon_detail_load_on_demand"]
-            },
-            {
-                Name = "Remark",
-                Label = L["addon_detail_remark"]
             }
         }
     },
@@ -210,7 +212,7 @@ local function onRemarkButtonLeave(self)
 end
 
 local function onRemarkButtonClick(self)
-    -- @todo
+    Addon:ShowEditRemarkDialog()
 end
 
 function Addon:OnAddonDetailLoad()
@@ -383,6 +385,8 @@ end
 
 -- 显示插件详情
 function Addon:ShowAddonDetail(addonName)
+    self:HideEditRemarkDialog()
+
     local addonDetailFrame = self:GetAddonDetailContainer()
     local addonInfo = self:GetAddonInfoByName(addonName)
     self.FocusAddonInfo = addonInfo
@@ -427,4 +431,87 @@ end
 
 function Addon:CurrentFocusAddonInfo()
     return self.FocusAddonInfo
+end
+
+-- 显示编辑备注窗口
+function Addon:ShowEditRemarkDialog()
+    local UI = self:GetOrCreateUI()
+    local focusAddonInfo = self:CurrentFocusAddonInfo()
+
+    if UI.EditRemarkDialog then
+        UI.EditRemarkDialog:ShowAddonInfo(focusAddonInfo) 
+        return 
+    end
+
+    local EditRemarkDialog = CreateFrame("Frame", nil, UI)
+    UI.EditRemarkDialog = EditRemarkDialog
+    EditRemarkDialog:SetSize(460, 150)
+    EditRemarkDialog:SetPoint("CENTER")
+    EditRemarkDialog:SetFrameStrata("DIALOG")
+    
+    function EditRemarkDialog:ShowAddonInfo(addonInfo)
+        self.AddonInfo = addonInfo
+        self.Label:SetText(addonInfo.Name)
+        self.EditBox:SetText(addonInfo.Remark or "")
+        self:Show()
+    end
+
+    local Border = CreateFrame("Frame", nil, EditRemarkDialog, "DialogBorderDarkTemplate")
+    EditRemarkDialog.Border = Border
+
+    local Title = EditRemarkDialog:CreateFontString(nil, nil, "GameFontHighlight")
+    EditRemarkDialog.Title = Title
+    Title:SetText(L["edit_remark"])
+    Title:SetPoint("TOP", EditRemarkDialog, "Top",  0, -20)
+
+    local ContentArea = CreateFrame("Frame", nil, EditRemarkDialog)
+    EditRemarkDialog.ContentArea = ContentArea
+    ContentArea:SetSize(250, 50)
+    ContentArea:SetPoint("TOPLEFT", 40, -40)
+    ContentArea:SetPoint("RIGHT", -40, 0)
+
+    local Label = ContentArea:CreateFontString(nil, nil, "GameFontNormal")
+    EditRemarkDialog.Label = Label
+    Label:SetPoint("TOPLEFT")
+    Label:SetText("测试")
+
+    local EditBox = CreateFrame("EditBox", nil, ContentArea, "InputBoxTemplate")
+    EditRemarkDialog.EditBox = EditBox
+    EditBox:SetFontObject(ChatFontNormal)
+    EditBox:SetSize(260, 32)
+    EditBox:SetMaxLetters(45)
+    EditBox:SetPoint("TOPLEFT", Label, "BOTTOMLEFT", 0, 10)
+    EditBox:SetPoint("RIGHT")
+    EditBox:SetPoint("BOTTOM")
+
+    local AcceptButton = CreateFrame("BUTTON", nil, EditRemarkDialog, "UIPanelButtonTemplate, UIButtonTemplate")
+    EditRemarkDialog.AcceptButton = AcceptButton
+    AcceptButton:SetText(SAVE)
+    AcceptButton:SetSize(120, 22)
+    AcceptButton:SetPoint("BOTTOMRIGHT", EditRemarkDialog, "BOTTOM", -5, 25)
+    AcceptButton:SetScript("OnClick", function(btn)
+        local addonInfo = btn:GetParent().AddonInfo
+        local remark = btn:GetParent().EditBox:GetText()
+        self:SetAddonRemark(addonInfo.Name, remark)
+        self:HideEditRemarkDialog()
+        self:RefreshAddonInfo(addonInfo.Name)
+    end)
+
+    local CancelButton = CreateFrame("BUTTON", nil, EditRemarkDialog, "UIPanelButtonTemplate, UIButtonTemplate")
+    EditRemarkDialog.CancelButton = CancelButton
+    CancelButton:SetText(CANCEL)
+    CancelButton:SetSize(120, 22)
+    CancelButton:SetPoint("BOTTOMLEFT", EditRemarkDialog, "BOTTOM", 5, 25)
+    CancelButton:SetScript("OnClick", function() self:HideEditRemarkDialog() end)
+
+    EditRemarkDialog:ShowAddonInfo(focusAddonInfo)
+end
+
+function Addon:HideEditRemarkDialog()
+    local UI = self:GetOrCreateUI()
+
+    if UI.EditRemarkDialog then
+        UI.EditRemarkDialog:Hide()
+        return 
+    end
 end

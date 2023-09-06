@@ -74,7 +74,7 @@ function ImprovedAddonListAddonItemMixin:Update()
 
     -- 设置标题和加载指示器
     local loadIndicatorDisplayType = Addon:GetLoadIndicatorDisplayType()
-    local label = addonInfo.IconText
+    local label = addonInfo.IconText .. " "
     if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
         label = label .. addonInfo.TitleWithoutColor
         self.LoadIndicator:Hide()
@@ -84,6 +84,11 @@ function ImprovedAddonListAddonItemMixin:Update()
     elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ALWAYS then
         label = label .. addonInfo.Title
         self.LoadIndicator:Show()
+    end
+
+    -- 显示备注
+    if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
+        label = addonInfo.IconText .. " " .. addonInfo.Remark .. WrapTextInColor("*", DISABLED_FONT_COLOR)
     end
 
     self.Label:SetText(label)
@@ -225,6 +230,23 @@ local function ElementExtentCalculator(index, node)
     return 30
 end
 
+-- 设置按钮：鼠标划入
+local function onSettingsButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["enable_all_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+-- 设置按钮：鼠标移出
+local function onSettingsButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 设置按钮：鼠标点击
+local function onSettingsButtonClick(self)
+
+end
+
 -- 启用全部按钮：鼠标划入
 local function onEnableAllButtonEnter(self)
     GameTooltip:SetOwner(self)
@@ -293,11 +315,24 @@ function Addon:OnAddonListLoad()
     -- OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
     -- OptionDropDown.Backdrop:SetAllPoints()
 
+    -- 设置按钮
+    local SettingsButton = CreateFrame("Button", nil, AddonList)
+    AddonList.SettingsButtton = SettingsButton
+    local settingsButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\settings.png"
+    SettingsButton:SetSize(16, 16)
+    SettingsButton:SetNormalTexture(settingsButtonTexture)
+    SettingsButton:SetHighlightTexture(settingsButtonTexture)
+    SettingsButton:GetHighlightTexture():SetAlpha(0.2)
+    SettingsButton:SetPoint("TOPRIGHT", -8, -8)
+    SettingsButton:SetScript("OnEnter", onSettingsButtonEnter)
+    SettingsButton:SetScript("OnLeave", onSettingsButtonLeave)
+    SettingsButton:SetScript("OnClick", onSettingsButtonClick)
+
     -- 启用全部按钮
     local EnableAllButton = CreateFrame("Button", nil, AddonList)
     AddonList.EnableAllButton = EnableAllButton
     EnableAllButton:SetSize(16, 16)
-    EnableAllButton:SetPoint("TOPRIGHT", -8, -8)
+    EnableAllButton:SetPoint("RIGHT", SettingsButton, "LEFT", -4, 0)
     EnableAllButton:SetScript("OnEnter", onEnableAllButtonEnter)
     EnableAllButton:SetScript("OnLeave", onEnableAllButtonLeave)
     EnableAllButton:SetScript("OnClick", onEnableAllButtonClick)
@@ -357,7 +392,7 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     -- 更新启用全部按钮
     local EnableAllButton = AddonList.EnableAllButton
     local isAllAddonsEnabled = self:IsAllAddonsEnabled()
-    local enableAllTexture = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all" )
+    local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all" )
     EnableAllButton:SetNormalTexture(enableAllTexture)
     EnableAllButton:SetHighlightTexture(enableAllTexture)
     EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
@@ -365,7 +400,7 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     -- 更新禁用全部按钮
     local DisableAllButton = AddonList.DisableAllButton
     local isAllAddonsDisabled = self:IsAllAddonsDisabled()
-    local disableAllTexture = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all" )
+    local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all" )
     DisableAllButton:SetNormalTexture(disableAllTexture)
     DisableAllButton:SetHighlightTexture(disableAllTexture)
     DisableAllButton:GetHighlightTexture():SetAlpha(0.2)

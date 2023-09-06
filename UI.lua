@@ -23,6 +23,13 @@ local ImprovedAddonListButtonDisabledFont = CreateFont("ImprovedAddonListButtonD
 ImprovedAddonListButtonDisabledFont:CopyFontObject(GameFontWhite)
 ImprovedAddonListButtonDisabledFont:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
 
+-- 创建弹窗
+function Addon:CreateDialog(name, parent)
+    
+
+    return dialog
+end
+
 -- 创建带背景和边框的容器
 function Addon:CreateContainer()
     local Container = CreateFrame("Frame", nil, self.UI)
@@ -96,14 +103,6 @@ function Addon:GetOrCreateUI()
 
     -- 创建UI
     UI = CreateFrame("Frame", "ImprovedAddonListDialog", UIParent, "PortraitFrameTemplate")
-    self.UI = UI
-
-    -- 基本样式
-    UI:SetSize(630, 600)
-    UI:ClearAllPoints()
-    UI:SetPoint("CENTER")
-    UI:SetTitle(ADDON_LIST)
-    UI:SetFrameStrata("HIGH")
     ButtonFrameTemplateMinimizable_HidePortrait(UI)
 
     -- 响应Escape
@@ -114,8 +113,8 @@ function Addon:GetOrCreateUI()
             self:Hide()
         else
             if key == "ESCAPE" then
-                self:Hide()
                 self:SetPropagateKeyboardInput(false)
+                self:Hide()
             else
                 self:SetPropagateKeyboardInput(true)
             end
@@ -136,6 +135,14 @@ function Addon:GetOrCreateUI()
     UI.TitleContainer:SetScript("OnDragStop", function(self)
         self:GetParent():StopMovingOrSizing()
     end)
+    self.UI = UI
+
+    -- 基本样式
+    UI:SetSize(630, 600)
+    UI:ClearAllPoints()
+    UI:SetPoint("CENTER")
+    UI:SetTitle(ADDON_LIST)
+    UI:SetFrameStrata("HIGH")
 
     -- 启用过期插件按钮
     local EnableExpiredAddonsButton = CreateFrame("CheckButton", nil, UI, "UICheckButtonTemplate")
@@ -187,11 +194,6 @@ end
 function Addon:ShowUI()
     self:HideUIPanel(GameMenuFrame)
     self:GetOrCreateUI():Show()
-end
-
--- 显示编辑窗口
-function Addon:ShowEditDialog()
-    -- @todo
 end
 
 function Addon:GetAddonList()

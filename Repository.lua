@@ -1,5 +1,7 @@
 local AddonName, Addon = ...
 
+local L = LibStub("AceLocale-3.0"):GetLocale(AddonName)
+
 Addon.AddonInfos = {}
 
 -- 插件初始启用状态
@@ -64,7 +66,26 @@ end
 -- 设置插件备注
 function Addon:SetAddonRemark(name, remark)
     if type(name) ~= "string" then return end
-    self.Saved.AddonRemarks[name] = remark
+    if remark == nil or remark == "" then
+        self.Saved.AddonRemarks[name] = nil
+    else
+        remark = strtrim(remark)
+        local addonInfos = self:GetAddonInfos()
+        for _, addonInfo in ipairs(addonInfos) do
+            -- 检查是否重名
+            if addonInfo.Name == remark then
+                self:ShowError(L["edit_remark_error_name_duplicate"]:format(addonInfo.Title))
+                return
+            elseif addonInfo.Title == remark or addonInfo.TitleWithoutColor == remark then
+                self:ShowError(L["edit_remark_error_title_duplicate"]:format(addonInfo.Title))
+                return
+            elseif addonInfo.Remark == remark then
+                self:ShowError(L["edit_remark_error_remark_duplicate"]:format(addonInfo.Title))
+                return
+            end
+        end
+        self.Saved.AddonRemarks[name] = remark
+    end
 end
 
 -- 获取插件信息，返回值可能为nil
