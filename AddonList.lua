@@ -178,6 +178,11 @@ function ImprovedAddonListAddonItemMixin:OnClick()
     PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
 end
 
+-- 插件列表项：鼠标双击
+function ImprovedAddonListAddonItemMixin:OnDoubleClick()
+    self.EnableStatus:Click()
+end
+
 -- 插件列表项：设置选中
 function ImprovedAddonListAddonItemMixin:SetSelected(selected)
 	self.SelectedOverlay:SetShown(selected)

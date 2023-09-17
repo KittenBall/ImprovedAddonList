@@ -68,6 +68,7 @@
 		<Scripts>
 			<OnEnter method="OnEnter"/>
 			<OnClick method="OnClick"/>
+			<OnDoubleClick method="OnDoubleClick"/>
 			<OnLeave method="OnLeave"/>
 		</Scripts>
 	</Button>

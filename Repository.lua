@@ -23,16 +23,6 @@ function Addon:IsAddonManager(name)
     return name == AddonName
 end
 
--- 应当一直被启用的插件，默认只有此插件
-local ShouldAlwaysEnabledAddons = {
-    [AddonName] = true
-}
-
--- 插件是否应当被一直启用
-function Addon:IsAddonShouldEnableAlways(addonName)
-    return ShouldAlwaysEnabledAddons[addonName]
-end
-
 -- 插件是否被收藏
 function Addon:IsAddonFavorite(name)
     if type(name) ~= "string" then return end
@@ -42,7 +32,7 @@ end
 -- 设置插件收藏状态
 function Addon:SetAddonFavorite(name, favorite)
     if type(name) ~= "string" then return end
-    self.Saved.FavoriteAddons[name] = favorite
+    self.Saved.FavoriteAddons[name] = favorite and true or nil
 end
 
 -- 插件是否被锁定
@@ -54,7 +44,7 @@ end
 -- 设置插件锁定状态
 function Addon:SetAddonLock(name, lock)
     if type(name) ~= "string" then return end
-    self.Saved.LockedAddons[name] = lock
+    self.Saved.LockedAddons[name] = lock and true or nil
 end
 
 -- 插件备注
@@ -142,6 +132,8 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     addonInfo.Enabled = GetAddOnEnableState(UnitName("player"), query) > 0
     -- 初始启用状态
     addonInfo.InitialEnabled = AddonInfoInitialStates[name].Enabled
+    -- 是否过期
+    addonInfo.Expired = reason == "INTERFACE_VERSION"
     -- 初始过期状态
     addonInfo.InitialExpired = AddonInfoInitialStates[name].Expired
     -- 不可加载原因
@@ -309,7 +301,8 @@ end
 -- 插件是否需要重载
 function Addon:IsAddonShouldReload(query)
     local addonInfo = self:QueryAddonInfo(query)
-    return addonInfo.Enabled ~= addonInfo.InitialEnabled and addonInfo.UnloadableReason ~= ADDON_DEP_DISABLED
+    -- 如果插件依赖被禁用，则其启用状态的变化就无关紧要
+    return (addonInfo.Enabled ~= addonInfo.InitialEnabled or addonInfo.InitialExpired ~= addonInfo.Expired) and addonInfo.UnloadableReason ~= ADDON_DEP_DISABLED
 end
 
 -- 启用所有插件

@@ -72,6 +72,8 @@ L["true"] = "是"
 L["false"] = "否"
 
 L["options"] = "选项"
+L["enable_expired_addons"] = "加载过期插件"
+L["disable_expired_addons"] = "禁用过期插件"
 L["enable_all_tips"] = "启用所有插件"
 L["disable_all_tips"] = "禁用所有插件"
 L["lock_tips"] = "已锁定"

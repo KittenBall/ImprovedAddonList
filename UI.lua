@@ -23,13 +23,6 @@ local ImprovedAddonListButtonDisabledFont = CreateFont("ImprovedAddonListButtonD
 ImprovedAddonListButtonDisabledFont:CopyFontObject(GameFontWhite)
 ImprovedAddonListButtonDisabledFont:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
 
--- 创建弹窗
-function Addon:CreateDialog(name, parent)
-    
-
-    return dialog
-end
-
 -- 创建带背景和边框的容器
 function Addon:CreateContainer()
     local Container = CreateFrame("Frame", nil, self.UI)
@@ -81,18 +74,44 @@ local function GetEnvInfo()
         flavor = "UNKNOWN"
     end
 
-    return format("%s.%d(%s) on %s %s\nBuild in %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)
+    return format("%s.%d(%s) on %s %s\nBuild on %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)
 end
 
--- 启用过期插件按钮选中变化
-local function OnEnableExpiredAddonsButtonCheckedChange(self)
-    if self:GetChecked() then
+-- 同步启用过期插件按钮的状态
+local function syncEnableExpiredAddonsButtonStatus(self)
+    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (IsAddonVersionCheckEnabled() and "enable_expired_addons.png" or "disable_expired_addons.png" )
+    self:SetNormalTexture(tex)
+    self:SetHighlightTexture(tex)
+    self:GetHighlightTexture():SetAlpha(0.2)
+end
+
+-- 启用过期插件按钮：鼠标划入
+local function onEnableExpiredAddonsButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(IsAddonVersionCheckEnabled() and L["enable_expired_addons"] or L["disable_expired_addons"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+-- 启用过期插件按钮：鼠标移出
+local function onEnableExpiredAddonsButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 启用过期插件按钮：点击
+local function onEnableExpiredAddonsButtonClick(self)
+    if IsAddonVersionCheckEnabled() then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         SetAddonVersionCheck(false);
     else
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
         SetAddonVersionCheck(true);
     end
+
+    syncEnableExpiredAddonsButtonStatus(self)
+    if GameTooltip:IsOwned(self) then
+        onEnableExpiredAddonsButtonEnter(self)
+    end
+
     Addon:RefreshAddonList()
 end
 
@@ -145,14 +164,14 @@ function Addon:GetOrCreateUI()
     UI:SetFrameStrata("HIGH")
 
     -- 启用过期插件按钮
-    local EnableExpiredAddonsButton = CreateFrame("CheckButton", nil, UI, "UICheckButtonTemplate")
+    local EnableExpiredAddonsButton = CreateFrame("Button", nil, UI)
     UI.EnableExpiredAddonsButton = EnableExpiredAddonsButton
-    EnableExpiredAddonsButton:SetSize(26, 26)
-    EnableExpiredAddonsButton.text:SetFontObject(GameFontWhite)
-    EnableExpiredAddonsButton.text:SetText(ADDON_FORCE_LOAD)
-    EnableExpiredAddonsButton:SetChecked(not IsAddonVersionCheckEnabled())
-    EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -(EnableExpiredAddonsButton.text:GetStringWidth() + 20), -30)
-    EnableExpiredAddonsButton:SetScript("OnClick", OnEnableExpiredAddonsButtonCheckedChange)
+    EnableExpiredAddonsButton:SetSize(18, 18)
+    EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -12, -35)
+    EnableExpiredAddonsButton:SetScript("OnClick", onEnableExpiredAddonsButtonClick)
+    EnableExpiredAddonsButton:SetScript("OnEnter", onEnableExpiredAddonsButtonEnter)
+    EnableExpiredAddonsButton:SetScript("OnLeave", onEnableExpiredAddonsButtonLeave)
+    syncEnableExpiredAddonsButtonStatus(EnableExpiredAddonsButton)
 
     -- 重载界面按钮
     local ReloadUIButton = CreateFrame("Button", nil, UI, "SharedButtonSmallTemplate")
@@ -187,6 +206,7 @@ function Addon:GetOrCreateUI()
     -- 初始化
     self:OnAddonDetailLoad()
     self:OnAddonListLoad()
+    self:OnAddonSchemeLoad()
 
     return UI
 end

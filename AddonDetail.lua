@@ -201,16 +201,19 @@ local function onLockButtonClick(self)
     end
 end
 
+-- 编辑按钮：鼠标划入
 local function onRemarkButtonEnter(self)
     GameTooltip:SetOwner(self)
     GameTooltip:AddLine(L["edit_remark"], 1, 1, 1)
     GameTooltip:Show()
 end
 
+-- 编辑按钮：鼠标移出
 local function onRemarkButtonLeave(self)
     GameTooltip:Hide()
 end
 
+-- 编辑按钮：点击
 local function onRemarkButtonClick(self)
     Addon:ShowEditRemarkDialog()
 end
