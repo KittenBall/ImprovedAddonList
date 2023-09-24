@@ -31,6 +31,8 @@ local function OnInitialize()
     saved.AddonCategories = saved.AddonCategories or {}
     -- 插件备注
     saved.AddonRemarks = saved.AddonRemarks or {}
+    -- 插件方案列表
+    saved.AddonSchemes = saved.AddonSchemes or {}
 
     -- 配置
     local config = ImprovedAddonListSaved.Config or {}

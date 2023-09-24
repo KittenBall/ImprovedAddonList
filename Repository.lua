@@ -355,3 +355,14 @@ end
 function Addon:GetLoadIndicatorDisplayType()
     return self.Saved.Config.LoadIndicatorDisplayType or Addon.LOAD_INDICATOR_DISPLAY_ALWAYS
 end
+
+-- 获取插件方案列表
+function Addon:GetAddonSchemes()
+    return self.Saved.AddonSchemes
+end
+
+-- 返回当前的插件方案，或nil
+function Addon:GetActiveAddonScheme()
+    local activeAddonScheme = self.Saved.ActiveAddonScheme
+    return activeAddonScheme and self.Saved.AddonSchemes[activeAddonScheme]
+end

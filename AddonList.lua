@@ -35,7 +35,7 @@ function ImprovedAddonListItemEnableStatusButtonMixin:OnClick()
     else
         EnableAddOn(addonInfo.Name)
     end
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonListContainer()
 end
 
 -- 插件列表项锁定状态按钮函数集
@@ -105,7 +105,7 @@ function ImprovedAddonListAddonItemMixin:SetLoadIndicatorColor(color)
 end
 
 function ImprovedAddonListAddonItemMixin:SetLabelFontColor(color)
-    self.Label:SetVertexColor(color:GetRGB())
+    self.Label:SetTextColor(color:GetRGB())
 end
 
 function ImprovedAddonListAddonItemMixin:GetLabelColor()
@@ -269,7 +269,7 @@ local function onEnableAllButtonClick(self)
     if Addon:IsAllAddonsEnabled() then return end
 
     Addon:EnableAllAddons()
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonListContainer()
 end
 
 -- 禁用全部按钮：鼠标划入
@@ -289,7 +289,7 @@ local function onDisableAllButtonClick(self)
     if Addon:IsAllAddonsDisabled() then return end
 
     Addon:DisableAllAddons()
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonListContainer()
 end
 
 -- 插件列表搜索框文本变化
@@ -298,13 +298,13 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
         self.searchJob:Cancel()
     end
     self.searchJob = C_Timer.NewTimer(0.25, function()
-        Addon:UpdateAddonList()
+        Addon:UpdateAddonListContainer()
     end)
 end
 
 -- 插件列表加载
-function Addon:OnAddonListLoad()
-    local AddonList = self:GetAddonList()
+function Addon:OnAddonListContainerLoad()
+    local AddonListContainer = self:GetAddonListContainer()
 
     -- 选项
     -- local OptionButton = CreateFrame("Button", nil, AddonList, "UIResettableDropdownButtonTemplate")
@@ -321,8 +321,8 @@ function Addon:OnAddonListLoad()
     -- OptionDropDown.Backdrop:SetAllPoints()
 
     -- 设置按钮
-    local SettingsButton = CreateFrame("Button", nil, AddonList)
-    AddonList.SettingsButtton = SettingsButton
+    local SettingsButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.SettingsButtton = SettingsButton
     local settingsButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\settings.png"
     SettingsButton:SetSize(16, 16)
     SettingsButton:SetNormalTexture(settingsButtonTexture)
@@ -334,8 +334,8 @@ function Addon:OnAddonListLoad()
     SettingsButton:SetScript("OnClick", onSettingsButtonClick)
 
     -- 启用全部按钮
-    local EnableAllButton = CreateFrame("Button", nil, AddonList)
-    AddonList.EnableAllButton = EnableAllButton
+    local EnableAllButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.EnableAllButton = EnableAllButton
     EnableAllButton:SetSize(16, 16)
     EnableAllButton:SetPoint("RIGHT", SettingsButton, "LEFT", -4, 0)
     EnableAllButton:SetScript("OnEnter", onEnableAllButtonEnter)
@@ -343,8 +343,8 @@ function Addon:OnAddonListLoad()
     EnableAllButton:SetScript("OnClick", onEnableAllButtonClick)
 
     -- 禁用全部按钮
-    local DisableAllButton = CreateFrame("Button", nil, AddonList)
-    AddonList.DisableAllButton = DisableAllButton
+    local DisableAllButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.DisableAllButton = DisableAllButton
     DisableAllButton:SetSize(16, 16)
     DisableAllButton:SetPoint("RIGHT", EnableAllButton, "LEFT", -4, 0)
     DisableAllButton:SetScript("OnEnter", onDisableAllButtonEnter)
@@ -352,8 +352,8 @@ function Addon:OnAddonListLoad()
     DisableAllButton:SetScript("OnClick", onDisableAllButtonClick)
 
     -- 创建插件列表搜索框
-    local AddonListSearchBox = CreateFrame("EditBox", nil, AddonList, "SearchBoxTemplate")
-    AddonList.SearchBox = AddonListSearchBox
+    local AddonListSearchBox = CreateFrame("EditBox", nil, AddonListContainer, "SearchBoxTemplate")
+    AddonListContainer.SearchBox = AddonListSearchBox
     AddonListSearchBox:SetPoint("LEFT", 14, 0)
     AddonListSearchBox:SetPoint("TOPRIGHT", DisableAllButton, "TOPLEFT", -5, 0)
     AddonListSearchBox:SetPoint("BOTTOMRIGHT", DisableAllButton, "BOTTOMLEFT", -5, 0)
@@ -362,14 +362,14 @@ function Addon:OnAddonListLoad()
 
     -- 创建插件列表
     -- 滚动框
-    local AddonListScrollBox = CreateFrame("Frame", nil, AddonList, "WowScrollBoxList")
-    AddonList.ScrollBox = AddonListScrollBox
+    local AddonListScrollBox = CreateFrame("Frame", nil, AddonListContainer, "WowScrollBoxList")
+    AddonListContainer.ScrollBox = AddonListScrollBox
     AddonListScrollBox:SetPoint("TOP", AddonListSearchBox, "BOTTOM", 0, -5)
     AddonListScrollBox:SetPoint("LEFT", 5, 0)
     AddonListScrollBox:SetPoint("BOTTOMRIGHT", -20, 7)
     -- 滚动条
-    local AddonListScrollBar = CreateFrame("EventFrame", nil, AddonList, "MinimalScrollBar")
-    AddonList.ScrollBar =  AddonListScrollBar
+    local AddonListScrollBar = CreateFrame("EventFrame", nil, AddonListContainer, "MinimalScrollBar")
+    AddonListContainer.ScrollBar =  AddonListScrollBar
     AddonListScrollBar:SetPoint("TOPLEFT", AddonListScrollBox, "TOPRIGHT")
     AddonListScrollBar:SetPoint("BOTTOMLEFT", AddonListScrollBox, "BOTTOMRIGHT")
 
@@ -387,15 +387,15 @@ function Addon:OnAddonListLoad()
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
 
-    self:UpdateAddonList()
+    self:UpdateAddonListContainer()
 end
 
 -- 刷新插件列表选项按钮的状态
 function Addon:RefreshAddonListOptionButtonsStatus()
-    local AddonList = self:GetAddonList()
+    local AddonListContainer = self:GetAddonListContainer()
     
     -- 更新启用全部按钮
-    local EnableAllButton = AddonList.EnableAllButton
+    local EnableAllButton = AddonListContainer.EnableAllButton
     local isAllAddonsEnabled = self:IsAllAddonsEnabled()
     local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all" )
     EnableAllButton:SetNormalTexture(enableAllTexture)
@@ -403,7 +403,7 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
     
     -- 更新禁用全部按钮
-    local DisableAllButton = AddonList.DisableAllButton
+    local DisableAllButton = AddonListContainer.DisableAllButton
     local isAllAddonsDisabled = self:IsAllAddonsDisabled()
     local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all" )
     DisableAllButton:SetNormalTexture(disableAllTexture)
@@ -419,9 +419,9 @@ function Addon:ScrollToSelectedItem()
     self:GetAddonListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
 end
 
--- 更新插件列表，和RefreshAddonList的区别为：这个函数调用后，插件列表项的数量可能会变更
+-- 更新插件列表，和RefreshAddonListContainer的区别为：这个函数调用后，插件列表项的数量可能会变更
 -- @param updateAddonInfos 刷新插件信息
-function Addon:UpdateAddonList(updateAddonInfos)
+function Addon:UpdateAddonListContainer(updateAddonInfos)
     if updateAddonInfos then
         self:UpdateAddonInfos()
     end
@@ -444,14 +444,14 @@ function Addon:UpdateAddonList(updateAddonInfos)
     self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
     self:ScrollToSelectedItem()
 
-    self:RefreshAddonDetail()
+    self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
 end
 
--- 刷新插件列表，和UpdateAddonList的区别为：这个函数会刷新插件信息，并更新到界面上
-function Addon:RefreshAddonList()
+-- 刷新插件列表，和UpdateAddonListContainer的区别为：这个函数会刷新插件信息，并更新到界面上
+function Addon:RefreshAddonListContainer()
     self:UpdateAddonInfos()
-    self:RefreshAddonDetail()
+    self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
     for _, frame in self:GetAddonListScrollBox():EnumerateFrames() do
         frame:Update()
@@ -471,18 +471,18 @@ function Addon:RefreshAddonInfo(addonName)
     if frame then
         frame:Update()
     end
-    self:RefreshAddonDetail()
+    self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
 end
 
 function Addon:GetAddonListScrollBox()
-    return self:GetAddonList().ScrollBox
+    return self:GetAddonListContainer().ScrollBox
 end
 
 function Addon:GetAddonListScrollBar()
-    return self:GetAddonList().ScrollBar
+    return self:GetAddonListContainer().ScrollBar
 end
 
 function Addon:GetAddonListSearchBox()
-    return self:GetAddonList().SearchBox
+    return self:GetAddonListContainer().SearchBox
 end

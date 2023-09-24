@@ -77,42 +77,16 @@ local function GetEnvInfo()
     return format("%s.%d(%s) on %s %s\nBuild on %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)
 end
 
--- 同步启用过期插件按钮的状态
-local function syncEnableExpiredAddonsButtonStatus(self)
-    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (IsAddonVersionCheckEnabled() and "enable_expired_addons.png" or "disable_expired_addons.png" )
-    self:SetNormalTexture(tex)
-    self:SetHighlightTexture(tex)
-    self:GetHighlightTexture():SetAlpha(0.2)
-end
-
--- 启用过期插件按钮：鼠标划入
-local function onEnableExpiredAddonsButtonEnter(self)
-    GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(IsAddonVersionCheckEnabled() and L["enable_expired_addons"] or L["disable_expired_addons"], 1, 1, 1)
-    GameTooltip:Show()
-end
-
--- 启用过期插件按钮：鼠标移出
-local function onEnableExpiredAddonsButtonLeave(self)
-    GameTooltip:Hide()
-end
-
--- 启用过期插件按钮：点击
-local function onEnableExpiredAddonsButtonClick(self)
-    if IsAddonVersionCheckEnabled() then
+-- 启用过期插件按钮选中变化
+local function OnEnableExpiredAddonsButtonCheckedChange(self)
+    if self:GetChecked() then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         SetAddonVersionCheck(false);
     else
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
         SetAddonVersionCheck(true);
     end
-
-    syncEnableExpiredAddonsButtonStatus(self)
-    if GameTooltip:IsOwned(self) then
-        onEnableExpiredAddonsButtonEnter(self)
-    end
-
-    Addon:RefreshAddonList()
+    Addon:RefreshAddonListContainer()
 end
 
 -- UI函数
@@ -164,14 +138,14 @@ function Addon:GetOrCreateUI()
     UI:SetFrameStrata("HIGH")
 
     -- 启用过期插件按钮
-    local EnableExpiredAddonsButton = CreateFrame("Button", nil, UI)
+    local EnableExpiredAddonsButton = CreateFrame("CheckButton", nil, UI, "UICheckButtonTemplate")
     UI.EnableExpiredAddonsButton = EnableExpiredAddonsButton
-    EnableExpiredAddonsButton:SetSize(18, 18)
-    EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -12, -35)
-    EnableExpiredAddonsButton:SetScript("OnClick", onEnableExpiredAddonsButtonClick)
-    EnableExpiredAddonsButton:SetScript("OnEnter", onEnableExpiredAddonsButtonEnter)
-    EnableExpiredAddonsButton:SetScript("OnLeave", onEnableExpiredAddonsButtonLeave)
-    syncEnableExpiredAddonsButtonStatus(EnableExpiredAddonsButton)
+    EnableExpiredAddonsButton:SetSize(26, 26)
+    EnableExpiredAddonsButton.text:SetFontObject(GameFontWhite)
+    EnableExpiredAddonsButton.text:SetText(ADDON_FORCE_LOAD)
+    EnableExpiredAddonsButton:SetChecked(not IsAddonVersionCheckEnabled())
+    EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -(EnableExpiredAddonsButton.text:GetStringWidth() + 20), -30)
+    EnableExpiredAddonsButton:SetScript("OnClick", OnEnableExpiredAddonsButtonCheckedChange)
 
     -- 重载界面按钮
     local ReloadUIButton = CreateFrame("Button", nil, UI, "SharedButtonSmallTemplate")
@@ -189,24 +163,30 @@ function Addon:GetOrCreateUI()
     BuildInfo:SetPoint("BOTTOMLEFT", 10, 10)
     BuildInfo:SetText(GetEnvInfo())
 
+    -- 插件方案
+    local AddonSchemeContainer = CreateFrame("Frame", nil, UI)
+    UI.AddonSchemeContainer = AddonSchemeContainer
+    AddonSchemeContainer:SetSize(240, 24)
+    AddonSchemeContainer:SetPoint("TOPLEFT", 10, -32)
+
     -- 创建插件列表页
-    local AddonList = self:CreateContainer()
-    UI.AddonList = AddonList
-    AddonList:SetWidth(300)
-    AddonList:SetPoint("BOTTOMLEFT", 10, 40)
-    AddonList:SetPoint("TOPLEFT", 10, -60)
+    local AddonListContainer = self:CreateContainer()
+    UI.AddonListContainer = AddonListContainer
+    AddonListContainer:SetWidth(300)
+    AddonListContainer:SetPoint("BOTTOMLEFT", 10, 40)
+    AddonListContainer:SetPoint("TOPLEFT", 10, -60)
 
     -- 创建插件详情页
-    local AddonDetail = self:CreateContainer()
-    UI.AddonDetail = AddonDetail
-    AddonDetail:SetWidth(300)
-    AddonDetail:SetPoint("TOPLEFT", AddonList, "TOPRIGHT", 10, 0)
-    AddonDetail:SetPoint("BOTTOMLEFT", AddonList, "BOTTOMRIGHT", 10, 0)
+    local AddonDetailContainer = self:CreateContainer()
+    UI.AddonDetailContainer = AddonDetailContainer
+    AddonDetailContainer:SetWidth(300)
+    AddonDetailContainer:SetPoint("TOPLEFT", AddonListContainer, "TOPRIGHT", 10, 0)
+    AddonDetailContainer:SetPoint("BOTTOMLEFT", AddonListContainer, "BOTTOMRIGHT", 10, 0)
 
     -- 初始化
-    self:OnAddonDetailLoad()
-    self:OnAddonListLoad()
-    self:OnAddonSchemeLoad()
+    self:OnAddonDetailContainerLoad()
+    self:OnAddonListContainerLoad()
+    self:OnAddonSchemeContainerLoad()
 
     return UI
 end
@@ -216,12 +196,16 @@ function Addon:ShowUI()
     self:GetOrCreateUI():Show()
 end
 
-function Addon:GetAddonList()
-    return self.UI.AddonList
+function Addon:GetAddonListContainer()
+    return self.UI.AddonListContainer
 end
 
-function Addon:GetAddonDetail()
-    return self.UI.AddonDetail
+function Addon:GetAddonDetailContainer()
+    return self.UI.AddonDetailContainer
+end
+
+function Addon:GetAddonSchemeContainer()
+    return self.UI.AddonSchemeContainer
 end
 
 -- 暴雪插件列表显示的时候，鸠占鹊巢

@@ -79,7 +79,7 @@ local ADDON_DETAILS = {
 
 -- 更新插件详情各框体的位置
 function Addon:UpdateAddonDetailFramesPosition()
-    local addonDetailFrame = self:GetAddonDetailContainer()
+    local addonDetailFrame = self:GetAddonDetailScrollContainer()
 
     local categoryOffsetX, categoryOffsetY = 10, -10
     local addonDetailOffsetX, addonDetailFirstOffsetY, addonDetailOffsetY = 15, -10, -8
@@ -218,11 +218,11 @@ local function onRemarkButtonClick(self)
     Addon:ShowEditRemarkDialog()
 end
 
-function Addon:OnAddonDetailLoad()
-    local AddonDetail = self:GetAddonDetail()
+function Addon:OnAddonDetailContainerLoad()
+    local AddonDetailContainer = self:GetAddonDetailContainer()
     -- 滚动框
-    local AddonDetailScrollBox = CreateFrame("Frame", nil, AddonDetail, "WowScrollBox")
-    AddonDetail.ScrollBox = AddonDetailScrollBox
+    local AddonDetailScrollBox = CreateFrame("Frame", nil, AddonDetailContainer, "WowScrollBox")
+    AddonDetailContainer.ScrollBox = AddonDetailScrollBox
     AddonDetailScrollBox:SetPoint("TOPLEFT", 5, -7)
     AddonDetailScrollBox:SetPoint("BOTTOMRIGHT", -5, 40)
 
@@ -260,7 +260,7 @@ function Addon:OnAddonDetailLoad()
 
     -- 收藏按钮
     local favoriteButton = CreateDetailButton(AddonDetailFrame)
-    AddonDetail.FavoriteButton = favoriteButton
+    AddonDetailContainer.FavoriteButton = favoriteButton
     favoriteButton:SetScript("OnEnter", onFavoriteButtonEnter)
     favoriteButton:SetScript("OnLeave", onFavoriteButtonLeave)
     favoriteButton:SetScript("OnClick", onFavoriteButtonClick)
@@ -269,7 +269,7 @@ function Addon:OnAddonDetailLoad()
 
     -- 锁定按钮
     local lockButton = CreateDetailButton(AddonDetailFrame)
-    AddonDetail.LockButton = lockButton
+    AddonDetailContainer.LockButton = lockButton
     lockButton:SetScript("OnEnter", onLockButtonEnter)
     lockButton:SetScript("OnLeave", onLockButtonLeave)
     lockButton:SetScript("OnClick", onLockButtonClick)
@@ -278,7 +278,7 @@ function Addon:OnAddonDetailLoad()
 
     -- 备注按钮
     local remarkButton = CreateDetailButton(AddonDetailFrame)
-    AddonDetail.RemarkButton = remarkButton
+    AddonDetailContainer.RemarkButton = remarkButton
     remarkButton:SetScript("OnEnter", onRemarkButtonEnter)
     remarkButton:SetScript("OnLeave", onRemarkButtonLeave)
     remarkButton:SetScript("OnClick", onRemarkButtonClick)
@@ -289,8 +289,8 @@ function Addon:OnAddonDetailLoad()
     remarkButton:SetPoint("RIGHT", lockButton, "LEFT", -4, 0)
     
     -- 加载按钮
-    local loadButton = CreateDetailButton(AddonDetail)
-    AddonDetail.LoadButton = loadButton
+    local loadButton = CreateDetailButton(AddonDetailContainer)
+    AddonDetailContainer.LoadButton = loadButton
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetScript("OnClick", OnLoadButtonClick)
@@ -302,11 +302,11 @@ function Addon:OnAddonDetailLoad()
 end
 
 function Addon:GetAddonDetailScrollBox()
-    return self:GetAddonDetail().ScrollBox
+    return self:GetAddonDetailContainer().ScrollBox
 end
 
-function Addon:GetAddonDetailContainer()
-    return self:GetAddonDetail().ScrollBox.Container
+function Addon:GetAddonDetailScrollContainer()
+    return self:GetAddonDetailContainer().ScrollBox.Container
 end
 
 local function getAddonVersion(version)
@@ -382,7 +382,7 @@ local function syncLockButtonStatus(button, isLocked, unlockable)
 end
 
 -- 刷新插件详情
-function Addon:RefreshAddonDetail()
+function Addon:RefreshAddonDetailContainer()
     self:ShowAddonDetail(self:CurrentFocusAddonName())
 end
 
@@ -390,7 +390,7 @@ end
 function Addon:ShowAddonDetail(addonName)
     self:HideEditRemarkDialog()
 
-    local addonDetailFrame = self:GetAddonDetailContainer()
+    local addonDetailFrame = self:GetAddonDetailScrollContainer()
     local addonInfo = self:GetAddonInfoByName(addonName)
     self.FocusAddonInfo = addonInfo
 
@@ -417,14 +417,14 @@ function Addon:ShowAddonDetail(addonName)
 
     self:UpdateAddonDetailFramesPosition()
     
-    local addonDetail = self:GetAddonDetail()
+    local AddonDetailContainer = self:GetAddonDetailContainer()
     
     -- 加载按钮
-    addonDetail.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
+    AddonDetailContainer.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
     -- 收藏按钮
-    syncFavoriteButtonStatus(addonDetail.FavoriteButton, addonInfo.IsFavorite)
+    syncFavoriteButtonStatus(AddonDetailContainer.FavoriteButton, addonInfo.IsFavorite)
     -- 锁定按钮
-    syncLockButtonStatus(addonDetail.LockButton, addonInfo.IsLocked, addonInfo.Unlockable)
+    syncLockButtonStatus(AddonDetailContainer.LockButton, addonInfo.IsLocked, addonInfo.Unlockable)
 end
 
 -- 当前聚焦的插件
