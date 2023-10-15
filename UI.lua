@@ -23,9 +23,48 @@ local ImprovedAddonListButtonDisabledFont = CreateFont("ImprovedAddonListButtonD
 ImprovedAddonListButtonDisabledFont:CopyFontObject(GameFontWhite)
 ImprovedAddonListButtonDisabledFont:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
 
+-- 创建对话框
+function Addon:CreateDialog(name, parent)
+    local dialog = CreateFrame("Frame", name, parent, "PortraitFrameTemplate")
+    ButtonFrameTemplateMinimizable_HidePortrait(dialog)
+
+    -- 响应Escape
+    local function OnEscapePressed(self, key)
+        if InCombatLockdown() then
+            -- 战斗中，按下任意按键都隐藏面板
+            -- 因为SetPropagateKeyboardInput战斗中无法调用
+            self:Hide()
+        else
+            if key == "ESCAPE" then
+                self:SetPropagateKeyboardInput(false)
+                self:Hide()
+            else
+                self:SetPropagateKeyboardInput(true)
+            end
+        end
+    end
+    
+    dialog:SetScript("OnKeyDown", OnEscapePressed)
+
+    -- 拖动
+    dialog:SetMovable(true)
+    dialog.TitleContainer:EnableMouse(true)
+    dialog.TitleContainer:RegisterForDrag("LeftButton")
+    dialog:SetClampedToScreen(true)
+    dialog.TitleContainer:SetScript("OnDragStart", function(self)
+        self:GetParent():StartMoving()
+        self:GetParent():SetUserPlaced(false)
+    end)
+    dialog.TitleContainer:SetScript("OnDragStop", function(self)
+        self:GetParent():StopMovingOrSizing()
+    end)
+
+    return dialog
+end
+
 -- 创建带背景和边框的容器
-function Addon:CreateContainer()
-    local Container = CreateFrame("Frame", nil, self.UI)
+function Addon:CreateContainer(parent)
+    local Container = CreateFrame("Frame", nil, parent)
 
     -- 背景
     local Background = Container:CreateTexture(nil, "BACKGROUND")
@@ -86,6 +125,7 @@ local function OnEnableExpiredAddonsButtonCheckedChange(self)
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
         SetAddonVersionCheck(true);
     end
+    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -95,39 +135,7 @@ function Addon:GetOrCreateUI()
     if UI then return UI end
 
     -- 创建UI
-    UI = CreateFrame("Frame", "ImprovedAddonListDialog", UIParent, "PortraitFrameTemplate")
-    ButtonFrameTemplateMinimizable_HidePortrait(UI)
-
-    -- 响应Escape
-    local function OnEscapePressed(self, key)
-        if InCombatLockdown() then
-            -- 战斗中，按下任意按键都隐藏面板
-            -- 因为SetPropagateKeyboardInput战斗中无法调用
-            self:Hide()
-        else
-            if key == "ESCAPE" then
-                self:SetPropagateKeyboardInput(false)
-                self:Hide()
-            else
-                self:SetPropagateKeyboardInput(true)
-            end
-        end
-    end
-    
-    UI:SetScript("OnKeyDown", OnEscapePressed)
-
-    -- 拖动
-    UI:SetMovable(true)
-    UI.TitleContainer:EnableMouse(true)
-    UI.TitleContainer:RegisterForDrag("LeftButton")
-    UI:SetClampedToScreen(true)
-    UI.TitleContainer:SetScript("OnDragStart", function(self)
-        self:GetParent():StartMoving()
-        self:GetParent():SetUserPlaced(false)
-    end)
-    UI.TitleContainer:SetScript("OnDragStop", function(self)
-        self:GetParent():StopMovingOrSizing()
-    end)
+    UI = self:CreateDialog("ImprovedAddonListDialog", UIParent)
     self.UI = UI
 
     -- 基本样式
@@ -170,14 +178,14 @@ function Addon:GetOrCreateUI()
     AddonSchemeContainer:SetPoint("TOPLEFT", 10, -32)
 
     -- 创建插件列表页
-    local AddonListContainer = self:CreateContainer()
+    local AddonListContainer = self:CreateContainer(UI)
     UI.AddonListContainer = AddonListContainer
     AddonListContainer:SetWidth(300)
     AddonListContainer:SetPoint("BOTTOMLEFT", 10, 40)
     AddonListContainer:SetPoint("TOPLEFT", 10, -60)
 
     -- 创建插件详情页
-    local AddonDetailContainer = self:CreateContainer()
+    local AddonDetailContainer = self:CreateContainer(UI)
     UI.AddonDetailContainer = AddonDetailContainer
     AddonDetailContainer:SetWidth(300)
     AddonDetailContainer:SetPoint("TOPLEFT", AddonListContainer, "TOPRIGHT", 10, 0)

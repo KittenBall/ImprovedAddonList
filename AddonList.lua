@@ -35,7 +35,7 @@ function ImprovedAddonListItemEnableStatusButtonMixin:OnClick()
     else
         EnableAddOn(addonInfo.Name)
     end
-    Addon:RefreshAddonListContainer()
+    Addon:RefreshAddonInfo(addonInfo.Name)
 end
 
 -- 插件列表项锁定状态按钮函数集
@@ -269,6 +269,7 @@ local function onEnableAllButtonClick(self)
     if Addon:IsAllAddonsEnabled() then return end
 
     Addon:EnableAllAddons()
+    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -289,6 +290,7 @@ local function onDisableAllButtonClick(self)
     if Addon:IsAllAddonsDisabled() then return end
 
     Addon:DisableAllAddons()
+    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -298,7 +300,7 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
         self.searchJob:Cancel()
     end
     self.searchJob = C_Timer.NewTimer(0.25, function()
-        Addon:UpdateAddonListContainer()
+        Addon:RefreshAddonListContainer()
     end)
 end
 
@@ -385,9 +387,9 @@ function Addon:OnAddonListContainerLoad()
 
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
-    ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, Addon:GetAddonListScrollBar(), addonListTreeView)
+    ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, AddonListScrollBar, addonListTreeView)
 
-    self:UpdateAddonListContainer()
+    self:RefreshAddonListContainer()
 end
 
 -- 刷新插件列表选项按钮的状态
@@ -419,13 +421,8 @@ function Addon:ScrollToSelectedItem()
     self:GetAddonListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
 end
 
--- 更新插件列表，和RefreshAddonListContainer的区别为：这个函数调用后，插件列表项的数量可能会变更
--- @param updateAddonInfos 刷新插件信息
-function Addon:UpdateAddonListContainer(updateAddonInfos)
-    if updateAddonInfos then
-        self:UpdateAddonInfos()
-    end
-
+-- 更新插件列表
+function Addon:RefreshAddonListContainer()
     self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(self:GetAddonListSearchBox():GetText()), ScrollBoxConstants.RetainScrollPosition)
 
     local currentFocusAddonName = self:CurrentFocusAddonName()
@@ -448,16 +445,6 @@ function Addon:UpdateAddonListContainer(updateAddonInfos)
     self:RefreshAddonListOptionButtonsStatus()
 end
 
--- 刷新插件列表，和UpdateAddonListContainer的区别为：这个函数会刷新插件信息，并更新到界面上
-function Addon:RefreshAddonListContainer()
-    self:UpdateAddonInfos()
-    self:RefreshAddonDetailContainer()
-    self:RefreshAddonListOptionButtonsStatus()
-    for _, frame in self:GetAddonListScrollBox():EnumerateFrames() do
-        frame:Update()
-    end
-end
-
 -- 刷新插件信息
 function Addon:RefreshAddonInfo(addonName)
     self:UpdateAddonInfoByName(addonName)
@@ -477,10 +464,6 @@ end
 
 function Addon:GetAddonListScrollBox()
     return self:GetAddonListContainer().ScrollBox
-end
-
-function Addon:GetAddonListScrollBar()
-    return self:GetAddonListContainer().ScrollBar
 end
 
 function Addon:GetAddonListSearchBox()

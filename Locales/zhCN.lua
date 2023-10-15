@@ -109,7 +109,7 @@ L["addon_detail_unlock_tips"] = "解除锁定"
 
 L["addon_scheme_active_label"] = "当前方案"
 L["addon_scheme_inactive_tip"] = "未应用方案"
-L["addon_scheme_list_button_tips"] = "插件方案列表"
+L["addon_scheme_list"] = "插件方案列表"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"
