@@ -140,8 +140,8 @@ end
 local function OnLoadButtonClick(self)
     local addonInfo = Addon:CurrentFocusAddonInfo()
     -- 加载按需加载的插件并修改其初始状态
-    LoadAddOn(addonInfo.Name)
-    if IsAddOnLoaded(addonInfo.Name) then
+    C_AddOns.LoadAddOn(addonInfo.Name)
+    if C_AddOns.IsAddOnLoaded(addonInfo.Name) then
         Addon:UpdateAddonInitialEnableState(addonInfo.Name, true)
     end
     Addon:RefreshAddonInfo(addonInfo.Name)

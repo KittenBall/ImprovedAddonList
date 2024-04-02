@@ -104,7 +104,7 @@ L["addon_detail_unload"] = "未加载"
 L["addon_detail_enabled"] = "已启用"
 L["addon_detail_disabled"] = "未启用"
 L["addon_detail_version_debug"] = "调试版本"
-L["addon_detail_lock_tips"] = "锁定插件\n插件会保持现在的启用状态，其将无法被启用/禁用，并且启用/禁用全部会将其忽略，除非解锁锁定。"
+L["addon_detail_lock_tips"] = "锁定插件\n插件会保持现在的启用状态，其将无法被启用/禁用，并且启用/禁用全部会将其忽略，除非解除锁定。"
 L["addon_detail_unlock_tips"] = "解除锁定"
 
 L["addon_scheme_active_label"] = "当前方案"

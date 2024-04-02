@@ -31,9 +31,9 @@ end
 function ImprovedAddonListItemEnableStatusButtonMixin:OnClick()
     local addonInfo = self:GetParent():GetAddonInfo()
     if addonInfo.Enabled then
-        DisableAddOn(addonInfo.Name)
+        C_AddOns.DisableAddOn(addonInfo.Name)
     else
-        EnableAddOn(addonInfo.Name)
+        C_AddOns.EnableAddOn(addonInfo.Name)
     end
     Addon:RefreshAddonInfo(addonInfo.Name)
 end
@@ -180,6 +180,11 @@ end
 
 -- 插件列表项：鼠标双击
 function ImprovedAddonListAddonItemMixin:OnDoubleClick()
+    local addonInfo = self:GetAddonInfo()
+    if addonInfo.IsLocked then
+        Addon:ShowError(L["lock_tips"])
+        return
+    end
     self.EnableStatus:Click()
 end
 
@@ -316,11 +321,11 @@ function Addon:OnAddonListContainerLoad()
     -- OptionButton.Text:SetText(L["options"])
     
     -- 弹出菜单
-    -- local OptionDropDown = CreateFrame("Frame", nil, AddonList)
-    -- AddonList.OptionDropDown = OptionDropDown
-    -- OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
-    -- OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
-    -- OptionDropDown.Backdrop:SetAllPoints()
+    local OptionDropDown = CreateFrame("Frame", nil, AddonList)
+    AddonList.OptionDropDown = OptionDropDown
+    OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
+    OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
+    OptionDropDown.Backdrop:SetAllPoints()
 
     -- 设置按钮
     local SettingsButton = CreateFrame("Button", nil, AddonListContainer)

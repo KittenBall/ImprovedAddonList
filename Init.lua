@@ -17,7 +17,7 @@ local AddonName, Addon = ...
 Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE = 0
 -- 加载指示器：只对标题带有颜色的插件显示
 Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL = 1
--- 加载治时期：总是显示
+-- 加载指示器：总是显示
 Addon.LOAD_INDICATOR_DISPLAY_ALWAYS = 2
 
 local function OnInitialize()

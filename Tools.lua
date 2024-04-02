@@ -45,6 +45,12 @@ function Addon:ShowMessage(text)
     UIErrorsFrame:AddMessage(text, 1.0, 0.82, 0.0, 1, 3)
 end
 
+--copied from https://github.com/DengSir/LibShowUIPanel-1.0
+-- LibShowUIPanel-1.0.lua
+-- @Author : Dencer (tdaddon@163.com)
+-- @Link   : https://dengsir.github.io
+-- @Date   : 6/15/2021, 11:20:01 PM
+
 -- 绕过暴雪的战斗中Show/HideUIPanel检查
 local Delegate = EnumerateFrames()
 while Delegate do

@@ -177,12 +177,12 @@ function Addon.OnConfigurationSelected(_, configurationName)
     local addons = configuration.addons
     if not addons then return end
 
-    for i = 1, GetNumAddOns() do
-        local name = GetAddOnInfo(i)
+    for i = 1, C_AddOns.GetNumAddOns() do
+        local name = C_AddOns.GetAddOnInfo(i)
         if tIndexOf(addons, name) then
-            EnableAddOn(name)
+            C_AddOns.EnableAddOn(name)
         else
-            DisableAddOn(name)
+            C_AddOns.DisableAddOn(name)
         end
     end
 
@@ -265,7 +265,7 @@ function Addon.OnAddonTooltipUpdate(owner)
             AddonTooltip:AddLine(format(L["website"], website))
         end
 
-        local deps = strjoin(",", GetAddOnDependencies(owner:GetID()))
+        local deps = strjoin(",", C_AddOns.GetAddOnDependencies(owner:GetID()))
         if #deps > 0 then
             AddonTooltip:AddLine(format(L["dependencies"], deps))
         end
@@ -346,7 +346,7 @@ function Addon.SaveConfiguration()
         Addon:ShowError(L["save_error"])
         return
     end
-    local enableMe = GetAddOnEnableState(nil, addonName) > 0
+    local enableMe = C_AddOns.GetAddOnEnableState(addonName) > 0
     if not enableMe then
         Addon:ShowError(L["disable_me_tips"])
     end
@@ -373,7 +373,7 @@ function Addon.SaveAsConfiguration()
         Addon:ShowError(L["max_configuration_num_limit"]:format(MAX_CONFIGURATION_NUM))
         return
     end
-    local enableMe = GetAddOnEnableState(nil, addonName) > 0
+    local enableMe = C_AddOns.GetAddOnEnableState(addonName) > 0
     if not enableMe then
         Addon:ShowError(L["disable_me_tips"])
     end
@@ -546,9 +546,9 @@ end
 -- 获取启用插件列表
 function Addon:GetEnabledAddons()
     local addons = {}
-    for i = 1, GetNumAddOns() do
-        local name = GetAddOnInfo(i)
-        local enabledState = GetAddOnEnableState(nil, i)
+    for i = 1, C_AddOns.GetNumAddOns() do
+        local name = C_AddOns.GetAddOnInfo(i)
+        local enabledState = C_AddOns.GetAddOnEnableState(i)
         if enabledState > 0 then
             tinsert(addons, name)
         end
@@ -559,8 +559,8 @@ end
 -- 获取所有插件列表
 function Addon:GetAllAddons()
     local addons = {}
-    for i = 1, GetNumAddOns() do
-        local name = GetAddOnInfo(i)
+    for i = 1, C_AddOns.GetNumAddOns() do
+        local name = C_AddOns.GetAddOnInfo(i)
         tinsert(addons, name)
     end
     return addons

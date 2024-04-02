@@ -147,8 +147,8 @@ end
 function Addon:GetExportAddonData()
     local enabledData = {}
     local disabledData = {}
-    for i = 1, GetNumAddOns() do
-        local name, _, _, loadable = GetAddOnInfo(i)
+    for i = 1, C_AddOns.GetNumAddOns() do
+        local name, _, _, loadable = C_AddOns.GetAddOnInfo(i)
         local version = C_AddOns.GetAddOnMetadata(i, "Version")
         if name then
             local data = { Version = version or "", Name = name or "" }

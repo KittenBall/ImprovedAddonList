@@ -1,4 +1,4 @@
-## Interface: 100107
+## Interface: 100206
 ## Author: KittenBall
 ## Version: @project-version@
 ## Title: ImprovedAddonList
@@ -26,3 +26,4 @@ AddonList.xml
 AddonDetail.lua
 AddonScheme.lua
 Init.lua
+Cmd.lua

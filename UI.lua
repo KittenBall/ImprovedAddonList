@@ -219,7 +219,6 @@ end
 -- 暴雪插件列表显示的时候，鸠占鹊巢
 local function OnBlizzardAddonListShow()
     PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
-    Addon:HideUIPanel(GameMenuFrame)
     Addon:ShowUI()
 end
 
