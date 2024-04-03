@@ -88,7 +88,7 @@ function ImprovedAddonListAddonItemMixin:Update()
 
     -- 显示备注
     if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
-        label = addonInfo.IconText .. " " .. addonInfo.Remark .. WrapTextInColor("*", DISABLED_FONT_COLOR)
+        label = addonInfo.IconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     end
 
     self.Label:SetText(label)
@@ -418,6 +418,12 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     DisableAllButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
+-- 刷新重载按钮指示器的状态
+function Addon:RefreshReloadIndicatorStatus()
+    local reloadUIIndicator = self:GetReloadUIIndicator()
+    reloadUIIndicator:SetShown(self:IsUIShouldReload())
+end
+
 -- 滚动到选中项
 function Addon:ScrollToSelectedItem()
     local selectedPredicate = function(elementData)
@@ -448,6 +454,7 @@ function Addon:RefreshAddonListContainer()
 
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
+    self:RefreshReloadIndicatorStatus()
 end
 
 -- 刷新插件信息
@@ -463,8 +470,10 @@ function Addon:RefreshAddonInfo(addonName)
     if frame then
         frame:Update()
     end
+
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
+    self:RefreshReloadIndicatorStatus()
 end
 
 function Addon:GetAddonListScrollBox()

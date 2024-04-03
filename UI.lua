@@ -129,6 +129,23 @@ local function OnEnableExpiredAddonsButtonCheckedChange(self)
     Addon:RefreshAddonListContainer()
 end
 
+-- 重载插件指示器：鼠标划入
+local function OnReloadUIIndicatorEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["reload_ui_tips_title"])
+    
+    for _, title in ipairs(Addon:GetAddonTitlesShouldReload()) do
+        GameTooltip:AddLine(title, 1, 1, 1)
+    end
+    
+    GameTooltip:Show()
+end
+
+-- 重载插件指示器：鼠标移出
+local function OnReloadUIIndicatorLeave(self)
+    GameTooltip:Hide()
+end
+
 -- UI函数
 function Addon:GetOrCreateUI()
     local UI = self.UI
@@ -163,6 +180,15 @@ function Addon:GetOrCreateUI()
     ReloadUIButton:SetPoint("BOTTOMRIGHT", -10, 10)
     -- 点击重载界面
     ReloadUIButton:SetScript("OnClick", function() ReloadUI() end)
+
+    -- 重载界面指示器
+    local ReloadUIIndicator = UI:CreateTexture(nil)
+    UI.ReloadUIIndicator = ReloadUIIndicator
+    ReloadUIIndicator:SetTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\reload_indicator.png")
+    ReloadUIIndicator:SetSize(16, 16)
+    ReloadUIIndicator:SetPoint("RIGHT", ReloadUIButton, "LEFT", -8, 0)
+    ReloadUIIndicator:SetScript("OnEnter", OnReloadUIIndicatorEnter)
+    ReloadUIIndicator:SetScript("OnLeave", OnReloadUIIndicatorLeave)
 
     -- 游戏Build信息
     local BuildInfo = UI:CreateFontString(nil, nil, "GameFontDisableTiny")
@@ -214,6 +240,10 @@ end
 
 function Addon:GetAddonSchemeContainer()
     return self.UI.AddonSchemeContainer
+end
+
+function Addon:GetReloadUIIndicator()
+    return self.UI.ReloadUIIndicator
 end
 
 -- 暴雪插件列表显示的时候，鸠占鹊巢

@@ -482,7 +482,7 @@ function Addon:ShowEditRemarkDialog()
     EditRemarkDialog.EditBox = EditBox
     EditBox:SetFontObject(ChatFontNormal)
     EditBox:SetSize(260, 32)
-    EditBox:SetMaxLetters(45)
+    EditBox:SetMaxLetters(self.REMARK_MAX_LENGTH)
     EditBox:SetPoint("TOPLEFT", Label, "BOTTOMLEFT", 0, 10)
     EditBox:SetPoint("RIGHT")
     EditBox:SetPoint("BOTTOM")
@@ -510,6 +510,7 @@ function Addon:ShowEditRemarkDialog()
     EditRemarkDialog:ShowAddonInfo(focusAddonInfo)
 end
 
+-- 隐藏编辑备注窗口
 function Addon:HideEditRemarkDialog()
     local UI = self:GetOrCreateUI()
 

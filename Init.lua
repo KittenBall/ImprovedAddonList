@@ -20,6 +20,9 @@ Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL = 1
 -- 加载指示器：总是显示
 Addon.LOAD_INDICATOR_DISPLAY_ALWAYS = 2
 
+-- 备注最大长度
+Addon.REMARK_MAX_LENGTH = 45
+
 local function OnInitialize()
     local saved = ImprovedAddonListSaved or {}
     Addon.Saved = saved

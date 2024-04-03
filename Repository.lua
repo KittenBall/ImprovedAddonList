@@ -73,6 +73,11 @@ function Addon:SetAddonRemark(name, remark)
     if type(name) ~= "string" then
         return
     end
+
+    if strlen(remark) >= self.REMARK_MAX_LENGTH then
+        self:ShowError(L["edit_remark_erro_too_long"])
+    end
+
     if remark == nil or remark == "" then
         self.Saved.AddonRemarks[name] = nil
     else
@@ -164,9 +169,9 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     -- 可能值：不安全，安全，非法
     addonInfo.Security = security
     -- 插件依赖
-    addonInfo.Deps = addonInfo.Deps or { C_AddOns.GetAddOnDependencies(query) }
+    addonInfo.Deps = addonInfo.Deps or {C_AddOns.GetAddOnDependencies(query)}
     -- 可选依赖
-    addonInfo.OptionalDeps = addonInfo.OptionalDeps or { C_AddOns.GetAddOnOptionalDependencies(query) }
+    addonInfo.OptionalDeps = addonInfo.OptionalDeps or {C_AddOns.GetAddOnOptionalDependencies(query)}
     -- 备注
     addonInfo.Remark = self:GetAddonRemark(name)
     -- 是否收藏
@@ -268,8 +273,6 @@ function Addon:UpdateAddonInfos(query)
             self:UpdateAddonInfoByName(query)
         end
     else
-        local addonInfos = self:GetAddonInfos()
-
         for i = 1, C_AddOns.GetNumAddOns() do
             self:UpdateAddonInfoByIndex(i)
         end
@@ -337,12 +340,41 @@ function Addon:CanAddonLoadOnDemand(query)
     return true
 end
 
+-- 获取需要重载的插件名
+function Addon:GetAddonTitlesShouldReload()
+    local addonInfos = self:GetAddonInfos()
+    local addonTitles = {}
+    for _, addonInfo in ipairs(addonInfos) do
+        if self:IsAddonShouldReload(addonInfo) then
+            table.insert(addonTitles, addonInfo.Title)
+        end
+    end
+    return addonTitles
+end
+
 -- 插件是否需要重载
 function Addon:IsAddonShouldReload(query)
-    local addonInfo = self:QueryAddonInfo(query)
+    local addonInfo
+    if type(query) == "string" or type(query) == "number" then
+        addonInfo = self:QueryAddonInfo(query)
+    elseif type(query) == "table" then
+        addonInfo = query
+    else
+        return
+    end
     -- 如果插件依赖被禁用，则其启用状态的变化就无关紧要
     return (addonInfo.Enabled ~= addonInfo.InitialEnabled or addonInfo.InitialExpired ~= addonInfo.Expired) and
                addonInfo.UnloadableReason ~= ADDON_DEP_DISABLED
+end
+
+-- 是否需要重载界面
+function Addon:IsUIShouldReload()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if self:IsAddonShouldReload(addonInfo) then
+            return true
+        end
+    end
 end
 
 -- 启用所有插件

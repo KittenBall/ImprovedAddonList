@@ -35,7 +35,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
-				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT">
+				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT" wordwrap="false">
 					<Size y="12"/>
 					<Anchors>
 						<Anchor point="LEFT" x="4" y="0"/>
