@@ -308,7 +308,8 @@ function Addon:GetAddonDataProvider(search)
     for _, addonInfo in ipairs(addonInfos) do
         -- node:Insert({ CategoryInfo = { Name = "测试" } })
         if shouldFilter then
-            if addonInfo.Title:lower():match(search) or addonInfo.Name:lower():match(search) then
+            local nickName = self:GetAddonRemark(addonInfo.Name) or ""
+            if addonInfo.Title:lower():match(search) or addonInfo.Name:lower():match(search) or nickName:lower():match(search) then
                 node:Insert({
                     AddonInfo = addonInfo
                 })
