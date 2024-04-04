@@ -182,13 +182,23 @@ function Addon:GetOrCreateUI()
     ReloadUIButton:SetScript("OnClick", function() ReloadUI() end)
 
     -- 重载界面指示器
-    local ReloadUIIndicator = UI:CreateTexture(nil)
+    local ReloadUIIndicator = CreateFrame("Button", nil, UI)
     UI.ReloadUIIndicator = ReloadUIIndicator
-    ReloadUIIndicator:SetTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\reload_indicator.png")
     ReloadUIIndicator:SetSize(16, 16)
+    ReloadUIIndicator:SetNormalTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\reload_indicator.png")
+    ReloadUIIndicator:SetHighlightTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\reload_indicator.png")
+    ReloadUIIndicator:GetHighlightTexture():SetAlpha(0.2)
     ReloadUIIndicator:SetPoint("RIGHT", ReloadUIButton, "LEFT", -8, 0)
     ReloadUIIndicator:SetScript("OnEnter", OnReloadUIIndicatorEnter)
     ReloadUIIndicator:SetScript("OnLeave", OnReloadUIIndicatorLeave)
+    -- 动画
+    local Animation = ReloadUIIndicator:CreateAnimationGroup()
+    Animation:SetLooping("BOUNCE")
+    local apha = Animation:CreateAnimation("Alpha")
+    ReloadUIIndicator.Animation = Animation
+    apha:SetFromAlpha(0)
+    apha:SetToAlpha(1)
+    apha:SetDuration(1.5)
 
     -- 游戏Build信息
     local BuildInfo = UI:CreateFontString(nil, nil, "GameFontDisableTiny")

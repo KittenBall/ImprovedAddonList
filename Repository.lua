@@ -378,6 +378,30 @@ function Addon:IsUIShouldReload()
     end
 end
 
+-- 重置插件列表
+function Addon:ResetAddonList()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if addonInfo.InitialEnabled then
+            C_AddOns.EnableAddOn(addonInfo.Name)
+        else
+            C_AddOns.DisableAddOn(addonInfo.Name)
+        end
+    end
+end
+
+-- 插件列表是否可以重置
+function Addon:IsAddonListCanReset()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if addonInfo.InitialEnabled ~= addonInfo.Enabled then
+            return true
+        end
+    end
+
+    return false
+end
+
 -- 启用所有插件
 function Addon:EnableAllAddons()
     local addonInfos = self:GetAddonInfos()

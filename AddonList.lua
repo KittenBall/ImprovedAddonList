@@ -299,6 +299,27 @@ local function onDisableAllButtonClick(self)
     Addon:RefreshAddonListContainer()
 end
 
+-- 重置全部按钮：鼠标划入
+local function onResetButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["reset_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+-- 重置按钮：鼠标移出
+local function onResetButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 重置按钮：鼠标点击
+local function onResetButtonClick(self)
+    if not Addon:IsAddonListCanReset() then return end
+
+    Addon:ResetAddonList()
+    Addon:UpdateAddonInfos()
+    Addon:RefreshAddonListContainer()
+end
+
 -- 插件列表搜索框文本变化
 local function onAddonListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
@@ -358,13 +379,21 @@ function Addon:OnAddonListContainerLoad()
     DisableAllButton:SetScript("OnLeave", onDisableAllButtonLeave)
     DisableAllButton:SetScript("OnClick", onDisableAllButtonClick)
 
+    -- 重置按钮
+    local ResetButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.ResetButton = ResetButton
+    ResetButton:SetSize(16, 16)
+    ResetButton:SetPoint("RIGHT", DisableAllButton, "LEFT", -4, 0)
+    ResetButton:SetScript("OnEnter", onResetButtonEnter)
+    ResetButton:SetScript("OnLeave", onResetButtonLeave)
+    ResetButton:SetScript("OnClick", onResetButtonClick)
+
     -- 创建插件列表搜索框
     local AddonListSearchBox = CreateFrame("EditBox", nil, AddonListContainer, "SearchBoxTemplate")
     AddonListContainer.SearchBox = AddonListSearchBox
     AddonListSearchBox:SetPoint("LEFT", 14, 0)
-    AddonListSearchBox:SetPoint("TOPRIGHT", DisableAllButton, "TOPLEFT", -5, 0)
-    AddonListSearchBox:SetPoint("BOTTOMRIGHT", DisableAllButton, "BOTTOMLEFT", -5, 0)
-    AddonListSearchBox:SetHeight(20)
+    AddonListSearchBox:SetPoint("TOPRIGHT", ResetButton, "TOPLEFT", -5, 0)
+    AddonListSearchBox:SetPoint("BOTTOMRIGHT", ResetButton, "BOTTOMLEFT", -5, 0)
     AddonListSearchBox:HookScript("OnTextChanged", onAddonListSearchBoxTextChanged)
 
     -- 创建插件列表
@@ -404,7 +433,7 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     -- 更新启用全部按钮
     local EnableAllButton = AddonListContainer.EnableAllButton
     local isAllAddonsEnabled = self:IsAllAddonsEnabled()
-    local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all" )
+    local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all")
     EnableAllButton:SetNormalTexture(enableAllTexture)
     EnableAllButton:SetHighlightTexture(enableAllTexture)
     EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
@@ -412,16 +441,26 @@ function Addon:RefreshAddonListOptionButtonsStatus()
     -- 更新禁用全部按钮
     local DisableAllButton = AddonListContainer.DisableAllButton
     local isAllAddonsDisabled = self:IsAllAddonsDisabled()
-    local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all" )
+    local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all")
     DisableAllButton:SetNormalTexture(disableAllTexture)
     DisableAllButton:SetHighlightTexture(disableAllTexture)
     DisableAllButton:GetHighlightTexture():SetAlpha(0.2)
+
+    -- 更新重置按钮
+    local ResetButton = AddonListContainer.ResetButton
+    local addonListCanReset = self:IsAddonListCanReset()
+    local resetButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (addonListCanReset and "reset.png" or "reset_disabled.png")
+    ResetButton:SetNormalTexture(resetButtonTexture)
+    ResetButton:SetHighlightTexture(resetButtonTexture)
+    ResetButton:GetHighlightTexture():SetAlpha(0.2)
 end
 
 -- 刷新重载按钮指示器的状态
 function Addon:RefreshReloadIndicatorStatus()
     local reloadUIIndicator = self:GetReloadUIIndicator()
-    reloadUIIndicator:SetShown(self:IsUIShouldReload())
+    local uiShouldReload = self:IsUIShouldReload() or false
+    reloadUIIndicator:SetShown(uiShouldReload)
+    reloadUIIndicator.Animation:SetPlaying(uiShouldReload)
 end
 
 -- 滚动到选中项
