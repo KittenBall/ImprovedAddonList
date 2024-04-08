@@ -27,6 +27,10 @@ ImprovedAddonListButtonDisabledFont:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
 function Addon:CreateDialog(name, parent)
     local dialog = CreateFrame("Frame", name, parent, "PortraitFrameTemplate")
     ButtonFrameTemplateMinimizable_HidePortrait(dialog)
+    dialog.TitleContainer:ClearAllPoints()
+    dialog.TitleContainer:SetPoint("TOPLEFT", 1, -1)
+    dialog.TitleContainer:SetPoint("TOPRIGHT", -1, -1)
+    dialog.CloseButton:SetFrameLevel(dialog.TitleContainer:GetFrameLevel() + 1)
 
     -- 响应Escape
     local function OnEscapePressed(self, key)
@@ -45,6 +49,8 @@ function Addon:CreateDialog(name, parent)
     end
     
     dialog:SetScript("OnKeyDown", OnEscapePressed)
+    dialog:SetMouseMotionEnabled(true)
+    dialog:SetMouseClickEnabled(true)
 
     -- 拖动
     dialog:SetMovable(true)
@@ -194,11 +200,11 @@ function Addon:GetOrCreateUI()
     -- 动画
     local Animation = ReloadUIIndicator:CreateAnimationGroup()
     Animation:SetLooping("BOUNCE")
-    local apha = Animation:CreateAnimation("Alpha")
     ReloadUIIndicator.Animation = Animation
-    apha:SetFromAlpha(0)
-    apha:SetToAlpha(1)
-    apha:SetDuration(1.5)
+    local alpha = Animation:CreateAnimation("Alpha")
+    alpha:SetFromAlpha(0)
+    alpha:SetToAlpha(1)
+    alpha:SetDuration(1.5)
 
     -- 游戏Build信息
     local BuildInfo = UI:CreateFontString(nil, nil, "GameFontDisableTiny")

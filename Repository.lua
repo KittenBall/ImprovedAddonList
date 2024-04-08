@@ -296,34 +296,6 @@ function Addon:QueryAddonInfo(query)
     return addonInfo
 end
 
--- 获取插件列表数据提供者
-function Addon:GetAddonDataProvider(search)
-    self.AddonDataProvider = self.AddonDataProvider or CreateTreeDataProvider()
-    self.AddonDataProvider:Flush()
-    local node = self.AddonDataProvider:GetRootNode()
-    local addonInfos = self:GetAddonInfos()
-    search = search and strtrim(search)
-    search = search and search:lower()
-    local shouldFilter = search and strlen(search) > 0
-    for _, addonInfo in ipairs(addonInfos) do
-        -- node:Insert({ CategoryInfo = { Name = "测试" } })
-        if shouldFilter then
-            local nickName = self:GetAddonRemark(addonInfo.Name) or ""
-            if addonInfo.Title:lower():match(search) or addonInfo.Name:lower():match(search) or nickName:lower():match(search) then
-                node:Insert({
-                    AddonInfo = addonInfo
-                })
-            end
-        else
-            node:Insert({
-                AddonInfo = addonInfo
-            })
-        end
-    end
-
-    return self.AddonDataProvider
-end
-
 -- 插件是否可以按需加载
 function Addon:CanAddonLoadOnDemand(query)
     local addonInfo = self:QueryAddonInfo(query)
@@ -451,6 +423,24 @@ end
 -- 获取加载指示器显示方式
 function Addon:GetLoadIndicatorDisplayType()
     return self.Saved.Config.LoadIndicatorDisplayType or Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL
+end
+
+-- 设置加载指示器显示方式
+function Addon:SetLoadIndicatorDisplayType(loadIndicatorDisplayType)
+    self.Saved.Config.LoadIndicatorDisplayType = loadIndicatorDisplayType
+    self:TriggerEvent("Operations.SetLoadIndicatorDisplayType")
+end
+
+-- 获取加载指示器说明文本
+function Addon:GetLoadIndicatorDisplayTypeDescription()
+    local loadIndicatorDisplayType = self.Saved.Config.LoadIndicatorDisplayType
+    if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
+        return L["settings_load_indicator_dislay_invisble"]
+    elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
+        return L["settings_load_indicator_display_only_colorful"]
+    else
+        return L["settings_Load_indicator_display_always"]
+    end
 end
 
 -- 获取插件方案列表

@@ -13,16 +13,6 @@ local AddonName, Addon = ...
 -- 五：导出插件列表
 -- 六：导出配置字符串
 
--- 加载指示器：不显示
-Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE = 0
--- 加载指示器：只对标题带有颜色的插件显示
-Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL = 1
--- 加载指示器：总是显示
-Addon.LOAD_INDICATOR_DISPLAY_ALWAYS = 2
-
--- 备注最大长度
-Addon.REMARK_MAX_LENGTH = 45
-
 local function OnInitialize()
     local saved = ImprovedAddonListSaved or {}
     Addon.Saved = saved

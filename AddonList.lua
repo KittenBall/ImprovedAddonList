@@ -1,17 +1,6 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
--- 颜色：需重载
-local ADDON_RELOAD_COLOR = RARE_BLUE_COLOR
--- 颜色：未加载
-local ADDON_UNLOADED_COLOR = ORANGE_FONT_COLOR
--- 颜色：无法加载
-local ADDON_UNLOADABLE_COLOR = RED_FONT_COLOR
--- 颜色：已加载
-local ADDON_LOADED_COLOR = WHITE_FONT_COLOR
--- 颜色：未启用
-local ADDON_DISABLED_COLOR = DISABLED_FONT_COLOR
-
 -- 插件列表项启用状态按钮函数集
 ImprovedAddonListItemEnableStatusButtonMixin = {}
 
@@ -53,16 +42,35 @@ function ImprovedAddonListItemLockStatusButtonMixin:OnLeave()
     GameTooltip:Hide()
 end
 
--- 插件列表组函数集
+-- 插件分组组函数集
 ImprovedAddonListAddonCategoryMixin = {}
 
+-- 插件分组：更新
 function ImprovedAddonListAddonCategoryMixin:Update()
-    local categoryInfo = self:GetCategoryInfo()
+    local node = self:GetElementData()
+    local categoryInfo = node:GetData().CategoryInfo
     self.Label:SetText(categoryInfo.Name)
+
+    self:SetCollapsed(node:IsCollapsed())
 end
 
+-- 插件分组：获取分组信息
 function ImprovedAddonListAddonCategoryMixin:GetCategoryInfo()
     return self:GetElementData():GetData().CategoryInfo
+end
+
+-- 插件分组：点击事件，切换折叠状态
+function ImprovedAddonListAddonCategoryMixin:OnClick()
+    local node = self:GetElementData()
+    node:ToggleCollapsed()
+    self:SetCollapsed(node:IsCollapsed())
+end
+
+-- 插件分组：设置折叠状态
+function ImprovedAddonListAddonCategoryMixin:SetCollapsed(collapsed)
+    local atlas = collapsed and "Professions-recipe-header-expand" or "Professions-recipe-header-collapse"
+    self.CollapseIcon:SetAtlas(atlas, TextureKitConstants.UseAtlasSize)
+	self.CollapseIconAlphaAdd:SetAtlas(atlas, TextureKitConstants.UseAtlasSize)
 end
 
 -- 插件列表项函数集
@@ -112,15 +120,15 @@ function ImprovedAddonListAddonItemMixin:GetLabelColor()
     local addonInfo = self:GetAddonInfo()
 
     if Addon:IsAddonShouldReload(addonInfo.Name) then
-        return ADDON_RELOAD_COLOR
+        return Addon.ADDON_RELOAD_COLOR
     elseif addonInfo.Loaded then
-        return ADDON_LOADED_COLOR
+        return Addon.ADDON_LOADED_COLOR
     elseif addonInfo.Enabled and not addonInfo.Loaded then
-        return ADDON_UNLOADED_COLOR
+        return Addon.ADDON_UNLOADED_COLOR
     elseif addonInfo.Enabled and not addonInfo.Loadable then
-        return ADDON_UNLOADABLE_COLOR
+        return Addon.ADDON_UNLOADABLE_COLOR
     else
-        return ADDON_DISABLED_COLOR
+        return Addon.ADDON_DISABLED_COLOR
     end
 end
 
@@ -172,7 +180,10 @@ end
 
 -- 插件列表项：鼠标点击
 function ImprovedAddonListAddonItemMixin:OnClick()
-    if self:IsSelected() then return end
+    if self:IsSelected() then 
+        Addon:ShowAddonDetail(self:GetAddonInfo().Name)
+        return 
+    end
 
     Addon:GetAddonListScrollBox().SelectionBehavior:Select(self)
     PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
@@ -207,15 +218,12 @@ end
 -- 插件列表节点更新
 local function AddonListTreeNodeUpdater(factory, node)
     local elementData = node:GetData()
+    local function Initializer(button, node)
+        button:Update()
+    end
     if elementData.CategoryInfo then
-        local function Initializer(button, node)
-            button:Update()
-        end
         factory("ImprovedAddonListAddonCategoryTemplate", Initializer)
     elseif elementData.AddonInfo then
-        local function Initializer(button, node)
-            button:Update()
-        end
         factory("ImprovedAddonListAddonItemTemplate", Initializer)
     end
 end
@@ -237,13 +245,13 @@ end
 
 -- 列表长度
 local function ElementExtentCalculator(index, node)
-    return 30
+    return 25
 end
 
 -- 设置按钮：鼠标划入
 local function onSettingsButtonEnter(self)
     GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(L["enable_all_tips"], 1, 1, 1)
+    GameTooltip:AddLine(L["settings_tips"], 1, 1, 1)
     GameTooltip:Show()
 end
 
@@ -254,7 +262,7 @@ end
 
 -- 设置按钮：鼠标点击
 local function onSettingsButtonClick(self)
-
+    Addon:ShowAddonSettings()
 end
 
 -- 启用全部按钮：鼠标划入
@@ -330,24 +338,15 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
     end)
 end
 
+-- 插件加载指示器设置变更
+local function OnLoadIndicatorDisplayModeSettingChanged(self)
+    self:RefreshAddonList()
+end
+
 -- 插件列表加载
 function Addon:OnAddonListContainerLoad()
     local AddonListContainer = self:GetAddonListContainer()
-
-    -- 选项
-    -- local OptionButton = CreateFrame("Button", nil, AddonList, "UIResettableDropdownButtonTemplate")
-    -- AddonList.OptionButton = OptionButton
-    -- OptionButton:SetSize(80, 22)
-    -- OptionButton:SetPoint("TOPRIGHT", -5, -8)
-    -- OptionButton.Text:SetText(L["options"])
     
-    -- 弹出菜单
-    local OptionDropDown = CreateFrame("Frame", nil, AddonList)
-    AddonList.OptionDropDown = OptionDropDown
-    OptionDropDown.Border = CreateFrame("Frame", nil, OptionDropDown, "DialogBorderDarkTemplate")
-    OptionDropDown.Backdrop = CreateFrame("Frame", nil, OptionDropDown, "TooltipBackdropTemplate")
-    OptionDropDown.Backdrop:SetAllPoints()
-
     -- 设置按钮
     local SettingsButton = CreateFrame("Button", nil, AddonListContainer)
     AddonListContainer.SettingsButtton = SettingsButton
@@ -409,11 +408,7 @@ function Addon:OnAddonListContainerLoad()
     AddonListScrollBar:SetPoint("TOPLEFT", AddonListScrollBox, "TOPRIGHT")
     AddonListScrollBar:SetPoint("BOTTOMLEFT", AddonListScrollBox, "BOTTOMRIGHT")
 
-    local indent = 10
-    local padLeft = 0
-    local pad = 5
-    local spacing = 1
-    local addonListTreeView = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing)
+    local addonListTreeView = CreateScrollBoxListTreeListView(10, 5, 5, 5, 5, 1)
 
     --添加选中特性
     AddonListScrollBox.SelectionBehavior = ScrollUtil.AddSelectionBehavior(AddonListScrollBox)
@@ -422,6 +417,8 @@ function Addon:OnAddonListContainerLoad()
     addonListTreeView:SetElementFactory(AddonListTreeNodeUpdater)
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, AddonListScrollBar, addonListTreeView)
+
+    self:RegisterCallback("AddonSettings.LoadIndicatorDisplayMode", OnLoadIndicatorDisplayModeSettingChanged, self)
 
     self:RefreshAddonListContainer()
 end
@@ -473,7 +470,7 @@ end
 
 -- 更新插件列表
 function Addon:RefreshAddonListContainer()
-    self:GetAddonListScrollBox():SetDataProvider(self:GetAddonDataProvider(self:GetAddonListSearchBox():GetText()), ScrollBoxConstants.RetainScrollPosition)
+    self:RefreshAddonList()
 
     local currentFocusAddonName = self:CurrentFocusAddonName()
     local selectPredicate = function(node)
@@ -494,25 +491,53 @@ function Addon:RefreshAddonListContainer()
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
     self:RefreshReloadIndicatorStatus()
-end
+end 
 
 -- 刷新插件信息
 function Addon:RefreshAddonInfo(addonName)
     self:UpdateAddonInfoByName(addonName)
 
-    local predicate = function(frame, node)
+    local forEach = function(frame, node)
         local addonInfo = node:GetData().AddonInfo
-        return addonInfo and addonInfo.Name == addonName
+        if addonInfo and addonInfo.Name == addonName then
+            frame:Update()
+        end
     end
-
-    local frame = self:GetAddonListScrollBox():FindFrameByPredicate(predicate)
-    if frame then
-        frame:Update()
-    end
+    self:GetAddonListScrollBox():ForEachFrame(forEach)
 
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
     self:RefreshReloadIndicatorStatus()
+end
+
+-- 刷新插件列表
+function Addon:RefreshAddonList()
+    self.AddonDataProvider = self.AddonDataProvider or CreateTreeDataProvider()
+    local addonDataProvider = self.AddonDataProvider
+
+    local searchText = self:GetAddonListSearchBox():GetText()
+    searchText = searchText and strtrim(searchText)
+    searchText = searchText and searchText:lower()
+
+    addonDataProvider:Flush()
+
+    local rootNode = addonDataProvider:GetRootNode()
+    local addonInfos = self:GetAddonInfos()
+    local shouldFilter = searchText and strlen(searchText) > 0
+
+    for index, addonInfo in ipairs(addonInfos) do
+
+        if shouldFilter then
+            local nickName = self:GetAddonRemark(addonInfo.Name) or ""
+            if addonInfo.Title:lower():match(searchText) or addonInfo.Name:lower():match(searchText) or nickName:lower():match(searchText) then
+                rootNode:Insert({ AddonInfo = addonInfo })
+            end
+        else
+            rootNode:Insert({ AddonInfo = addonInfo })
+        end
+    end
+
+    self:GetAddonListScrollBox():SetDataProvider(addonDataProvider, ScrollBoxConstants.RetainScrollPosition)
 end
 
 function Addon:GetAddonListScrollBox()

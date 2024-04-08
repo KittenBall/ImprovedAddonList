@@ -177,7 +177,8 @@ end
 local function onLockButtonEnter(self)
     if self.tooltipText then
         GameTooltip:SetOwner(self)
-        GameTooltip:AddLine(self.tooltipText, 1, 1, 1)
+        GameTooltip:AddLine(L["addon_detail_lock_tips_title"])
+        GameTooltip:AddLine(self.tooltipText, 1, 1, 1, true)
         GameTooltip:Show()
     end
 end
@@ -388,6 +389,8 @@ end
 
 -- 显示插件详情
 function Addon:ShowAddonDetail(addonName)
+    self:GetAddonDetailContainer():Show()
+    self:GetOrCreateAddonSettingsFrame():Hide()
     self:HideEditRemarkDialog()
 
     local addonDetailFrame = self:GetAddonDetailScrollContainer()
@@ -467,25 +470,19 @@ function Addon:ShowEditRemarkDialog()
     Title:SetText(L["edit_remark"])
     Title:SetPoint("TOP", EditRemarkDialog, "Top",  0, -20)
 
-    local ContentArea = CreateFrame("Frame", nil, EditRemarkDialog)
-    EditRemarkDialog.ContentArea = ContentArea
-    ContentArea:SetSize(250, 50)
-    ContentArea:SetPoint("TOPLEFT", 40, -40)
-    ContentArea:SetPoint("RIGHT", -40, 0)
-
-    local Label = ContentArea:CreateFontString(nil, nil, "GameFontNormal")
+    local Label = EditRemarkDialog:CreateFontString(nil, nil, "GameFontNormal")
     EditRemarkDialog.Label = Label
-    Label:SetPoint("TOPLEFT")
+    Label:SetPoint("LEFT", 25, 0)
+    Label:SetPoint("TOP", Title, "Bottom", 0, -5)
     Label:SetText("测试")
 
-    local EditBox = CreateFrame("EditBox", nil, ContentArea, "InputBoxTemplate")
+    local EditBox = CreateFrame("EditBox", nil, EditRemarkDialog, "InputBoxTemplate")
     EditRemarkDialog.EditBox = EditBox
     EditBox:SetFontObject(ChatFontNormal)
-    EditBox:SetSize(260, 32)
     EditBox:SetMaxLetters(self.REMARK_MAX_LENGTH)
-    EditBox:SetPoint("TOPLEFT", Label, "BOTTOMLEFT", 0, 10)
-    EditBox:SetPoint("RIGHT")
-    EditBox:SetPoint("BOTTOM")
+    EditBox:SetPoint("LEFT", 30, 0)
+    EditBox:SetPoint("RIGHT", -30, 0)
+    EditBox:SetPoint("TOP", Label, "BOTTOM", 0, -2)
 
     local AcceptButton = CreateFrame("BUTTON", nil, EditRemarkDialog, "UIPanelButtonTemplate, UIButtonTemplate")
     EditRemarkDialog.AcceptButton = AcceptButton

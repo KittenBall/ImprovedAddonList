@@ -1,5 +1,8 @@
 local _, Addon = ...
 
+-- 备注最大长度
+Addon.REMARK_MAX_LENGTH = 45
+
 -- 事件Frame
 local eventFrame = CreateFrame("Frame")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -33,6 +36,23 @@ function Addon:UnregisterEvent(event, func)
     if #observers <= 0 then
         eventFrame:UnregisterEvent(event)
     end
+end
+
+-- 回调
+local callbackRegistry = CreateFromMixins(CallbackRegistryMixin)
+callbackRegistry:OnLoad()
+callbackRegistry:SetUndefinedEventsAllowed(true)
+
+function Addon:RegisterCallback(event, func, owner, ...)
+    return callbackRegistry:RegisterCallback(event, func, owner, ...)
+end
+
+function Addon:UnregisterCallback(event, owner)
+    return callbackRegistry:UnregisterCallback(event, owner)
+end
+
+function Addon:TriggerEvent(event, ...)
+    return callbackRegistry:TriggerEvent(event, ...)
 end
 
 -- 显示红字错误

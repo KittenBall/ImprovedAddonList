@@ -39,14 +39,14 @@
 					<Size y="12"/>
 					<Anchors>
 						<Anchor point="LEFT" x="4" y="0"/>
-						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
+						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-15" y="0"/>
 					</Anchors>
 				</FontString>
 				<Texture parentKey="LoadIndicator" file="Interface\Addons\ImprovedAddonList\Media\load_indicator.png">
 					<Size x = "8" y="8"/>
 					<Color color="NORMAL_FONT_COLOR"/>
 					<Anchors>
-						<Anchor point="CENTER" relativePoint="RIGHT" relativeKey="$parent.Label" x="-4" y="0"/>
+						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.EnableStatus" x="-4" y="0"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -117,16 +117,10 @@
 				</Texture>
 			</Layer>
 		</Layers>
-		<!-- <Frames>
-			<StatusBar parentKey="RankBar" inherits="ProfessionsStatusBarArtTemplate" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
-				<Anchors>
-					<Anchor point="RIGHT" relativeKey="$parent.CollapseIcon" relativePoint="LEFT" x="-5" y="0"/>
-				</Anchors>
-			</StatusBar>
-		</Frames> -->
-		<!-- <Scripts>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-		</Scripts> -->
+		<Scripts>
+			<!-- <OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/> -->
+			<OnClick method="OnClick"/>
+		</Scripts>
 	</Button>
 </Ui>

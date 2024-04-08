@@ -26,5 +26,8 @@ UI.lua
 AddonList.xml
 AddonDetail.lua
 AddonScheme.lua
+Settings.xml
+Settings.lua
+AddonSettings.lua
 Init.lua
 Cmd.lua
