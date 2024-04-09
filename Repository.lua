@@ -420,29 +420,6 @@ function Addon:IsAllAddonsDisabled()
     return true
 end
 
--- 获取加载指示器显示方式
-function Addon:GetLoadIndicatorDisplayType()
-    return self.Saved.Config.LoadIndicatorDisplayType or Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL
-end
-
--- 设置加载指示器显示方式
-function Addon:SetLoadIndicatorDisplayType(loadIndicatorDisplayType)
-    self.Saved.Config.LoadIndicatorDisplayType = loadIndicatorDisplayType
-    self:TriggerEvent("Operations.SetLoadIndicatorDisplayType")
-end
-
--- 获取加载指示器说明文本
-function Addon:GetLoadIndicatorDisplayTypeDescription()
-    local loadIndicatorDisplayType = self.Saved.Config.LoadIndicatorDisplayType
-    if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
-        return L["settings_load_indicator_dislay_invisble"]
-    elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
-        return L["settings_load_indicator_display_only_colorful"]
-    else
-        return L["settings_Load_indicator_display_always"]
-    end
-end
-
 -- 获取插件方案列表
 function Addon:GetAddonSchemes()
     return self.Saved.AddonSchemes

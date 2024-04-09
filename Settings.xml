@@ -10,6 +10,23 @@
                 </FontString>
 			</Layer>
         </Layers>
+        <Frames>
+            <Button parentKey="Reset">
+                <Size x="16" y="16"/>
+                <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\reset.png">
+					<Color color="NORMAL_FONT_COLOR"/>
+		        </NormalTexture>
+                <HighlightTexture file="Interface\Addons\ImprovedAddonList\Media\reset.png" alphaMode="ADD">
+					<Color color="WHITE_FONT_COLOR"/>
+		        </HighlightTexture>
+				<Anchors>
+					<Anchor point="RIGHT" x="-5" />
+				</Anchors>
+			</Button>
+        </Frames>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
     </Button>
 
     <Button name="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemMixin" virtual="true">
@@ -30,6 +47,8 @@
         <Scripts>
             <OnLoad method="OnLoad"/>
             <OnClick method="OnClick"/>
+            <OnEnter method="OnEnter"/>
+            <OnLeave method="OnLeave"/>
         </Scripts>
 	</Button>
 
@@ -47,6 +66,25 @@
                         <Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.Arrow" x="-5" y="1"/>
                     </Anchors>
                 </FontString>
+			</Layer>
+        </Layers>
+    </Button>
+
+    <Button name="ImprovedAddonListSettingsItemColorPickerTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemColorPickerMixin" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <Texture parentKey="Arrow" file="Interface\Addons\ImprovedAddonList\Media\arrow.png">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="Indicator" file="Interface\Addons\ImprovedAddonList\Media\load_indicator.png">
+					<Size x = "10" y="10"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.Arrow" x="-5" y="0"/>
+					</Anchors>
+				</Texture>
 			</Layer>
         </Layers>
     </Button>

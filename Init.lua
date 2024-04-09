@@ -14,8 +14,10 @@ local AddonName, Addon = ...
 -- 六：导出配置字符串
 
 local function OnInitialize()
-    local saved = ImprovedAddonListSaved or {}
+    ImprovedAddonListSaved = ImprovedAddonListSaved or {}
+    local saved = ImprovedAddonListSaved
     Addon.Saved = saved
+
     -- 插件偏好
     saved.FavoriteAddons = saved.FavoriteAddons or {}
     -- 锁定的插件
@@ -28,8 +30,7 @@ local function OnInitialize()
     saved.AddonSchemes = saved.AddonSchemes or {}
 
     -- 配置
-    local config = ImprovedAddonListSaved.Config or {}
-    ImprovedAddonListSaved.Config = config
+    saved.Config = saved.Config or {}
 
     -- 更新插件信息
     Addon:UpdateAddonInfos()

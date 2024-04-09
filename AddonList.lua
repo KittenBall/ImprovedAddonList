@@ -120,15 +120,15 @@ function ImprovedAddonListAddonItemMixin:GetLabelColor()
     local addonInfo = self:GetAddonInfo()
 
     if Addon:IsAddonShouldReload(addonInfo.Name) then
-        return Addon.ADDON_RELOAD_COLOR
+        return Addon:GetLoadIndicatorReloadColor()
     elseif addonInfo.Loaded then
-        return Addon.ADDON_LOADED_COLOR
+        return Addon:GetLoadIndicatorLoadedColor()
     elseif addonInfo.Enabled and not addonInfo.Loaded then
-        return Addon.ADDON_UNLOADED_COLOR
+        return Addon:GetLoadIndicatorUnloadedColor()
     elseif addonInfo.Enabled and not addonInfo.Loadable then
-        return Addon.ADDON_UNLOADABLE_COLOR
+        return Addon:GetLoadIndicatorUnloadableColor()
     else
-        return Addon.ADDON_DISABLED_COLOR
+        return Addon:GetLoadIndicatorDisabledColor()
     end
 end
 
@@ -338,8 +338,13 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
     end)
 end
 
--- 插件加载指示器设置变更
+-- 插件加载指示器设置变更：显示模式
 local function OnLoadIndicatorDisplayModeSettingChanged(self)
+    self:RefreshAddonList()
+end
+
+-- 插件加载指示器设置变更：颜色
+local function OnLoadIndicatorColorSettingChanged(self)
     self:RefreshAddonList()
 end
 
@@ -419,6 +424,7 @@ function Addon:OnAddonListContainerLoad()
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, AddonListScrollBar, addonListTreeView)
 
     self:RegisterCallback("AddonSettings.LoadIndicatorDisplayMode", OnLoadIndicatorDisplayModeSettingChanged, self)
+    self:RegisterCallback("AddonSettings.LoadIndicatorColor", OnLoadIndicatorColorSettingChanged, self)
 
     self:RefreshAddonListContainer()
 end

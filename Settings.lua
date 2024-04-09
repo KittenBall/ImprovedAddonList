@@ -22,6 +22,8 @@ function Addon:GetOrCreateSettingsDialog(type)
 
     dialog:SetFrameStrata("DIALOG")
     dialog:SetPoint("CENTER")
+    dialog:SetMouseMotionEnabled(true)
+    dialog:SetMouseClickEnabled(true)
 
     -- 框体外点击消失
     dialog:SetScript("OnShow", function(self)
@@ -72,6 +74,19 @@ function SettingsSingleChoiceItemMixin:OnLoad()
     self:SetScript("OnHide", function(self)
         self.SettingsItem = nil
         self.Choice = nil
+    end)
+
+    self:SetScript("OnEnter", function(self)
+        local choice = self.Choice
+        if choice and choice.Tooltip then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine(choice.Tooltip, 1, 1, 1, true)
+            GameTooltip:Show()
+        end
+    end)
+
+    self:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
     end)
 
     local function onSettingsMenuUpdate(self, event)
@@ -149,6 +164,21 @@ end
 -- 设置项：组
 ImprovedAddonListSettingsGroupItemMixin = {}
 
+function ImprovedAddonListSettingsGroupItemMixin:OnLoad()
+    self.Reset:SetScript("OnClick", function()
+        local childrenNodes = self:GetElementData():GetNodes()
+        if childrenNodes then
+            for _, node in ipairs(childrenNodes) do
+                local item = node:GetData()
+                if item and item.Reset then
+                    item:Reset()
+                    TriggerSettingsMenuUpdate(item.Event)
+                end
+            end
+        end
+    end)
+end
+
 function ImprovedAddonListSettingsGroupItemMixin:Update()
     local data = self:GetElementData():GetData()
     self.Title:SetText(data.Title)
@@ -165,6 +195,19 @@ function ImprovedAddonListSettingsItemMixin:OnLoad()
         end
     end
     Addon:RegisterCallback("SettingsMenuUpdate", onSettingsMenuUpdate, self)
+end
+
+function ImprovedAddonListSettingsItemMixin:OnEnter()
+    local item = self:GetElementData():GetData()
+    if item.Tooltip then
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(item.Tooltip, 1, 1, 1, true)
+        GameTooltip:Show()
+    end
+end
+
+function ImprovedAddonListSettingsItemMixin:OnLeave()
+    GameTooltip:Hide()
 end
 
 -- 设置项更新
@@ -209,6 +252,41 @@ function ImprovedAddonListSettingsItemSingleChoiceMixin:OnClick()
     Addon:ShowSingleChoiceDialog(item)
 end
 
+-- 颜色选择器
+ImprovedAddonListSettingsItemColorPickerMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemColorPickerMixin:OnBind()
+    local item = self:GetElementData():GetData()
+    self.Indicator:SetVertexColor(item:GetColor():GetRGB())
+end
+
+function ImprovedAddonListSettingsItemColorPickerMixin:OnClick()
+    local item = self:GetElementData():GetData()
+    local color = item:GetColor()
+
+    local onColorChanged = function(color)
+        item:SetColor(color)
+        TriggerSettingsMenuUpdate(item.Event)
+    end
+
+    local info = {
+        hasOpacity = false,
+        r = color.r,
+        g = color.g,
+        b = color.b,
+        swatchFunc = function()
+            local r, g, b = ColorPickerFrame:GetColorRGB()
+            local color = CreateColor(r, g, b)
+            onColorChanged(color)
+        end,
+        cancelFunc = function(previousValues)
+            local r, g, b = previousValues.r, previousValues.g, previousValues.b
+            onColorChanged(CreateColor(r, g, b))
+        end
+    }
+    ColorPickerFrame:SetupColorPickerAndShow(info)
+end
+
 -- 设置窗体
 local SettingsFrameMixin = {}
 
@@ -223,6 +301,8 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsGroupItemTemplate", Initializer)
     elseif data.Type == "singleChoice" then
         factory("ImprovedAddonListSettingsItemSingleChoiceTemplate", Initializer)
+    elseif data.Type == "colorPicker" then
+        factory("ImprovedAddonListSettingsItemColorPickerTemplate", Initializer)
     end
 end
 
