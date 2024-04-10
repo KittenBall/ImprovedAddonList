@@ -392,7 +392,7 @@ function Addon:OnAddonListContainerLoad()
     ResetButton:SetScript("OnLeave", onResetButtonLeave)
     ResetButton:SetScript("OnClick", onResetButtonClick)
 
-    -- 创建插件列表搜索框
+    -- 插件列表搜索框
     local AddonListSearchBox = CreateFrame("EditBox", nil, AddonListContainer, "SearchBoxTemplate")
     AddonListContainer.SearchBox = AddonListSearchBox
     AddonListSearchBox:SetPoint("LEFT", 14, 0)

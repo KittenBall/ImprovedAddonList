@@ -454,7 +454,9 @@ function Addon:ShowEditRemarkDialog()
     EditRemarkDialog:SetSize(460, 150)
     EditRemarkDialog:SetPoint("CENTER")
     EditRemarkDialog:SetFrameStrata("DIALOG")
-    
+    EditRemarkDialog:SetMouseMotionEnabled(true)
+    EditRemarkDialog:SetMouseClickEnabled(true)
+
     function EditRemarkDialog:ShowAddonInfo(addonInfo)
         self.AddonInfo = addonInfo
         self.Label:SetText(addonInfo.Name)

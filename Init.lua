@@ -4,9 +4,9 @@ local AddonName, Addon = ...
 -- 一：插件分组
 --   1. 支持创建/编辑分组，设置分组名称、权重
 --   2. 支持编辑分组规则，允许以一定规则将插件自行放入分组
--- 二：插件方案
---   1. 支持创建/编辑插件方案，设置方案名称和加载规则
---   2. 支持添加/删除插件到插件方案中
+-- 二：插件集
+--   1. 支持创建/编辑插件集，设置方案名称和加载规则
+--   2. 支持添加/删除插件到插件集中
 -- 三：插件历史记录
 --   1. 保存插件加载历史记录，按插件列表变化保存
 -- 四：lua错误获取及保存
@@ -26,8 +26,8 @@ local function OnInitialize()
     saved.AddonCategories = saved.AddonCategories or {}
     -- 插件备注
     saved.AddonRemarks = saved.AddonRemarks or {}
-    -- 插件方案列表
-    saved.AddonSchemes = saved.AddonSchemes or {}
+    -- 插件集列表
+    saved.AddonSets = saved.AddonSets or {}
 
     -- 配置
     saved.Config = saved.Config or {}

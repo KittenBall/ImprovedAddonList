@@ -420,13 +420,13 @@ function Addon:IsAllAddonsDisabled()
     return true
 end
 
--- 获取插件方案列表
-function Addon:GetAddonSchemes()
-    return self.Saved.AddonSchemes
+-- 获取插件集列表
+function Addon:GetAddonSets()
+    return self.Saved.AddonSets
 end
 
--- 返回当前的插件方案，或nil
-function Addon:GetActiveAddonScheme()
-    local activeAddonScheme = self.Saved.ActiveAddonScheme
-    return activeAddonScheme and self.Saved.AddonSchemes[activeAddonScheme]
+-- 返回当前的插件集，或nil
+function Addon:GetActiveAddonSet()
+    local activeAddonSet = self.Saved.ActiveAddonSet
+    return activeAddonSet and self.Saved.AddonSets[activeAddonSet]
 end

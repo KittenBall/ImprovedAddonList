@@ -213,11 +213,11 @@ function Addon:GetOrCreateUI()
     BuildInfo:SetPoint("BOTTOMLEFT", 10, 10)
     BuildInfo:SetText(GetEnvInfo())
 
-    -- 插件方案
-    local AddonSchemeContainer = CreateFrame("Frame", nil, UI)
-    UI.AddonSchemeContainer = AddonSchemeContainer
-    AddonSchemeContainer:SetSize(240, 24)
-    AddonSchemeContainer:SetPoint("TOPLEFT", 10, -32)
+    -- 插件集
+    local AddonSetContainer = CreateFrame("Frame", nil, UI)
+    UI.AddonSetContainer = AddonSetContainer
+    AddonSetContainer:SetSize(240, 24)
+    AddonSetContainer:SetPoint("TOPLEFT", 10, -32)
 
     -- 创建插件列表页
     local AddonListContainer = self:CreateContainer(UI)
@@ -236,7 +236,7 @@ function Addon:GetOrCreateUI()
     -- 初始化
     self:OnAddonDetailContainerLoad()
     self:OnAddonListContainerLoad()
-    self:OnAddonSchemeContainerLoad()
+    self:OnAddonSetContainerLoad()
 
     return UI
 end
@@ -254,8 +254,8 @@ function Addon:GetAddonDetailContainer()
     return self.UI.AddonDetailContainer
 end
 
-function Addon:GetAddonSchemeContainer()
-    return self.UI.AddonSchemeContainer
+function Addon:GetAddonSetContainer()
+    return self.UI.AddonSetContainer
 end
 
 function Addon:GetReloadUIIndicator()

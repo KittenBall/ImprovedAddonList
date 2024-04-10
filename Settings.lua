@@ -177,6 +177,16 @@ function ImprovedAddonListSettingsGroupItemMixin:OnLoad()
             end
         end
     end)
+    
+    self.Reset:SetScript("OnEnter", function(button)
+        GameTooltip:SetOwner(button)
+        GameTooltip:AddLine(SETTINGS_DEFAULTS, 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    
+    self.Reset:SetScript("OnLeave", function(button)
+        GameTooltip:Hide()
+    end)
 end
 
 function ImprovedAddonListSettingsGroupItemMixin:Update()

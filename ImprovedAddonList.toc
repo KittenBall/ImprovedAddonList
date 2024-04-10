@@ -25,7 +25,7 @@ Repository.lua
 UI.lua
 AddonList.xml
 AddonDetail.lua
-AddonScheme.lua
+AddonSet.lua
 Settings.xml
 Settings.lua
 AddonSettings.lua
