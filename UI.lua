@@ -241,6 +241,139 @@ function Addon:GetOrCreateUI()
     return UI
 end
 
+local EditDialogMinxin = {}
+
+function EditDialogMinxin:Init()
+    self:SetWidth(280)
+    self:SetPoint("CENTER")
+    self:SetFrameStrata("DIALOG")
+    self:SetFrameLevel(1000)
+    self:SetMouseMotionEnabled(true)
+    self:SetMouseClickEnabled(true)
+
+    CreateFrame("Frame", nil, self, "DialogBorderDarkTemplate")
+    
+    local function OnEscapePressed(self, key)
+        if key == "ESCAPE" then
+            self:Hide()
+        end
+    end
+    
+    self:SetScript("OnKeyDown", OnEscapePressed)
+
+    local Title = self:CreateFontString(nil, nil, "ImprovedAddonListButtonNormalFont")
+    self.Title = Title
+    Title:SetText("测试")
+    Title:SetPoint("TOP", 0, -15)
+    Title:SetPoint("LEFT", 15, 0)
+    Title:SetPoint("RIGHT", -15, 0)
+
+    local Label = self:CreateFontString(nil, nil, "ImprovedAddonListButtonHighlightFont")
+    self.Label = Label
+    Label:SetPoint("TOP", Title, "BOTTOM", 0, -15)
+    Label:SetPoint("LEFT", 15, 0)
+    Label:SetPoint("RIGHT", -15, 0)
+
+    local EditBoxLayer = self:CreateTexture()
+    EditBoxLayer:SetTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\input_background.png")
+    EditBoxLayer:SetVertexColor(DISABLED_FONT_COLOR:GetRGB())
+    EditBoxLayer:SetTextureSliceMargins(24, 24, 24, 24)
+    EditBoxLayer:SetTextureSliceMode(Enum.UITextureSliceMode.Tiled)
+    EditBoxLayer:SetPoint("TOP", Label, "BOTTOM", 0, -15)
+    EditBoxLayer:SetPoint("LEFT", 15, 0)
+    EditBoxLayer:SetPoint("RIGHT", -15, 0)
+    self.EditBoxLayer = EditBoxLayer
+
+    local EditBox = CreateFrame("Frame", nil, self, "ScrollingEditBoxTemplate")
+    EditBox:SetPoint("TOPLEFT", EditBoxLayer, 8, -8)
+    EditBox:SetPoint("BOTTOMRIGHT", EditBoxLayer, -8, 8)
+    self.EditBox = EditBox
+
+    self.EditBox:GetEditBox():HookScript("OnEditFocusGained", function()
+        self.EditBoxLayer:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+    end)
+
+    self.EditBox:GetEditBox():HookScript("OnEditFocusLost", function()
+        self.EditBoxLayer:SetVertexColor(DISABLED_FONT_COLOR:GetRGB())
+    end)
+
+    local CancelButton = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate, UIButtonTemplate")
+    self.CancelButton = CancelButton
+    CancelButton:SetText(CANCEL)
+    CancelButton:SetPoint("LEFT", 15, 0)
+    CancelButton:SetPoint("RIGHT", EditBoxLayer, "CENTER", -6, 0)
+    CancelButton:SetPoint("TOP", EditBoxLayer, "BOTTOM", 0, -15)
+    CancelButton:SetScript("OnClick", function()
+        self:Hide()
+    end)
+
+    local AcceptButton = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate, UIButtonTemplate")
+    self.AcceptButton = AcceptButton
+    AcceptButton:SetText(SAVE)
+    AcceptButton:SetPoint("RIGHT", -15, 0)
+    AcceptButton:SetPoint("LEFT", EditBoxLayer, "CENTER", 6, 0)
+    AcceptButton:SetPoint("TOP", EditBoxLayer, "BOTTOM", 0, -15)
+    AcceptButton:SetScript("OnClick", function(btn)
+        if btn.OnConfirm and btn.OnConfirm(self.Extra, self.EditBox:GetInputText()) then
+            self:Hide()
+        end
+    end)
+
+    self:SetScript("OnHide", function(self)
+        self.Extra = nil
+        self.AcceptButton.OnConfirm = nil
+    end)
+end
+
+-- editInfo:编辑信息
+-- {
+--     Title = "标题",
+--     Label = "标签",
+--     MaxLetters = 35, -- 最大字数
+--     MaxLines = 1, -- 最大行数
+--     Text = "测试", -- 编辑框文本
+--     OnConfirm = function(extra, text) end, -- 确认回调，返回true，则隐藏弹窗
+--     Extra = Any 
+-- }
+function EditDialogMinxin:SetupEditInfo(editInfo)
+    local height = 15 * 5 + self.AcceptButton:GetHeight()
+
+    self.Title:SetText(editInfo.Title or "")
+    self.Label:SetText(editInfo.Label or "")
+
+    local editBox = self.EditBox:GetEditBox()
+    editBox:SetMaxLetters(editInfo.MaxLetters or 50)
+    self.EditBox:SetText(editInfo.Text or "")
+    
+    local maxLines = editInfo.MaxLines or 1
+    local editBoxHeight = 20 + maxLines * 15
+    self.EditBoxLayer:SetHeight(editBoxHeight)
+    
+    height = height + self.Title:GetStringHeight() + self.Label:GetStringHeight() + self.EditBoxLayer:GetHeight()
+    self:SetHeight(height)
+
+    self.AcceptButton.OnConfirm = editInfo.OnConfirm
+    self.Extra = editInfo.Extra
+
+    self:Show()
+end
+
+-- 显示编辑框
+function Addon:ShowEditDialog(editInfo)
+    local UI = self:GetOrCreateUI()
+
+    if UI.EditDialog then
+        UI.EditDialog:SetupEditInfo(editInfo)
+        return 
+    end
+
+    local EditDialog = Mixin(CreateFrame("Frame", nil, UI), EditDialogMinxin)
+    UI.EditDialog = EditDialog
+
+    EditDialog:Init()
+    EditDialog:SetupEditInfo(editInfo)
+end
+
 function Addon:ShowUI()
     self:HideUIPanel(GameMenuFrame)
     self:GetOrCreateUI():Show()

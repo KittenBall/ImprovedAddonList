@@ -1,8 +1,5 @@
 local _, Addon = ...
 
--- 备注最大长度
-Addon.REMARK_MAX_LENGTH = 45
-
 -- 事件Frame
 local eventFrame = CreateFrame("Frame")
 eventFrame:SetScript("OnEvent", function(self, event, ...)

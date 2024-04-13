@@ -25,6 +25,12 @@ function Addon:GetOrCreateSettingsDialog(type)
     dialog:SetMouseMotionEnabled(true)
     dialog:SetMouseClickEnabled(true)
 
+    dialog:SetScript("OnKeyDown", function(self, key)
+        if key == "ESCAPE" then
+            self:Hide()
+        end
+    end)
+
     -- 框体外点击消失
     dialog:SetScript("OnShow", function(self)
         self:RegisterEvent("GLOBAL_MOUSE_DOWN")

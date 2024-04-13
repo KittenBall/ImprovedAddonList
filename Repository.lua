@@ -75,11 +75,13 @@ function Addon:SetAddonRemark(name, remark)
     end
 
     if strlen(remark) >= self.REMARK_MAX_LENGTH then
-        self:ShowError(L["edit_remark_erro_too_long"])
+        self:ShowError(L["edit_remark_error_too_long"])
+        return
     end
 
     if remark == nil or remark == "" then
         self.Saved.AddonRemarks[name] = nil
+        return true
     else
         remark = strtrim(remark)
         local addonInfos = self:GetAddonInfos()
@@ -99,6 +101,7 @@ function Addon:SetAddonRemark(name, remark)
             end
         end
         self.Saved.AddonRemarks[name] = remark
+        return true
     end
 end
 
