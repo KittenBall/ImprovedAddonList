@@ -2,6 +2,11 @@ local AddonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(AddonName)
 
+-- 插件集最大长度
+Addon.ADDON_SET_NAME_MAX_LENGTH = 70
+-- 备注最大长度
+Addon.REMARK_MAX_LENGTH = 60
+
 Addon.AddonInfos = {}
 
 -- 插件初始启用状态
@@ -74,7 +79,7 @@ function Addon:SetAddonRemark(name, remark)
         return
     end
 
-    if strlen(remark) >= self.REMARK_MAX_LENGTH then
+    if strlen(remark) > self.REMARK_MAX_LENGTH then
         self:ShowError(L["edit_remark_error_too_long"])
         return
     end
@@ -431,5 +436,52 @@ end
 -- 返回当前的插件集，或nil
 function Addon:GetActiveAddonSet()
     local activeAddonSet = self.Saved.ActiveAddonSet
-    return activeAddonSet and self.Saved.AddonSets[activeAddonSet]
+    if activeAddonSet then
+        return FindValueInTableIf(self:GetAddonSets(), function(addonSet)
+            return addonSet.Name == activeAddonSet
+        end)
+    end
+end
+
+-- 新建插件集
+function Addon:NewAddonSet(name)
+    if type(name) ~= "string" or name == "" then
+        return
+    end
+    
+    if strlen(name) > self.ADDON_SET_NAME_MAX_LENGTH then
+        self:ShowError(L["addon_set_name_error_too_long"])
+        return
+    end
+
+    local addonSets = self:GetAddonSets()
+
+    for _, addonSet in ipairs(addonSets) do
+        if addonSet.Name == name then
+            self:ShowError(L["addon_set_name_error_duplicate"])
+            return
+        end
+    end
+
+    tinsert(addonSets, { Name = name, Enabled = true })
+
+    return true
+end
+
+-- 删除插件集
+function Addon:DeleteAddonSet(name)
+    if type(name) ~= "string" or name == "" then
+        return
+    end
+
+    local addonSets = self:GetAddonSets()
+
+    local size = #addonSets
+    local index = size
+    while index > 0 do
+        if addonSets[index].Name == name then
+            table.remove(addonSets, index)
+        end
+        index = index -1
+    end
 end

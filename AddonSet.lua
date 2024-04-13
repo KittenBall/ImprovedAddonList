@@ -49,7 +49,7 @@ function Addon:OnAddonSetContainerLoad()
     ActiveAddonSetPrefix:SetPoint("LEFT", 5, 0)
     ActiveAddonSetPrefix:SetText(L["addon_set_active_label"])
 
-    -- 当前加载方案
+    -- 当前加载插件集
     local ActiveAddonSetLabel = ActiveAddonSetContainer:CreateFontString(nil, nil, "GameFontWhite")
     AddonSetContainer.ActiveAddonSetLabel = ActiveAddonSetLabel
     ActiveAddonSetLabel:SetJustifyH("RIGHT")
@@ -74,6 +74,40 @@ function Addon:RefreshAddonSetContainer()
     end
 end
 
+-- 插件集列表项
+ImprovedAddonListAddonSetItemMixin = {}
+
+function ImprovedAddonListAddonSetItemMixin:Update()
+    local data = self:GetElementData()
+    self.Label:SetText(data.Name)
+
+    if data.Enabled then
+        self.Label:SetVertexColor(WHITE_FONT_COLOR:GetRGB())
+    else
+        self.Label:SetVertexColor(DISABLED_FONT_COLOR:GetRGB())
+    end
+
+    self:SetSelected(self:IsSelected())
+end
+
+function ImprovedAddonListAddonSetItemMixin:OnClick()
+    if self:IsSelected() then 
+        return 
+    end
+
+    Addon:GetAddonSetListScrollBox().SelectionBehavior:Select(self)
+    PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
+end
+
+function ImprovedAddonListAddonSetItemMixin:SetSelected(selected)
+	self.SelectedOverlay:SetShown(selected)
+	self.HighlightOverlay:SetShown(not selected)
+end
+
+function ImprovedAddonListAddonSetItemMixin:IsSelected()
+    return Addon:GetAddonSetListScrollBox().SelectionBehavior:IsElementDataSelected(self:GetElementData())
+end
+
 -- 添加插件集：鼠标划入
 local function onAddAddonSetButtonEnter(self)
     GameTooltip:SetOwner(self)
@@ -88,7 +122,19 @@ end
 
 -- 添加插件集：点击
 local function onAddAddonSetButtonClick(self)
-
+    local editInfo = {
+        Title = L["addon_set_new"],
+        Label = L["addon_set_new_label"],
+        MaxLetters = Addon.ADDON_SET_NAME_MAX_LENGTH,
+        MaxLines = 2,
+        OnConfirm = function(_, name)
+            if Addon:NewAddonSet(name) then
+                Addon:RefreshAddonSetListContainer(name)
+                return true
+            end
+        end
+    }
+    Addon:ShowEditDialog(editInfo)
 end
 
 -- 删除插件集：鼠标划入
@@ -105,7 +151,50 @@ end
 
 -- 删除插件集：点击
 local function onDeleteAddonSetButtonClick(self)
+    local node = Addon:GetAddonSetListScrollBox().SelectionBehavior:GetFirstSelectedElementData()
+    if not node then return end
+
+    local alertInfo = {
+        Label = L["addon_set_delete_confirm"]:format(WrapTextInColor(node.Name, NORMAL_FONT_COLOR)),
+        Extra = node.Name,
+        OnConfirm = function(addonSetName)
+            Addon:DeleteAddonSet(addonSetName)
+            Addon:RefreshAddonSetListContainer()
+            return true
+        end
+    }
+    Addon:ShowAlertDialog(alertInfo)
+end
+
+local function AddonSetListNodeUpdater(factory, node)
+    local function Initializer(button, node)
+        button:Update()
+    end
+
+    factory("ImprovedAddonListAddonSetItemTemplate", Initializer)
+end
+
+local function ElementExtentCalculator(index, node)
+    return 25
+end
+
+local function onAddonSetListSearchBoxTextChanged(self, userInput)
+    if self.searchJob then
+        self.searchJob:Cancel()
+    end
+    self.searchJob = C_Timer.NewTimer(0.25, function()
+        Addon:RefreshAddonSetListContainer()
+    end)
+end
+
+local function AddonSetListNodeOnSelectionChanged(_, elementData, selected)
+    local button = Addon:GetAddonSetListScrollBox():FindFrame(elementData)
     
+    if button then
+        button:SetSelected(selected)
+    end
+
+    -- todo
 end
 
 -- 显示插件集弹窗
@@ -161,7 +250,42 @@ function Addon:ShowAddonSetDialog()
     AddonSetSearchBox:SetPoint("LEFT", 14, 0)
     AddonSetSearchBox:SetPoint("TOPRIGHT", DeleteAddonSetButton, "TOPLEFT", -5, 0)
     AddonSetSearchBox:SetPoint("BOTTOMRIGHT", DeleteAddonSetButton, "BOTTOMLEFT", -5, 0)
-    -- AddonSetSearchBox:HookScript("OnTextChanged", onAddonListSearchBoxTextChanged)
+    AddonSetSearchBox:HookScript("OnTextChanged", onAddonSetListSearchBoxTextChanged)
+
+    local AddonSetScrollBox = CreateFrame("Frame", nil, AddonSetListContainer, "WowScrollBoxList")
+    AddonSetListContainer.ScrollBox = AddonSetScrollBox
+    AddonSetScrollBox:SetPoint("TOP", AddonSetSearchBox, "BOTTOM", 0, -5)
+    AddonSetScrollBox:SetPoint("LEFT", 5, 0)
+    AddonSetScrollBox:SetPoint("BOTTOMRIGHT", -25, 7)
+    -- 滚动条
+    local AddonSetScrollBar = CreateFrame("EventFrame", nil, AddonSetListContainer, "MinimalScrollBar")
+    AddonSetListContainer.ScrollBar =  AddonSetScrollBar
+    AddonSetScrollBar:SetPoint("TOPLEFT", AddonSetScrollBox, "TOPRIGHT", 5, 0)
+    AddonSetScrollBar:SetPoint("BOTTOMLEFT", AddonSetScrollBox, "BOTTOMRIGHT", 5, 0)
+
+    local addonSetListView = CreateScrollBoxListLinearView(1, 1, 1, 1, 1)
+    addonSetListView:SetElementFactory(AddonSetListNodeUpdater)
+    addonSetListView:SetElementExtentCalculator(ElementExtentCalculator)
+    ScrollUtil.InitScrollBoxListWithScrollBar(AddonSetScrollBox, AddonSetScrollBar, addonSetListView)
+
+    AddonSetScrollBox.SelectionBehavior = ScrollUtil.AddSelectionBehavior(AddonSetScrollBox)
+    AddonSetScrollBox.SelectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonSetListNodeOnSelectionChanged)
+
+    local AddonListContainer = self:CreateContainer(AddonSetDialog)
+    AddonSetDialog.AddonListContainer = AddonListContainer
+    AddonListContainer:SetWidth(300)
+    AddonListContainer:SetPoint("TOPLEFT", AddonSetListContainer, "TOPRIGHT", 10, 0)
+    AddonListContainer:SetPoint("BOTTOMLEFT", AddonSetListContainer, "BOTTOMRIGHT", 10, 0)
+
+    self:RefreshAddonSetListContainer()
+end
+
+function Addon:GetAddonSetListScrollBox()
+    return self:GetOrCreateUI().AddonSetDialog.AddonSetListContainer.ScrollBox
+end
+
+function Addon:GetAddonSetListSearchBox()
+    return self:GetOrCreateUI().AddonSetDialog.AddonSetListContainer.SearchBox
 end
 
 -- 隐藏插件集弹窗
@@ -171,4 +295,60 @@ function Addon:HideAddonSetDialog()
     if UI.AddonSetDialog then
         UI.AddonSetDialog:Hide()
     end
+end
+
+function Addon:RefreshAddonSetListContainer(targetAddonSetName)
+    self:RefreshAddonSetList()
+
+    if not targetAddonSetName then
+        local activeAddonSet = self:GetActiveAddonSet()
+        if activeAddonSet then
+            targetAddonSetName = activeAddonSet.Name
+        end
+    end
+
+    local selectPredicate = function(node)
+        if targetAddonSetName then
+            return targetAddonSetName == node.Name 
+        else
+            return node
+        end
+    end
+
+    self:GetAddonSetListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
+    self:ScrollToSelectedAddonSet()
+end
+
+function Addon:ScrollToSelectedAddonSet()
+    local selectedPredicate = function(elementData)
+        return self:GetAddonSetListScrollBox().SelectionBehavior:IsElementDataSelected(elementData)
+    end
+    self:GetAddonSetListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
+end
+
+-- 刷新插件集列表
+function Addon:RefreshAddonSetList()
+    self.AddonSetDataProvider = self.AddonSetDataProvider or CreateDataProvider()
+    local addonSetDataProvider = self.AddonSetDataProvider
+
+    local searchText = self:GetAddonSetListSearchBox():GetText()
+    searchText = searchText and strtrim(searchText)
+    searchText = searchText and searchText:lower()
+
+    addonSetDataProvider:Flush()
+
+    local shouldFilter = searchText and strlen(searchText) > 0
+    local addonSets = self:GetAddonSets()
+
+    for _, addonSet in ipairs_reverse(addonSets) do
+        if shouldFilter then
+            if addonSet.Name:lower():match(searchText) then
+                addonSetDataProvider:Insert(addonSet)
+            end
+        else
+            addonSetDataProvider:Insert(addonSet)
+        end
+    end
+
+    self:GetAddonSetListScrollBox():SetDataProvider(addonSetDataProvider, ScrollBoxConstants.RetainScrollPosition)
 end

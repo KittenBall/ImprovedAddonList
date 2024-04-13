@@ -467,7 +467,7 @@ function Addon:RefreshReloadIndicatorStatus()
 end
 
 -- 滚动到选中项
-function Addon:ScrollToSelectedItem()
+function Addon:ScrollToSelectedAddon()
     local selectedPredicate = function(elementData)
         return self:GetAddonListScrollBox().SelectionBehavior:IsElementDataSelected(elementData)
     end
@@ -492,7 +492,7 @@ function Addon:RefreshAddonListContainer()
 
     -- 选中并滚动到选中项
     self:GetAddonListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
-    self:ScrollToSelectedItem()
+    self:ScrollToSelectedAddon()
 
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()

@@ -252,27 +252,17 @@ function EditDialogMinxin:Init()
     self:SetMouseClickEnabled(true)
 
     CreateFrame("Frame", nil, self, "DialogBorderDarkTemplate")
-    
-    local function OnEscapePressed(self, key)
-        if key == "ESCAPE" then
-            self:Hide()
-        end
-    end
-    
-    self:SetScript("OnKeyDown", OnEscapePressed)
 
     local Title = self:CreateFontString(nil, nil, "ImprovedAddonListButtonNormalFont")
     self.Title = Title
-    Title:SetText("测试")
+    Title:SetWidth(250)
     Title:SetPoint("TOP", 0, -15)
-    Title:SetPoint("LEFT", 15, 0)
-    Title:SetPoint("RIGHT", -15, 0)
 
     local Label = self:CreateFontString(nil, nil, "ImprovedAddonListButtonHighlightFont")
     self.Label = Label
     Label:SetPoint("TOP", Title, "BOTTOM", 0, -15)
-    Label:SetPoint("LEFT", 15, 0)
-    Label:SetPoint("RIGHT", -15, 0)
+    Label:SetWidth(250)
+    Label:SetHeight(0)
 
     local EditBoxLayer = self:CreateTexture()
     EditBoxLayer:SetTexture("Interface\\AddOns\\ImprovedAddonList\\Media\\input_background.png")
@@ -314,14 +304,14 @@ function EditDialogMinxin:Init()
     AcceptButton:SetPoint("LEFT", EditBoxLayer, "CENTER", 6, 0)
     AcceptButton:SetPoint("TOP", EditBoxLayer, "BOTTOM", 0, -15)
     AcceptButton:SetScript("OnClick", function(btn)
-        if btn.OnConfirm and btn.OnConfirm(self.Extra, self.EditBox:GetInputText()) then
+        if self.OnConfirm and self.OnConfirm(self.Extra, self.EditBox:GetInputText()) then
             self:Hide()
         end
     end)
 
     self:SetScript("OnHide", function(self)
         self.Extra = nil
-        self.AcceptButton.OnConfirm = nil
+        self.OnConfirm = nil
     end)
 end
 
@@ -352,7 +342,7 @@ function EditDialogMinxin:SetupEditInfo(editInfo)
     height = height + self.Title:GetStringHeight() + self.Label:GetStringHeight() + self.EditBoxLayer:GetHeight()
     self:SetHeight(height)
 
-    self.AcceptButton.OnConfirm = editInfo.OnConfirm
+    self.OnConfirm = editInfo.OnConfirm
     self.Extra = editInfo.Extra
 
     self:Show()
@@ -372,6 +362,88 @@ function Addon:ShowEditDialog(editInfo)
 
     EditDialog:Init()
     EditDialog:SetupEditInfo(editInfo)
+end
+
+local AlertDialogMixin = {}
+
+function AlertDialogMixin:Init()
+    self:SetWidth(320)
+    self:SetPoint("CENTER")
+    self:SetFrameStrata("DIALOG")
+    self:SetFrameLevel(1000)
+    self:SetMouseMotionEnabled(true)
+    self:SetMouseClickEnabled(true)
+
+    CreateFrame("Frame", nil, self, "DialogBorderDarkTemplate")
+
+    local Label = self:CreateFontString(nil, nil, "GameFontHighlight")
+    self.Label = Label
+    Label:SetPoint("TOP", 0, -20)
+    Label:SetPoint("LEFT", 20, 0)
+    Label:SetPoint("RIGHT", -20, 0)
+    Label:SetSpacing(4)
+
+    local CancelButton = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate, UIButtonTemplate")
+    self.CancelButton = CancelButton
+    CancelButton:SetPoint("LEFT", 20, 0)
+    CancelButton:SetPoint("RIGHT", self, "CENTER", -6, 0)
+    CancelButton:SetPoint("TOP", Label, "BOTTOM", 0, -20)
+    CancelButton:SetScript("OnClick", function()
+        self:Hide()
+    end)
+
+    local AcceptButton = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate, UIButtonTemplate")
+    self.AcceptButton = AcceptButton
+    AcceptButton:SetPoint("RIGHT", -20, 0)
+    AcceptButton:SetPoint("LEFT", self, "CENTER", 6, 0)
+    AcceptButton:SetPoint("TOP", Label, "BOTTOM", 0, -20)
+    AcceptButton:SetScript("OnClick", function(btn)
+        if self.OnConfirm and self.OnConfirm(self.Extra) then
+            self:Hide()
+        end
+    end)
+
+    self:SetScript("OnHide", function(self)
+        self.Extra = nil
+        self.OnConfirm = nil
+    end)
+end
+
+-- alterInfo:弹窗信息
+-- {
+--     Label = "标签",
+--     ConfirmText = "yes",
+--     CancelText = "no"
+--     OnConfirm = function(extra) end, -- 确认回调，返回true，则隐藏弹窗
+--     Extra = Any 
+-- }
+function AlertDialogMixin:SetupAlertInfo(alertInfo)
+    self.Label:SetText(alertInfo.Label)
+    self.AcceptButton:SetText(alertInfo.ConfirmText or YES)
+    self.CancelButton:SetText(alertInfo.CancelText or NO)
+
+    local height = self.Label:GetStringHeight() + self.AcceptButton:GetHeight() + 60
+    self:SetHeight(height)
+
+    self.Extra = alertInfo.Extra
+    self.OnConfirm = alertInfo.OnConfirm
+
+    self:Show()
+end
+
+function Addon:ShowAlertDialog(alertInfo)
+    local UI = self:GetOrCreateUI()
+
+    if UI.AlertDialog then
+        UI.AlertDialog:SetupAlertInfo(alertInfo)
+        return 
+    end
+
+    local AlertDialog = Mixin(CreateFrame("Frame", nil, UI), AlertDialogMixin)
+    UI.AlertDialog = AlertDialog
+
+    AlertDialog:Init()
+    AlertDialog:SetupAlertInfo(alertInfo)
 end
 
 function Addon:ShowUI()
