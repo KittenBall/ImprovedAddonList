@@ -18,6 +18,94 @@ local function onAddonSetListButtonClick(self)
     Addon:ShowAddonSetDialog()
 end
 
+-- 插件集提示按钮：鼠标划入
+local function onAddonSetTipButtonEnter(self)
+    local activeAddonSet = Addon:GetActiveAddonSet()
+    if not activeAddonSet or not activeAddonSet.Addons then
+        return
+    end
+
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_set_not_full_load_tips"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR)), 1, 1, 1, true)
+    GameTooltip:AddLine(" ")
+
+    local unloadedAddons = {}
+    for addonName, enabled in pairs(activeAddonSet.Addons) do
+        if enabled then
+            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
+            if addonInfo and not addonInfo.Enabled then
+                tinsert(unloadedAddons, addonInfo.Title)
+            end
+        end
+    end
+
+    table.sort(unloadedAddons)
+    for _, addonTitle in ipairs(unloadedAddons) do
+        GameTooltip:AddLine(addonTitle)
+    end
+
+    GameTooltip:Show()
+end
+
+-- 插件集提示按钮：鼠标移出
+local function onAddonSetTipButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 插件集提示按钮：鼠标点击
+local function onAddonSetTipButtonClick(self)
+    local activeAddonSet = Addon:GetActiveAddonSet()
+    if not activeAddonSet or not activeAddonSet.Addons then
+        return
+    end
+
+    for addonName, enabled in pairs(activeAddonSet.Addons) do
+        if enabled then
+            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
+            if addonInfo and not addonInfo.Enabled
+                and not Addon:IsAddonManager(addonInfo.Name) and not Addon:IsAddonLocked(addonInfo.Name) then
+                    C_AddOns.EnableAddOn(addonInfo.Name)
+            end
+        end
+    end
+
+    Addon:UpdateAddonInfos()
+    Addon:RefreshAddonListContainer()
+end
+
+-- 当前插件集文本：鼠标划入
+local function onActiveAddonSetLabelEnter(self)
+    local activeAddonSet = Addon:GetActiveAddonSet()
+    if not activeAddonSet or not activeAddonSet.Addons then
+        return
+    end
+
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_set_addon_list"], 1, 1, 1)
+    
+    local addons = {}
+    for addonName, enabled in pairs(activeAddonSet.Addons) do
+        if enabled then
+            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
+            if addonInfo then
+                tinsert(addons, addonInfo.Title)
+            end
+        end
+    end
+
+    table.sort(addons)
+    for _, addonTitle in ipairs(addons) do
+        GameTooltip:AddLine(addonTitle, 1, 1, 1, false)
+    end
+
+    GameTooltip:Show()
+end
+
+-- 当前插件集文本：鼠标移出
+local function onActiveAddonSetLabelLeave(self)
+    GameTooltip:Hide()
+end
+
 function Addon:OnAddonSetContainerLoad()
     local AddonSetContainer = self:GetAddonSetContainer()
 
@@ -38,6 +126,9 @@ function Addon:OnAddonSetContainerLoad()
     AddonSetTipButton:SetSize(16, 16)
     AddonSetTipButton:SetPoint("LEFT", AddonSetListButton, "RIGHT", 4, 0)
     AddonSetTipButton:SetNormalTexture("Interface\\Addons\\ImprovedAddonList\\Media\\tip.png")
+    AddonSetTipButton:SetScript("OnEnter", onAddonSetTipButtonEnter)
+    AddonSetTipButton:SetScript("OnLeave", onAddonSetTipButtonLeave)
+    AddonSetTipButton:SetScript("OnClick", onAddonSetTipButtonClick)
     AddonSetTipButton:Hide()
 
     local ActiveAddonSetContainer = CreateFrame("Frame", nil, AddonSetContainer, "InsetFrameTemplate3")
@@ -56,21 +147,40 @@ function Addon:OnAddonSetContainerLoad()
     ActiveAddonSetLabel:SetPoint("LEFT", ActiveAddonSetPrefix, "RIGHT", 8, 0)
     ActiveAddonSetLabel:SetPoint("RIGHT", -5, 0)
     ActiveAddonSetLabel:SetMaxLines(1)
+    ActiveAddonSetLabel:SetScript("OnEnter", onActiveAddonSetLabelEnter)
+    ActiveAddonSetLabel:SetScript("OnLeave", onActiveAddonSetLabelLeave)
 
     self:RefreshAddonSetContainer()
 end
 
 -- 刷新插件集
 function Addon:RefreshAddonSetContainer()
-    local activeAddonSetLable = self:GetAddonSetContainer().ActiveAddonSetLabel
-    local activeAddonSetName = self:GetActiveAddonSetName()
+    local addonSetContainer = self:GetAddonSetContainer()
+    local activeAddonSetLable = addonSetContainer.ActiveAddonSetLabel
+    local activeAddonSet = self:GetActiveAddonSet()
 
-    if activeAddonSetName then
-        activeAddonSetLable:SetText(activeAddonSetName)
+    if activeAddonSet then
+        activeAddonSetLable:SetText(activeAddonSet.Name)
         activeAddonSetLable:SetTextColor(WHITE_FONT_COLOR:GetRGB())
     else
         activeAddonSetLable:SetText(L["addon_set_inactive_tip"])
         activeAddonSetLable:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
+    end
+
+    if activeAddonSet and activeAddonSet.Addons then
+        local fullLoad = true
+        for addonName, enabled in pairs(activeAddonSet.Addons) do
+            if enabled then
+                local addonInfo = self:GetAddonInfoByNameOrNil(addonName)
+                if addonInfo and not addonInfo.Enabled then
+                    fullLoad = false
+                    break
+                end
+            end
+        end
+        addonSetContainer.AddonSetTipButton:SetShown(not fullLoad)
+    else
+        addonSetContainer.AddonSetTipButton:Hide()
     end
 end
 
@@ -308,7 +418,6 @@ local function onApplyAddonSetButtonClick(self)
     Addon:SetActiveAddonSetName(focusAddonSetName)
     Addon:ApplyAddonSetAddons(focusAddonSetName)
     Addon:RefreshAddonSetListContainer()
-    Addon:RefreshAddonSetContainer()
     Addon:RefreshAddonListContainer()
 end
 
@@ -328,7 +437,6 @@ end
 local function onClearAddonSetButtonClick(self)
     Addon:SetActiveAddonSetName(nil)
     Addon:RefreshAddonSetListContainer()
-    Addon:RefreshAddonSetContainer()
     Addon:RefreshAddonListContainer()
 end
 

@@ -111,7 +111,7 @@ function Addon:SetAddonRemark(name, remark)
 end
 
 -- 获取插件信息，返回值可能为nil
--- query:要么为index:与GetNumAddOns对应的插件位置；要么为name：插件名
+-- query:要么为index:与GetNumAddOns对应的插件位置；要么为name
 function Addon:GetAddonInfoOrNil(query, addonInfo)
     if not query then
         return

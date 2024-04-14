@@ -148,6 +148,8 @@ L["addon_set_save_addon_list_tips"] = "保存当前选中插件到“%s”"
 L["addon_set_enable_all_tips"] = "将所有插件加入“%s”"
 L["addon_set_disable_all_tips"] = "将所有插件移出“%s”"
 L["addon_set_can_not_find"] = "未找到名为“%s”的插件集"
+L["addon_set_not_full_load_tips"] = "插件集“%s”未完全启用，点击完全启用插件集。\n\n该操作不会禁用目前已启用且不属于当前插件集的插件，也不会修改被锁定的插件的启用状态，无论其是否属于当前插件集"
+L["addon_set_addon_list"] = "插件列表"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"

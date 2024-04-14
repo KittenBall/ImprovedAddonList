@@ -235,8 +235,8 @@ function Addon:GetOrCreateUI()
 
     -- 初始化
     self:OnAddonDetailContainerLoad()
-    self:OnAddonListContainerLoad()
     self:OnAddonSetContainerLoad()
+    self:OnAddonListContainerLoad()
 
     return UI
 end

@@ -497,6 +497,7 @@ function Addon:RefreshAddonListContainer()
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
     self:RefreshReloadIndicatorStatus()
+    self:RefreshAddonSetContainer()
 end 
 
 -- 刷新插件信息
@@ -514,6 +515,7 @@ function Addon:RefreshAddonInfo(addonName)
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
     self:RefreshReloadIndicatorStatus()
+    self:RefreshAddonSetContainer()
 end
 
 -- 刷新插件列表
