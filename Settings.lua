@@ -303,6 +303,18 @@ function ImprovedAddonListSettingsItemColorPickerMixin:OnClick()
     ColorPickerFrame:SetupColorPickerAndShow(info)
 end
 
+-- 编辑框
+ImprovedAddonListSettingsItemEditBoxMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemEditBoxMixin:OnBind()
+    local item = self:GetElementData():GetData()
+    self.Value:SetText(item:GetText())
+end
+
+function ImprovedAddonListSettingsItemEditBoxMixin:OnClick()
+    
+end
+
 -- 设置窗体
 local SettingsFrameMixin = {}
 
@@ -319,6 +331,8 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsItemSingleChoiceTemplate", Initializer)
     elseif data.Type == "colorPicker" then
         factory("ImprovedAddonListSettingsItemColorPickerTemplate", Initializer)
+    elseif data.Type == "editBox" then
+        factory("ImprovedAddonListSettingsItemEditBoxTemplate", Initializer)
     end
 end
 
@@ -358,7 +372,7 @@ end
 
 -- 显示设置信息
 function SettingsFrameMixin:ShowSettings(settingsInfo)
-    self.Title:SetText(settingsInfo.Title)
+    self.Title:SetText(settingsInfo.Title or "")
 
     self.SettingsDataProvider = self.SettingsDataProvider or CreateTreeDataProvider()
     local dataProvider = self.SettingsDataProvider
@@ -382,14 +396,9 @@ function SettingsFrameMixin:GetScrollBox()
 end
 
 -- 创建设置窗体
-function Addon:CreateSettingsFrame()
+function Addon:CreateSettingsFrame(parent)
     local UI = self:GetOrCreateUI()
-
-    local SettingsFrame = Mixin(self:CreateContainer(UI), SettingsFrameMixin)
+    local SettingsFrame = Mixin(self:CreateContainer(parent or UI), SettingsFrameMixin)
     SettingsFrame:OnLoad()
-
-    self.SettingsFrames = self.SettingsFrames or {}
-    tinsert(self.SettingsFrames, SettingsFrame)
-
     return SettingsFrame
 end

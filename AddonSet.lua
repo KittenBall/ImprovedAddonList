@@ -40,7 +40,7 @@ local function onAddonSetTipButtonEnter(self)
     end
 
     table.sort(unloadedAddons, function(a, b) return a.Name < b.Name end)
-    
+
     local lockedText = CreateSimpleTextureMarkup("Interface\\AddOns\\ImprovedAddonList\\Media\\lock.png", 14, 14)
     for _, addonInfo in ipairs(unloadedAddons) do
         if addonInfo.IsLocked then
@@ -86,7 +86,7 @@ local function onActiveAddonSetLabelEnter(self)
         return
     end
 
-    GameTooltip:SetOwner(self)
+    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
     GameTooltip:AddLine(L["addon_set_addon_list"], 1, 1, 1)
     
     local addons = {}
@@ -703,6 +703,7 @@ local function AddonSetListNodeOnSelectionChanged(_, elementData, selected)
     if elementData and selected then
         Addon:SetCurrentFocusAddonSetName(elementData.Name)
         Addon:UpdateAddonSetAddonItems()
+        Addon:RefreshAddonSetSettings()
     end
 
     local button = Addon:GetAddonSetListScrollBox():FindFrame(elementData)
@@ -723,7 +724,7 @@ function Addon:ShowAddonSetDialog()
 
     local AddonSetDialog = self:CreateDialog(nil, UI)
     UI.AddonSetDialog = AddonSetDialog
-    AddonSetDialog:SetSize(700, 650)
+    AddonSetDialog:SetSize(830, 650)
     AddonSetDialog:SetPoint("CENTER")
     AddonSetDialog:SetFrameStrata("DIALOG")
     AddonSetDialog:SetTitle(L["addon_set_list"])
@@ -883,6 +884,12 @@ function Addon:ShowAddonSetDialog()
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, AddonListScrollBar, addonListTreeView)
 
+    local SettingsFrame = self:CreateSettingsFrame(AddonSetDialog)
+    AddonSetDialog.SettingsFrame = SettingsFrame
+    SettingsFrame:SetWidth(300)
+    SettingsFrame:SetPoint("TOPLEFT", AddonListContainer, "TOPRIGHT", 10, 0)
+    SettingsFrame:SetPoint("BOTTOMLEFT", AddonListContainer, "BOTTOMRIGHT", 10, 0)
+
     self:RefreshAddonSetListContainer()
 end
 
@@ -931,7 +938,6 @@ function Addon:RefreshAddonSetListContainer(targetAddonSetName)
 
     self:GetAddonSetListScrollBox().SelectionBehavior:SelectElementDataByPredicate(selectPredicate)
     self:ScrollToSelectedAddonSet()
-    self:RefreshAddonSetAddonListContainer()
 end
 
 function Addon:ScrollToSelectedAddonSet()

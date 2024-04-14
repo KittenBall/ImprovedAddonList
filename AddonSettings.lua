@@ -136,7 +136,6 @@ local AddonSettingsInfo = {
 -- 显示插件设置
 function Addon:ShowAddonSettings()
     self:GetAddonDetailContainer():Hide()
-    self:HideEditRemarkDialog()
     
     local AddonSettingsFrame = self:GetOrCreateAddonSettingsFrame()
     AddonSettingsFrame:ShowSettings(AddonSettingsInfo)
@@ -144,14 +143,13 @@ end
 
 -- 获取插件设置框体
 function Addon:GetOrCreateAddonSettingsFrame()
-    local UI = self:GetOrCreateUI()
+    local AddonDetailContainer = self:GetAddonDetailContainer()
 
-    local AddonSettingsFrame = UI.AddonSettingsFrame
+    local AddonSettingsFrame = AddonDetailContainer.AddonSettingsFrame
    
     if not AddonSettingsFrame then
-        local AddonDetailContainer = self:GetAddonDetailContainer()
         AddonSettingsFrame = self:CreateSettingsFrame()
-        UI.AddonSettingsFrame = AddonSettingsFrame
+        AddonDetailContainer.AddonSettingsFrame = AddonSettingsFrame
         AddonSettingsFrame:SetAllPoints(AddonDetailContainer)  
     end
 
