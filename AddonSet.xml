@@ -33,4 +33,58 @@
 			<OnClick method="OnClick"/>
 		</Scripts>
 	</Button>
+
+	<Button name="mprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate" mixin="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin" virtual="true">
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnClick method="OnClick"/>
+		</Scripts>
+	</Button>
+
+	<Button name="ImprovedAddonListAddonSetAddonListItemTemplate" mixin="ImprovedAddonListAddonSetAddonListItemMixin" virtual="true">
+		<Size y="20"/>
+		<Frames>
+			<Button parentKey="EnableStatus" inherits="mprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate">
+				<Size x="15" y="15"/>
+				<Anchors>
+					<Anchor point="LEFT" x="4" />
+				</Anchors>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="Changed" file="Interface\Addons\ImprovedAddonList\Media\unsave.png" hidden="true">
+					<Size x="12" y="12"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="0"/>
+                    </Anchors>
+				</Texture>
+				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT" wordwrap="false">
+					<Size y="12"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.EnableStatus" relativePoint="RIGHT" x="4" y="0"/>
+						<Anchor point="RIGHT" relativeKey="$parent.Changed" relativePoint="LEFT" x="-4" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<Texture parentKey="SelectedOverlay" atlas="Professions_Recipe_Active" useAtlasSize="true" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="HighlightOverlay" atlas="Professions_Recipe_Hover" useAtlasSize="true" alpha="0.5">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnDoubleClick method="OnDoubleClick"/>
+		</Scripts>
+	</Button>
 </Ui>

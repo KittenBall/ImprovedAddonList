@@ -443,6 +443,56 @@ function Addon:GetActiveAddonSet()
     end
 end
 
+-- 返回当前的插件集名称
+function Addon:GetActiveAddonSetName()
+    return self.Saved.ActiveAddonSet
+end
+
+-- 设置当前插件集
+function Addon:SetActiveAddonSetName(addonSetName)
+    if addonSetName then
+        local exists = FindValueInTableIf(self:GetAddonSets(), function(addonSet)
+            return addonSet.Name == addonSetName
+        end)
+        if not exists then
+            self:ShowError(L["addon_set_can_not_find"]:format(WrapTextInColor(addonSetName, NORMAL_FONT_COLOR)))
+            return
+        end
+    end
+
+    self.Saved.ActiveAddonSet = addonSetName
+end
+
+-- 应用插件集
+function Addon:ApplyAddonSetAddons(addonSetName)
+    local addonSet = self:GetAddonSetByName(addonSetName)
+    if addonSet then
+        local addonInfos = self:GetAddonInfos()
+        local addonSetAddons = addonSet.Addons
+
+        for _, addonInfo in ipairs(addonInfos) do
+            local addonName = addonInfo.Name
+            if not self:IsAddonManager(addonName) and not self:IsAddonLocked(addonName) then
+                local shouldEnabled = addonSetAddons and addonSetAddons[addonName]
+                if shouldEnabled then
+                    C_AddOns.EnableAddOn(addonName)
+                else
+                    C_AddOns.DisableAddOn(addonName)
+                end
+            end
+        end
+
+        self:UpdateAddonInfos()
+    end
+end
+
+-- 根据名称获取插件集
+function Addon:GetAddonSetByName(name)
+    return FindValueInTableIf(self:GetAddonSets(), function(addonSet)
+        return addonSet.Name == name
+    end)
+end
+
 -- 新建插件集
 function Addon:NewAddonSet(name)
     if type(name) ~= "string" or name == "" then
@@ -474,6 +524,11 @@ function Addon:DeleteAddonSet(name)
         return
     end
 
+    local activeAddonSetName = self:GetActiveAddonSetName()
+    if activeAddonSetName == name then
+        self:SetActiveAddonSetName(nil)
+    end
+
     local addonSets = self:GetAddonSets()
 
     local size = #addonSets
@@ -483,5 +538,25 @@ function Addon:DeleteAddonSet(name)
             table.remove(addonSets, index)
         end
         index = index -1
+    end
+end
+
+-- 设置插件集插件列表
+function Addon:SetAddonSetAddonList(addonSetName, addonList)
+    local addonSet = self:GetAddonSetByName(addonSetName)
+    if not addonSet then
+        return
+    end
+
+    addonSet.Addons = addonSet.Addons or {}
+    local addons = addonSet.Addons
+    wipe(addons)
+
+    if addonList then
+        for addonName, enableStatus in pairs(addonList) do
+            if type(addonName) == "string" and strlen(addonName) > 0 then
+                addons[addonName] = enableStatus
+            end
+        end
     end
 end
