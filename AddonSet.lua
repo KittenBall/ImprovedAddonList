@@ -34,14 +34,20 @@ local function onAddonSetTipButtonEnter(self)
         if enabled then
             local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
             if addonInfo and not addonInfo.Enabled then
-                tinsert(unloadedAddons, addonInfo.Title)
+                tinsert(unloadedAddons, addonInfo)
             end
         end
     end
 
-    table.sort(unloadedAddons)
-    for _, addonTitle in ipairs(unloadedAddons) do
-        GameTooltip:AddLine(addonTitle)
+    table.sort(unloadedAddons, function(a, b) return a.Name < b.Name end)
+    
+    local lockedText = CreateSimpleTextureMarkup("Interface\\AddOns\\ImprovedAddonList\\Media\\lock.png", 14, 14)
+    for _, addonInfo in ipairs(unloadedAddons) do
+        if addonInfo.IsLocked then
+            GameTooltip:AddDoubleLine(addonInfo.Title, lockedText, 1, 1, 1)
+        else
+            GameTooltip:AddLine(addonInfo.Title)
+        end
     end
 
     GameTooltip:Show()
