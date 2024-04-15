@@ -279,7 +279,8 @@ function EditDialogMinxin:Init()
     EditBox:SetPoint("BOTTOMRIGHT", EditBoxLayer, -8, 8)
     self.EditBox = EditBox
 
-    self.EditBox:GetEditBox():HookScript("OnEditFocusGained", function()
+    self.EditBox:GetEditBox():HookScript("OnEditFocusGained", function(editBox)
+        editBox:SetCursorPosition(strlen(editBox:GetText() or ""))
         self.EditBoxLayer:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
     end)
 
@@ -304,14 +305,13 @@ function EditDialogMinxin:Init()
     AcceptButton:SetPoint("LEFT", EditBoxLayer, "CENTER", 6, 0)
     AcceptButton:SetPoint("TOP", EditBoxLayer, "BOTTOM", 0, -15)
     AcceptButton:SetScript("OnClick", function(btn)
-        if self.OnConfirm and self.OnConfirm(self.Extra, self.EditBox:GetInputText()) then
+        if self.OnConfirm and self.OnConfirm(self.EditBox:GetInputText()) then
             self:Hide()
         end
     end)
 
     self:SetScript("OnHide", function(self)
         self.Extra = nil
-        self.OnConfirm = nil
     end)
 end
 
@@ -323,7 +323,6 @@ end
 --     MaxLines = 1, -- 最大行数
 --     Text = "测试", -- 编辑框文本
 --     OnConfirm = function(extra, text) end, -- 确认回调，返回true，则隐藏弹窗
---     Extra = Any 
 -- }
 function EditDialogMinxin:SetupEditInfo(editInfo)
     local height = 15 * 5 + self.AcceptButton:GetHeight()
@@ -343,7 +342,6 @@ function EditDialogMinxin:SetupEditInfo(editInfo)
     self:SetHeight(height)
 
     self.OnConfirm = editInfo.OnConfirm
-    self.Extra = editInfo.Extra
 
     self:Show()
 end

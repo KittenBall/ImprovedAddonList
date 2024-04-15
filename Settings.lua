@@ -1,9 +1,9 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
-local function TriggerSettingsMenuUpdate(event)
-    Addon:TriggerEvent(event)
-    Addon:TriggerEvent("SettingsMenuUpdate", event)
+local function TriggerSettingsMenuUpdate(settingsItem)
+    Addon:TriggerEvent(settingsItem.Event, settingsItem)
+    Addon:TriggerEvent("SettingsMenuUpdate", settingsItem.Event)
 end
 
 -- 创建子弹窗
@@ -74,7 +74,7 @@ function SettingsSingleChoiceItemMixin:OnLoad()
 
     self:SetScript("OnClick", function(self)
         self.SettingsItem:SetValue(self.Choice.Value)
-        TriggerSettingsMenuUpdate(self.SettingsItem.Event)
+        TriggerSettingsMenuUpdate(self.SettingsItem)
     end)
 
     self:SetScript("OnHide", function(self)
@@ -121,8 +121,7 @@ function SettingsSingleChoiceItemMixin:Update()
 
     self.Label:SetText(choice.Text)
     local checked = self.SettingsItem:GetValue() == choice.Value
-    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" ..
-                    (checked and "radio_button_checked.png" or "radio_button.png")
+    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (checked and "radio_button_checked.png" or "radio_button.png")
     self.RadioButton:SetTexture(tex)
 end
 
@@ -178,7 +177,7 @@ function ImprovedAddonListSettingsGroupItemMixin:OnLoad()
                 local item = node:GetData()
                 if item and item.Reset then
                     item:Reset()
-                    TriggerSettingsMenuUpdate(item.Event)
+                    TriggerSettingsMenuUpdate(item)
                 end
             end
         end
@@ -198,6 +197,20 @@ end
 function ImprovedAddonListSettingsGroupItemMixin:Update()
     local data = self:GetElementData():GetData()
     self.Title:SetText(data.Title)
+    
+    local canReset = false
+    local childrenNodes = self:GetElementData():GetNodes()
+    if childrenNodes then
+        for _, node in ipairs(childrenNodes) do
+            local item = node:GetData()
+            if item and item.Reset then
+               canReset = true
+               break 
+            end
+        end
+    end
+
+    self.Reset:SetShown(canReset)
 end
 
 -- 设置项
@@ -257,8 +270,7 @@ end
 ImprovedAddonListSettingsItemSingleChoiceMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
 
 -- 单选项：获得当前值
-function ImprovedAddonListSettingsItemSingleChoiceMixin:OnBind()
-    local item = self:GetElementData():GetData()
+function ImprovedAddonListSettingsItemSingleChoiceMixin:OnBind(item)
     self.Value:SetText(item:Description())
 end
 
@@ -271,8 +283,7 @@ end
 -- 颜色选择器
 ImprovedAddonListSettingsItemColorPickerMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
 
-function ImprovedAddonListSettingsItemColorPickerMixin:OnBind()
-    local item = self:GetElementData():GetData()
+function ImprovedAddonListSettingsItemColorPickerMixin:OnBind(item)
     self.Indicator:SetVertexColor(item:GetColor():GetRGB())
 end
 
@@ -306,13 +317,48 @@ end
 -- 编辑框
 ImprovedAddonListSettingsItemEditBoxMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
 
-function ImprovedAddonListSettingsItemEditBoxMixin:OnBind()
-    local item = self:GetElementData():GetData()
+function ImprovedAddonListSettingsItemEditBoxMixin:OnBind(item)
     self.Value:SetText(item:GetText())
 end
 
 function ImprovedAddonListSettingsItemEditBoxMixin:OnClick()
-    
+    local item = self:GetElementData():GetData()
+    local editInfo = {
+        Title = item.Title,
+        Label = item.Label,
+        Text = item:GetText(),
+        MaxLetters = item.MaxLetters,
+        MaxLines = item.MaxLines,
+        OnConfirm = function(text)
+            if item:SetText(text) then
+                TriggerSettingsMenuUpdate(item)
+                return true
+            end
+        end
+    }
+    Addon:ShowEditDialog(editInfo)
+end
+
+-- Switch
+ImprovedAddonListSettingsItemSwitchMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemSwitchMixin:OnBind(item)
+    local enabled = item:IsEnabled()
+    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (enabled and "switch_on.png" or "switch_off.png")
+    self.Toggle:SetNormalTexture(tex)
+    self.Toggle:SetHighlightTexture(tex)
+    self.Toggle:GetHighlightTexture():SetAlpha(0.2)
+    self.Toggle:SetScript("OnClick", function(btn)
+        self:OnClick()
+    end)
+end
+
+function ImprovedAddonListSettingsItemSwitchMixin:OnClick()
+    local item = self:GetElementData():GetData()
+    local enabled = item:IsEnabled() and true or false
+    if item:SetEnabled(not enabled) then
+        TriggerSettingsMenuUpdate(item)
+    end
 end
 
 -- 设置窗体
@@ -333,6 +379,8 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsItemColorPickerTemplate", Initializer)
     elseif data.Type == "editBox" then
         factory("ImprovedAddonListSettingsItemEditBoxTemplate", Initializer)
+    elseif data.Type == "switch" then
+        factory("ImprovedAddonListSettingsItemSwitchTemplate", Initializer)
     end
 end
 
@@ -372,7 +420,7 @@ end
 
 -- 显示设置信息
 function SettingsFrameMixin:ShowSettings(settingsInfo)
-    self.Title:SetText(settingsInfo.Title or "")
+    self.Title:SetText(settingsInfo.Title)
 
     self.SettingsDataProvider = self.SettingsDataProvider or CreateTreeDataProvider()
     local dataProvider = self.SettingsDataProvider

@@ -465,7 +465,7 @@ local function onAddAddonSetButtonClick(self)
         Label = L["addon_set_new_label"],
         MaxLetters = Addon.ADDON_SET_NAME_MAX_LENGTH,
         MaxLines = 2,
-        OnConfirm = function(_, name)
+        OnConfirm = function(name)
             if Addon:NewAddonSet(name) then
                 Addon:RefreshAddonSetListContainer(name)
                 return true
@@ -713,6 +713,22 @@ local function AddonSetListNodeOnSelectionChanged(_, elementData, selected)
     end
 end
 
+-- 插件集名称变更
+local function onAddonSetNameChanged(self, settingsItem)
+    local oldAddonSetName = settingsItem.Arg1
+    if self:GetCurrentFocusAddonSetName() == oldAddonSetName then
+        self:SetCurrentFocusAddonSetName(settingsItem.Arg2)
+    end
+    self:RefreshAddonSetListContainer(settingsItem.Arg2)
+    self:RefreshAddonSetContainer()
+    self:RefreshAddonSetSettings()
+end
+
+-- 插件集启用状态变更
+local function onAddonSetEnabledChanged(self, settingsItem)
+    self:RefreshAddonSetListContainer(settingsItem.Arg1)
+end
+
 -- 显示插件集弹窗
 function Addon:ShowAddonSetDialog()
     local UI = self:GetOrCreateUI()
@@ -724,7 +740,7 @@ function Addon:ShowAddonSetDialog()
 
     local AddonSetDialog = self:CreateDialog(nil, UI)
     UI.AddonSetDialog = AddonSetDialog
-    AddonSetDialog:SetSize(830, 650)
+    AddonSetDialog:SetSize(790, 650)
     AddonSetDialog:SetPoint("CENTER")
     AddonSetDialog:SetFrameStrata("DIALOG")
     AddonSetDialog:SetTitle(L["addon_set_list"])
@@ -886,11 +902,14 @@ function Addon:ShowAddonSetDialog()
 
     local SettingsFrame = self:CreateSettingsFrame(AddonSetDialog)
     AddonSetDialog.SettingsFrame = SettingsFrame
-    SettingsFrame:SetWidth(300)
+    SettingsFrame:SetWidth(260)
     SettingsFrame:SetPoint("TOPLEFT", AddonListContainer, "TOPRIGHT", 10, 0)
     SettingsFrame:SetPoint("BOTTOMLEFT", AddonListContainer, "BOTTOMRIGHT", 10, 0)
 
     self:RefreshAddonSetListContainer()
+
+    self:RegisterCallback("AddonSetSettings.AddonSetName", onAddonSetNameChanged, self)
+    self:RegisterCallback("AddonSetSettings.AddonSetEnabled", onAddonSetEnabledChanged, self)
 end
 
 function Addon:GetAddonSetListScrollBox()
@@ -970,6 +989,20 @@ function Addon:RefreshAddonSetList()
             addonSetDataProvider:Insert(addonSet)
         end
     end
+
+    local function sortComparator(a, b)
+        if a == nil or b == nil then
+            return false
+        end
+
+        if a.Enabled == b.Enabled then
+            return b.Name < a.Name
+        end
+        
+        return a.Enabled
+    end
+
+    addonSetDataProvider:SetSortComparator(sortComparator)
 
     self:GetAddonSetListScrollBox():SetDataProvider(addonSetDataProvider, ScrollBoxConstants.RetainScrollPosition)
 end

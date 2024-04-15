@@ -152,7 +152,10 @@ L["addon_set_not_full_load_tips"] = "插件集“%s”未完全启用，点击�
 L["addon_set_addon_list"] = "插件列表"
 
 L["addon_set_settings_group_basic"] = "基础信息"
-L["addon_set_settings_name"] = "插件集名称"
+L["addon_set_settings_name"] = "名称"
+L["addon_set_settings_enabled"] = "启用"
+L["addon_set_settings_enabled_tooltip"] = "启用或禁用插件集决定其是否参与载入条件检查"
+L["addon_set_settings_group_load_condition"] = "载入条件"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"

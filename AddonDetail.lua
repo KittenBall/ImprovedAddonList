@@ -223,10 +223,9 @@ local function onRemarkButtonClick(self)
         Text = focusAddonInfo.Remark,
         MaxLetters = Addon.REMARK_MAX_LENGTH,
         MaxLines = 1,
-        Extra = focusAddonInfo.Name,
-        OnConfirm = function(extra, text)
-            if Addon:SetAddonRemark(extra, text) then
-                Addon:RefreshAddonInfo(extra)
+        OnConfirm = function(text)
+            if Addon:SetAddonRemark(focusAddonInfo.Name, text) then
+                Addon:RefreshAddonInfo(focusAddonInfo.Name)
                 return true
             end
         end
