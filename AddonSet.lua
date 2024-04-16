@@ -86,7 +86,7 @@ local function onActiveAddonSetLabelEnter(self)
         return
     end
 
-    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:AddLine(L["addon_set_addon_list"], 1, 1, 1)
     
     local addons = {}
@@ -425,6 +425,17 @@ local function onApplyAddonSetButtonClick(self)
     Addon:ApplyAddonSetAddons(focusAddonSetName)
     Addon:RefreshAddonSetListContainer()
     Addon:RefreshAddonListContainer()
+
+    local alertInfo = {
+        Label = L["addon_set_apply_alert"]:format(WrapTextInColor(focusAddonSetName, NORMAL_FONT_COLOR)),
+        ConfirmText = RELOADUI,
+        CancelText = L["addon_set_apply_later"],
+        OnConfirm = function()
+            ReloadUI()
+            return true
+        end
+    }
+    Addon:ShowAlertDialog(alertInfo)
 end
 
 -- 停止使用插件集：鼠标划入
@@ -559,6 +570,52 @@ local function onSaveAddonSetButtonClick(self)
 
     wipe(changedAddons)
     Addon:SetAddonSetAddonList(focusAddonSet.Name, addonList)
+
+    Addon:UpdateAddonSetAddonItems()
+end
+
+-- 替换按钮：鼠标划入
+local function onReplaceAddonsButtonEnter(self)
+    local focusAddonSetName = Addon:GetCurrentFocusAddonSetName()
+    if not focusAddonSetName then
+        return
+    end
+
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_set_replace_addons_tips"]:format(WrapTextInColor(focusAddonSetName, NORMAL_FONT_COLOR)), 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
+-- 替换按钮：鼠标移出
+local function onReplaceAddonsButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 替换按钮：鼠标点击
+local function onReplaceAddonsButtonClick(self)
+    local focusAddonSet = Addon:GetCurrentFocusAddonSet()
+    if not focusAddonSet then
+        return
+    end
+
+    AddonSetChangedAddons[focusAddonSet.Name] = AddonSetChangedAddons[focusAddonSet.Name] or {}
+    local changedAddons = AddonSetChangedAddons[focusAddonSet.Name]
+    wipe(changedAddons)
+
+    -- 使用已启用插件列表覆盖插件集
+    local addonInfos = Addon:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        local addonName = addonInfo.Name
+        if not Addon:IsAddonManager(addonName) then
+            local enabledStatus = focusAddonSet.Addons and focusAddonSet.Addons[addonName] and true or false
+            local tempEnabledStatus = addonInfo.Enabled
+
+            -- 仅当该插件在插件集内的启用状态和临时启用状态不同时才赋值
+            if enabledStatus ~= tempEnabledStatus then
+                changedAddons[addonName] = tempEnabledStatus
+            end
+        end
+    end
 
     Addon:UpdateAddonSetAddonItems()
 end
@@ -846,11 +903,24 @@ function Addon:ShowAddonSetDialog()
     SaveAddonSetButton:SetScript("OnLeave", onSaveAddonSetButtonLeave)
     SaveAddonSetButton:SetScript("OnClick", onSaveAddonSetButtonClick)
 
+    -- 替换按钮
+    local ReplaceAddonsButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.ReplaceAddonsButton = ReplaceAddonsButton
+    ReplaceAddonsButton:SetSize(16, 16)
+    local replaceAddonsTexure = "Interface\\AddOns\\ImprovedAddonList\\Media\\replace.png"
+    ReplaceAddonsButton:SetNormalTexture(replaceAddonsTexure)
+    ReplaceAddonsButton:SetHighlightTexture(replaceAddonsTexure)
+    ReplaceAddonsButton:GetHighlightTexture():SetAlpha(0.2)
+    ReplaceAddonsButton:SetPoint("RIGHT", SaveAddonSetButton, "LEFT", -4,0)
+    ReplaceAddonsButton:SetScript("OnEnter", onReplaceAddonsButtonEnter)
+    ReplaceAddonsButton:SetScript("OnLeave", onReplaceAddonsButtonLeave)
+    ReplaceAddonsButton:SetScript("OnClick", onReplaceAddonsButtonClick)
+
     -- 启用全部按钮
     local EnableAllButton = CreateFrame("Button", nil, AddonListContainer)
     AddonListContainer.EnableAllButton = EnableAllButton
     EnableAllButton:SetSize(16, 16)
-    EnableAllButton:SetPoint("RIGHT", SaveAddonSetButton, "LEFT", -4,0)
+    EnableAllButton:SetPoint("RIGHT", ReplaceAddonsButton, "LEFT", -4,0)
     EnableAllButton:SetScript("OnEnter", onEnableAllButtonEnter)
     EnableAllButton:SetScript("OnLeave", onEnableAllButtonLeave)
     EnableAllButton:SetScript("OnClick", onEnableAllButtonClick)
