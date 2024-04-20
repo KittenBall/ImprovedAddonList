@@ -3,6 +3,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 -- 创建插件集设置信息
 local function CreateAddonSetSettingsInfo(addonSetName)
+    if not addonSetName then
+        return
+    end
+
     return {
         Groups = {
             {
@@ -63,7 +67,7 @@ end
 function Addon:RefreshAddonSetSettings()
     local settingsFrame = self:GetAddonSetSettingsFrame()
     local focusAddonSetName = self:GetCurrentFocusAddonSetName()
-    if not settingsFrame or not focusAddonSetName then
+    if not settingsFrame then
         return
     end
 

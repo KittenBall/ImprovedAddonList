@@ -293,7 +293,7 @@ function ImprovedAddonListSettingsItemColorPickerMixin:OnClick()
 
     local onColorChanged = function(color)
         item:SetColor(color)
-        TriggerSettingsMenuUpdate(item.Event)
+        TriggerSettingsMenuUpdate(item)
     end
 
     local info = {
@@ -420,17 +420,19 @@ end
 
 -- 显示设置信息
 function SettingsFrameMixin:ShowSettings(settingsInfo)
-    self.Title:SetText(settingsInfo.Title)
+    self.Title:SetText(settingsInfo and settingsInfo.Title or "")
 
     self.SettingsDataProvider = self.SettingsDataProvider or CreateTreeDataProvider()
     local dataProvider = self.SettingsDataProvider
     dataProvider:Flush()
 
-    local rootNode = dataProvider:GetRootNode()
-    for _, groupInfo in ipairs(settingsInfo.Groups) do
-        local categoryNode = rootNode:Insert({ IsGroup = true, Title = groupInfo.Title })
-        for _, settingsItem in ipairs(groupInfo.Items) do
-            categoryNode:Insert(settingsItem)
+    if settingsInfo then
+        local rootNode = dataProvider:GetRootNode()
+        for _, groupInfo in ipairs(settingsInfo.Groups) do
+            local categoryNode = rootNode:Insert({ IsGroup = true, Title = groupInfo.Title })
+            for _, settingsItem in ipairs(groupInfo.Items) do
+                categoryNode:Insert(settingsItem)
+            end
         end
     end
 

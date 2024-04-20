@@ -560,3 +560,22 @@ function Addon:SetAddonSetAddonList(addonSetName, addonList)
         end
     end
 end
+
+-- 合并插件列表到插件集
+function Addon:MergeAddonListToAddonSet(addonSetName, addonList)
+    local addonSet = self:GetAddonSetByName(addonSetName)
+    if not addonSet then
+        return
+    end
+
+    addonSet.Addons = addonSet.Addons or {}
+    local addons = addonSet.Addons
+
+    if addonList then
+        for addonName, enableStatus in pairs(addonList) do
+            if type(addonName) == "string" and strlen(addonName) > 0 then
+                addons[addonName] = enableStatus
+            end
+        end
+    end
+end

@@ -369,8 +369,9 @@ end
 function ImprovedAddonListAddonSetAddonListItemMixin:SyncEnableStatus()
     local addonInfo = self:GetElementData()
     local addonName = addonInfo.Name
+
     local addonSet = Addon:GetCurrentFocusAddonSet()
-    local tempChangedAddons = AddonSetChangedAddons[addonSet.Name]
+    local tempChangedAddons = addonSet and AddonSetChangedAddons[addonSet.Name]
 
     local tempEnableStatus = tempChangedAddons and tempChangedAddons[addonName]
     local enableStatus = addonSet and addonSet.Addons and addonSet.Addons[addonName] and true or false
@@ -515,6 +516,7 @@ local function onDeleteAddonSetButtonClick(self)
             Addon:DeleteAddonSet(addonSetName)
             Addon:RefreshAddonSetListContainer()
             Addon:RefreshAddonSetContainer()
+            Addon:RefreshAddonDetailContainer()
             return true
         end
     }
@@ -572,6 +574,8 @@ local function onSaveAddonSetButtonClick(self)
     Addon:SetAddonSetAddonList(focusAddonSet.Name, addonList)
 
     Addon:UpdateAddonSetAddonItems()
+    Addon:RefreshAddonSetContainer()
+    Addon:RefreshAddonDetailContainer()
 end
 
 -- 替换按钮：鼠标划入
@@ -982,6 +986,10 @@ function Addon:ShowAddonSetDialog()
     self:RegisterCallback("AddonSetSettings.AddonSetEnabled", onAddonSetEnabledChanged, self)
 end
 
+function Addon:GetAddonSetDialog()
+    return self:GetOrCreateUI().AddonSetDialog
+end
+
 function Addon:GetAddonSetListScrollBox()
     return self:GetOrCreateUI().AddonSetDialog.AddonSetListContainer.ScrollBox
 end
@@ -1008,7 +1016,21 @@ function Addon:GetCurrentFocusAddonSet()
 end
 
 function Addon:RefreshAddonSetListContainer(targetAddonSetName)
+    local addonSetDialog = self:GetAddonSetDialog()
+    if not addonSetDialog then
+        return
+    end
+    
     self:RefreshAddonSetList()
+    
+    -- 没有插件集时，刷新框体
+    local addonSets = self:GetAddonSets()
+    if #addonSets <= 0 then
+        self:SetCurrentFocusAddonSetName(nil)
+        self:RefreshAddonSetAddonListContainer()
+        self:RefreshAddonSetSettings()
+        return
+    end
 
     if not targetAddonSetName then
         local activeAddonSetName = self:GetActiveAddonSetName()
@@ -1038,8 +1060,13 @@ end
 
 -- 刷新插件集列表
 function Addon:RefreshAddonSetList()
-    self.AddonSetDataProvider = self.AddonSetDataProvider or CreateDataProvider()
-    local addonSetDataProvider = self.AddonSetDataProvider
+    local addonSetDialog = self:GetAddonSetDialog()
+    if not addonSetDialog then
+        return
+    end
+
+    addonSetDialog.AddonSetDataProvider = addonSetDialog.AddonSetDataProvider or CreateDataProvider()
+    local addonSetDataProvider = addonSetDialog.AddonSetDataProvider
 
     local searchText = self:GetAddonSetListSearchBox():GetText()
     searchText = searchText and strtrim(searchText)
@@ -1109,8 +1136,13 @@ function Addon:UpdateAddonSetAddonItems(addonName)
 end
 
 function Addon:RefreshAddonSetAddonList()
-    self.AddonSetAddonDataProvider = self.AddonSetAddonDataProvider or CreateDataProvider()
-    local addonSetAddonDataProvider = self.AddonSetAddonDataProvider
+    local addonSetDialog = self:GetAddonSetDialog()
+    if not addonSetDialog then
+        return
+    end
+
+    addonSetDialog.AddonSetAddonDataProvider = addonSetDialog.AddonSetAddonDataProvider or CreateDataProvider()
+    local addonSetAddonDataProvider = addonSetDialog.AddonSetAddonDataProvider
 
     local searchText = self:GetAddonSetAddonListSearchBox():GetText()
     searchText = searchText and strtrim(searchText)
@@ -1139,6 +1171,11 @@ function Addon:RefreshAddonSetAddonList()
 end
 
 function Addon:RefreshAddonSetAddonListOptionButtonsStatus()
+    local addonSetDialog = self:GetAddonSetDialog()
+    if not addonSetDialog then
+        return
+    end
+
     local AddonListContainer = self:GetAddonSetAddonListContainer()
     
     -- 更新启用全部按钮

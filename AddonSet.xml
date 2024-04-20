@@ -34,7 +34,7 @@
 		</Scripts>
 	</Button>
 
-	<Button name="mprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate" mixin="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin" virtual="true">
+	<Button name="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate" mixin="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin" virtual="true">
 		<Scripts>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
@@ -45,7 +45,7 @@
 	<Button name="ImprovedAddonListAddonSetAddonListItemTemplate" mixin="ImprovedAddonListAddonSetAddonListItemMixin" virtual="true">
 		<Size y="20"/>
 		<Frames>
-			<Button parentKey="EnableStatus" inherits="mprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate">
+			<Button parentKey="EnableStatus" inherits="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate">
 				<Size x="15" y="15"/>
 				<Anchors>
 					<Anchor point="LEFT" x="4" />

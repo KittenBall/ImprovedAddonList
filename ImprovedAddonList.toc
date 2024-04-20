@@ -4,8 +4,8 @@
 ## Title: ImprovedAddonList
 ## Title-zhCN: 暴雪插件列表增强
 ## IconTexture: Interface\AddOns\ImprovedAddonList\Media\icon.png
-## Notes: Improved Blizzard addon list, you can save different interface loading scenes
-## Notes-zhCN: 增强暴雪的插件列表，你可以保存不同的插件加载方案
+## Notes: Replace Blizzard's addon list, display more addon information, and provide addon set functionality.
+## Notes-zhCN: 替换暴雪的插件列表，展示更多插件信息，并提供插件集功能。
 ## DefaultState: enabled
 ## SavedVariables: ImprovedAddonListSaved
 ## X-Website: https://github.com/GreenhairTurtle/ImprovedAddonList
@@ -26,6 +26,7 @@ UI.lua
 AddonList.xml
 AddonDetail.lua
 AddonSet.xml
+AddonSetChoiceDialog.xml
 Settings.xml
 AddonSettings.lua
 AddonSetSettings.lua

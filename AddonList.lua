@@ -265,6 +265,34 @@ local function onSettingsButtonClick(self)
     Addon:ShowAddonSettings()
 end
 
+-- 覆盖插件集按钮：鼠标划入
+local function onAddonsSetOpButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_set_op_tips"], 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
+-- 覆盖插件集按钮：鼠标移出
+local function onAddonsSetOpButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 覆盖插件集按钮：鼠标点击
+local function onAddonsSetOpButtonClick(self)
+    local addons = {}
+    local addonInfos = Addon:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if addonInfo.Enabled then
+            tinsert(addons, addonInfo.Name)
+        end
+    end
+
+    local choiceInfo = {
+        Addons = addons
+    }
+    Addon:ShowAddonSetChoiceDialog(self, choiceInfo)
+end
+
 -- 启用全部按钮：鼠标划入
 local function onEnableAllButtonEnter(self)
     GameTooltip:SetOwner(self)
@@ -365,11 +393,24 @@ function Addon:OnAddonListContainerLoad()
     SettingsButton:SetScript("OnLeave", onSettingsButtonLeave)
     SettingsButton:SetScript("OnClick", onSettingsButtonClick)
 
+    -- 插件集操作
+    local AddonSetOpButton = CreateFrame("Button", nil, AddonListContainer)
+    AddonListContainer.AddonSetOpButton = AddonSetOpButton
+    local overrideAddonSetButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\addon_set_op.png"
+    AddonSetOpButton:SetSize(16, 16)
+    AddonSetOpButton:SetNormalTexture(overrideAddonSetButtonTexture)
+    AddonSetOpButton:SetHighlightTexture(overrideAddonSetButtonTexture)
+    AddonSetOpButton:GetHighlightTexture():SetAlpha(0.2)
+    AddonSetOpButton:SetPoint("RIGHT", SettingsButton, "LEFT", -4, 0)
+    AddonSetOpButton:SetScript("OnEnter", onAddonsSetOpButtonEnter)
+    AddonSetOpButton:SetScript("OnLeave", onAddonsSetOpButtonLeave)
+    AddonSetOpButton:SetScript("OnClick", onAddonsSetOpButtonClick)
+
     -- 启用全部按钮
     local EnableAllButton = CreateFrame("Button", nil, AddonListContainer)
     AddonListContainer.EnableAllButton = EnableAllButton
     EnableAllButton:SetSize(16, 16)
-    EnableAllButton:SetPoint("RIGHT", SettingsButton, "LEFT", -4, 0)
+    EnableAllButton:SetPoint("RIGHT", AddonSetOpButton, "LEFT", -4, 0)
     EnableAllButton:SetScript("OnEnter", onEnableAllButtonEnter)
     EnableAllButton:SetScript("OnLeave", onEnableAllButtonLeave)
     EnableAllButton:SetScript("OnClick", onEnableAllButtonClick)

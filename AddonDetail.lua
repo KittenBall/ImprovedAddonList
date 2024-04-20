@@ -62,6 +62,16 @@ local ADDON_DETAILS = {
         }
     },
     {
+        Name = "AddonSetInfo",
+        Label = L["addon_set"],
+        Details = {
+            {
+                Name = "InAddonSet",
+                Label = L["addon_detail_in_addon_set"]
+            }
+        }
+    },
+    {
         Name = "DepInfo",
         Label = L["addon_detail_dep_info"],
         Details = {
@@ -114,15 +124,6 @@ function Addon:UpdateAddonDetailFramesPosition()
     addonDetailFrame:SetHeight(usedHeight + 20)
     self:GetAddonDetailScrollBox():FullUpdate();
     self:GetAddonDetailScrollBox():ScrollToBegin(ScrollBoxConstants.NoScrollInterpolation)
-end
-
-
-local function CreateDetailButton(container)
-    local button = CreateFrame("Button", nil, container)
-    button:SetNormalFontObject(ImprovedAddonListButtonNormalFont)
-    button:SetHighlightFontObject(ImprovedAddonListButtonHighlightFont)
-    button:SetDisabledFontObject(ImprovedAddonListButtonDisabledFont)
-    return button
 end
 
 local function onLoadButtonEnter(self)
@@ -234,6 +235,26 @@ local function onRemarkButtonClick(self)
     Addon:ShowEditDialog(editInfo)
 end
 
+-- 插件集操作按钮：鼠标划入
+local function onAddonSetOpButtonEnter(self)
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_detail_addon_set_op_tips"], 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
+-- 插件集操作按钮：鼠标移出
+local function onAddonSetOpButtonLeave(self)
+    GameTooltip:Hide()
+end
+
+-- 插件集操作按钮：鼠标点击
+local function onAddonSetOpButtonClick(self)
+    local choiceInfo = {
+        Addons = { Addon:CurrentFocusAddonName() }
+    }
+    Addon:ShowAddonSetChoiceDialog(self, choiceInfo)
+end
+
 function Addon:OnAddonDetailContainerLoad()
     local AddonDetailContainer = self:GetAddonDetailContainer()
     -- 滚动框
@@ -275,7 +296,7 @@ function Addon:OnAddonDetailContainerLoad()
     end
 
     -- 收藏按钮
-    local favoriteButton = CreateDetailButton(AddonDetailFrame)
+    local favoriteButton = CreateFrame("Button", nil, AddonDetailFrame)
     AddonDetailContainer.FavoriteButton = favoriteButton
     favoriteButton:SetScript("OnEnter", onFavoriteButtonEnter)
     favoriteButton:SetScript("OnLeave", onFavoriteButtonLeave)
@@ -284,7 +305,7 @@ function Addon:OnAddonDetailContainerLoad()
     favoriteButton:SetPoint("TOPRIGHT", -10, -10)
 
     -- 锁定按钮
-    local lockButton = CreateDetailButton(AddonDetailFrame)
+    local lockButton = CreateFrame("Button", nil, AddonDetailFrame)
     AddonDetailContainer.LockButton = lockButton
     lockButton:SetScript("OnEnter", onLockButtonEnter)
     lockButton:SetScript("OnLeave", onLockButtonLeave)
@@ -293,7 +314,7 @@ function Addon:OnAddonDetailContainerLoad()
     lockButton:SetPoint("RIGHT", favoriteButton, "LEFT", -4, 0)
 
     -- 备注按钮
-    local remarkButton = CreateDetailButton(AddonDetailFrame)
+    local remarkButton = CreateFrame("Button", nil, AddonDetailFrame)
     AddonDetailContainer.RemarkButton = remarkButton
     remarkButton:SetScript("OnEnter", onRemarkButtonEnter)
     remarkButton:SetScript("OnLeave", onRemarkButtonLeave)
@@ -303,10 +324,25 @@ function Addon:OnAddonDetailContainerLoad()
     remarkButton:GetHighlightTexture():SetAlpha(0.2)
     remarkButton:SetSize(16, 16)
     remarkButton:SetPoint("RIGHT", lockButton, "LEFT", -4, 0)
+
+    -- 插件集操作按钮
+    local addonSetOpButton = CreateFrame("Button", nil, AddonDetailFrame)
+    AddonDetailContainer.AddonSetOpButton = addonSetOpButton
+    addonSetOpButton:SetScript("OnEnter", onAddonSetOpButtonEnter)
+    addonSetOpButton:SetScript("OnLeave", onAddonSetOpButtonLeave)
+    addonSetOpButton:SetScript("OnClick", onAddonSetOpButtonClick)
+    addonSetOpButton:SetNormalTexture("Interface\\Addons\\ImprovedAddonList\\Media\\addon_set_op.png")
+    addonSetOpButton:SetHighlightTexture("Interface\\Addons\\ImprovedAddonList\\Media\\addon_set_op.png")
+    addonSetOpButton:GetHighlightTexture():SetAlpha(0.2)
+    addonSetOpButton:SetSize(16, 16)
+    addonSetOpButton:SetPoint("RIGHT", remarkButton, "LEFT", -4, 0)
     
     -- 加载按钮
-    local loadButton = CreateDetailButton(AddonDetailContainer)
+    local loadButton = CreateFrame("Button", nil, AddonDetailFrame)
     AddonDetailContainer.LoadButton = loadButton
+    loadButton:SetNormalFontObject(ImprovedAddonListButtonNormalFont)
+    loadButton:SetHighlightFontObject(ImprovedAddonListButtonHighlightFont)
+    loadButton:SetDisabledFontObject(ImprovedAddonListButtonDisabledFont)
     loadButton:SetScript("OnEnter", onLoadButtonEnter)
     loadButton:SetScript("OnLeave", onLoadButtonLeave)
     loadButton:SetScript("OnClick", OnLoadButtonClick)
@@ -370,6 +406,27 @@ local function getAddonDeps(deps)
     end
 end
 
+local function getAddonInAddonSets(addonName)
+    if Addon:IsAddonManager(addonName) then
+        return L["addon_detail_does_not_in_addon_set"]
+    end
+
+    local addonSets = Addon:GetAddonSets()
+
+    local inAddonSets = {}
+    for _, addonSet in ipairs(addonSets) do
+        if addonSet.Addons and addonSet.Addons[addonName] then
+            tinsert(inAddonSets, addonSet.Name)
+        end
+    end
+
+    if #inAddonSets > 0 then
+        return table.concat(inAddonSets, "\n")
+    else
+        return L["addon_detail_does_not_in_addon_set"]
+    end
+end
+
 -- 同步收藏按钮状态
 local function syncFavoriteButtonStatus(button, isFavorite)
     local tex = "Interface\\Addons\\ImprovedAddonList\\Media\\" .. (isFavorite and "favorite" or "unfavorite")
@@ -429,6 +486,8 @@ function Addon:ShowAddonDetail(addonName)
     addonDetailFrame.EnableStatus:SetText(addonInfo.Enabled and L["addon_detail_enabled"] or L["addon_detail_disabled"])
     addonDetailFrame.EnableStatus:SetTextColor(getStatusColor(addonInfo.Enabled):GetRGB())
 
+    addonDetailFrame.InAddonSet:SetText(getAddonInAddonSets(addonInfo.Name))
+
     UpdateAddOnMemoryUsage()
     addonDetailFrame.MemoryUsage:SetText(formatMemUsage(GetAddOnMemoryUsage(addonInfo.Index)))
 
@@ -436,6 +495,7 @@ function Addon:ShowAddonDetail(addonName)
     
     local AddonDetailContainer = self:GetAddonDetailContainer()
     
+    AddonDetailContainer.AddonSetOpButton:SetShown(not self:IsAddonManager(addonInfo.Name))
     -- 加载按钮
     AddonDetailContainer.LoadButton:SetShown(self:CanAddonLoadOnDemand(addonInfo.Name))
     -- 收藏按钮
