@@ -34,26 +34,16 @@
 		</Scripts>
 	</Button>
 
-	<Button name="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate" mixin="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin" virtual="true">
-		<Scripts>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-			<OnClick method="OnClick"/>
-		</Scripts>
-	</Button>
-
 	<Button name="ImprovedAddonListAddonSetAddonListItemTemplate" mixin="ImprovedAddonListAddonSetAddonListItemMixin" virtual="true">
 		<Size y="20"/>
-		<Frames>
-			<Button parentKey="EnableStatus" inherits="ImprovedAddonListAddonSetAddonListItemEnableStatusButtonTemplate">
-				<Size x="15" y="15"/>
-				<Anchors>
-					<Anchor point="LEFT" x="4" />
-				</Anchors>
-			</Button>
-		</Frames>
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="EnableStatus">
+					<Size x="15" y="15"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="0"/>
+					</Anchors>
+				</Texture>
 				<Texture parentKey="Changed" file="Interface\Addons\ImprovedAddonList\Media\unsave.png" hidden="true">
 					<Size x="12" y="12"/>
                     <Anchors>
@@ -84,7 +74,9 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnDoubleClick method="OnDoubleClick"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
 		</Scripts>
 	</Button>
 </Ui>

@@ -306,6 +306,7 @@ end
 
 function AddonSetChoiceDialogMixin:SetupChoiceInfo(owner, choiceInfo)
     self.ChoiceInfo = choiceInfo
+    self.SearchBox:SetText("")
     self:RefreshAddonSetList()
     self:UpdateButtonStatus()
 

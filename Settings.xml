@@ -32,7 +32,7 @@
     </Button>
 
     <Button name="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemMixin" virtual="true">
-		<Layers>
+        <Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
 				<FontString parentKey="Title" inherits="ImprovedAddonListLabelFont" justifyH="LEFT" wordwrap="false"/>
                 <FontString parentKey="SubTitle" inherits="ImprovedAddonListBodyFont" justifyH="LEFT" wordwrap="false"/>
@@ -119,8 +119,55 @@
                 <Anchors>
                     <Anchor point="RIGHT" x="-8" y="0"/>
                 </Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnClick()
+                    </OnClick>
+                </Scripts>
             </Button>
         </Frames>
+    </Button>
+
+    <Button name="ImprovedAddonListSettingsItemDynamicEditBoxTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemDynamicEditBoxMixin" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <Texture parentKey="Add" file="Interface\Addons\ImprovedAddonList\Media\add.png">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="0"/>
+                    </Anchors>
+                </Texture>
+			</Layer>
+        </Layers>
+        <Scripts>
+            <OnClick method="OnClick"/>
+        </Scripts>
+    </Button>
+
+    <Button name="ImprovedAddonListSettingsItemDynamicEditBoxItemTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemDynamicEditBoxItemMixin" virtual="true">
+        <Frames>
+            <Button parentKey="Delete">
+                <Size x="16" y="16"/>
+                <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\delete.png"/>
+                <Anchors>
+                    <Anchor point = "RIGHT" x="-5" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnDelete()
+                    </OnClick>
+                    <OnEnter>
+                        self:GetParent():OnDeleteEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        self:GetParent():OnDeleteLeave()
+                    </OnLeave>
+                </Scripts>
+            </Button>
+        </Frames>
+        <Scripts>
+			<OnLoad inherit="append" method="OnAppendLoad"/>
+        </Scripts>
     </Button>
 
 </Ui>

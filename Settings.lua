@@ -2,8 +2,10 @@ local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 local function TriggerSettingsMenuUpdate(settingsItem)
-    Addon:TriggerEvent(settingsItem.Event, settingsItem)
-    Addon:TriggerEvent("SettingsMenuUpdate", settingsItem.Event)
+    if settingsItem and settingsItem.Event then
+        Addon:TriggerEvent(settingsItem.Event, settingsItem)
+        Addon:TriggerEvent("SettingsMenuUpdate", settingsItem.Event)
+    end
 end
 
 -- 创建子弹窗
@@ -95,13 +97,13 @@ function SettingsSingleChoiceItemMixin:OnLoad()
         GameTooltip:Hide()
     end)
 
-    local function onSettingsMenuUpdate(self, event)
-        if self.SettingsItem and self.SettingsItem.Event == event then
-            self:Update()
-        end
-    end
+    Addon:RegisterCallback("SettingsMenuUpdate", self.OnSettingsMenuUpdate, self)
+end
 
-    Addon:RegisterCallback("SettingsMenuUpdate", onSettingsMenuUpdate, self)
+function SettingsSingleChoiceItemMixin:OnSettingsMenuUpdate(event)
+    if self.SettingsItem and self.SettingsItem.Event == event then
+        self:Update()
+    end
 end
 
 -- 设置单选项
@@ -348,9 +350,6 @@ function ImprovedAddonListSettingsItemSwitchMixin:OnBind(item)
     self.Toggle:SetNormalTexture(tex)
     self.Toggle:SetHighlightTexture(tex)
     self.Toggle:GetHighlightTexture():SetAlpha(0.2)
-    self.Toggle:SetScript("OnClick", function(btn)
-        self:OnClick()
-    end)
 end
 
 function ImprovedAddonListSettingsItemSwitchMixin:OnClick()
@@ -359,6 +358,64 @@ function ImprovedAddonListSettingsItemSwitchMixin:OnClick()
     if item:SetEnabled(not enabled) then
         TriggerSettingsMenuUpdate(item)
     end
+end
+
+-- 动态编辑框
+ImprovedAddonListSettingsItemDynamicEditBoxMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemDynamicEditBoxMixin:OnBind(item)
+    
+end
+
+function ImprovedAddonListSettingsItemDynamicEditBoxMixin:OnClick()
+    local node = self:GetElementData()
+    local item = node:GetData()
+    local editInfo = {
+        Title = item.Title,
+        Label = item.Label,
+        MaxLetters = item.MaxLetters,
+        MaxLines = item.MaxLines,
+        OnConfirm = function(text)
+            if item.AddItem then
+                local item = item:AddItem(text)
+                if item then
+                    node:Insert(item)
+                    return true
+                end
+            end
+        end
+    }
+    Addon:ShowEditDialog(editInfo)
+end
+
+-- 动态编辑框-子项
+ImprovedAddonListSettingsItemDynamicEditBoxItemMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnAppendLoad()
+    self.Title:SetTextColor(WHITE_FONT_COLOR:GetRGB())
+end
+
+function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnBind(item)
+end
+
+function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnDelete()
+    local node = self:GetElementData()
+    local item = node:GetData()
+    local parentNode = node:GetParent()
+    local parentItem = parentNode:GetData()
+    if parentItem.RemoveItem and parentItem:RemoveItem(item.Value) then
+        parentNode:Remove(node)
+    end
+end
+
+function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnDeleteEnter()
+    GameTooltip:SetOwner(self.Delete)
+    GameTooltip:AddLine(L["settings_dynamic_edit_box_delete_tips"], 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnDeleteLeave()
+    GameTooltip:Hide()
 end
 
 -- 设置窗体
@@ -381,6 +438,10 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsItemEditBoxTemplate", Initializer)
     elseif data.Type == "switch" then
         factory("ImprovedAddonListSettingsItemSwitchTemplate", Initializer)
+    elseif data.Type == "dynamicEditBox" then
+        factory("ImprovedAddonListSettingsItemDynamicEditBoxTemplate", Initializer)
+    elseif data.Type == "dynamicEditBoxItem" then
+        factory("ImprovedAddonListSettingsItemDynamicEditBoxItemTemplate", Initializer)
     end
 end
 
@@ -431,7 +492,14 @@ function SettingsFrameMixin:ShowSettings(settingsInfo)
         for _, groupInfo in ipairs(settingsInfo.Groups) do
             local categoryNode = rootNode:Insert({ IsGroup = true, Title = groupInfo.Title })
             for _, settingsItem in ipairs(groupInfo.Items) do
-                categoryNode:Insert(settingsItem)
+                local subNode = categoryNode:Insert(settingsItem)
+                
+                local subItems = settingsItem.Items or (settingsItem.GetItems and settingsItem:GetItems())
+                if subItems then
+                    for _, subSettingsItem in ipairs(subItems) do
+                        subNode:Insert(subSettingsItem)
+                    end
+                end
             end
         end
     end

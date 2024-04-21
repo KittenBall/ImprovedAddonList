@@ -237,40 +237,6 @@ end
 -- value:Table:{ key = addonName, value = [true, false, nil] }
 local AddonSetChangedAddons = {}
 
-ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin = {}
-
-function ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin:OnEnter()
-    GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(L["addon_set_addon_switch"], 1, 1, 1)
-    GameTooltip:Show()
-end
-
-function ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin:OnLeave()
-    GameTooltip:Hide()
-end
-
-function ImprovedAddonListAddonSetAddonListItemEnableStatusButtonMixin:OnClick()
-    local addonInfo = self:GetParent():GetElementData()
-    local focusAddonSet = Addon:GetCurrentFocusAddonSet()
-
-    if not focusAddonSet then
-        return
-    end
-
-    local addonName = addonInfo.Name
-    local enableStatus = focusAddonSet.Addons and focusAddonSet.Addons[addonName] and true or false
-    AddonSetChangedAddons[focusAddonSet.Name] = AddonSetChangedAddons[focusAddonSet.Name] or {}
-    local changedAddons = AddonSetChangedAddons[focusAddonSet.Name]
-    
-    if changedAddons[addonName] ~= nil then
-        changedAddons[addonName] = nil
-    else
-        changedAddons[addonName] = not enableStatus
-    end
-
-    Addon:UpdateAddonSetAddonItems(addonName)
-end
-
 -- 当前插件集是否已启用全部插件
 local function IsAllAddonEnabledInCurrentFocusAddonSet()
     local currentAddonSet = Addon:GetCurrentFocusAddonSet()
@@ -383,14 +349,40 @@ function ImprovedAddonListAddonSetAddonListItemMixin:SyncEnableStatus()
     
     local enableStatusTex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (enabled and "enabled.png" or "enable_status_border.png")
     
-    self.EnableStatus:SetNormalTexture(enableStatusTex)
-    self.EnableStatus:SetHighlightTexture(enableStatusTex, "ADD")
-    self.EnableStatus:GetHighlightTexture():SetAlpha(0.2)
+    self.EnableStatus:SetTexture(enableStatusTex)
     self.Changed:SetShown(tempEnableStatus ~= nil and tempEnableStatus ~= enableStatus)
 end
 
-function ImprovedAddonListAddonSetAddonListItemMixin:OnDoubleClick()
-    self.EnableStatus:Click()
+function ImprovedAddonListAddonSetAddonListItemMixin:OnEnter()
+    GameTooltip:SetOwner(self)
+    GameTooltip:AddLine(L["addon_set_addon_switch"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListAddonSetAddonListItemMixin:OnLeave()
+    GameTooltip:Hide()
+end
+
+function ImprovedAddonListAddonSetAddonListItemMixin:OnClick()
+    local addonInfo = self:GetElementData()
+    local focusAddonSet = Addon:GetCurrentFocusAddonSet()
+
+    if not focusAddonSet then
+        return
+    end
+
+    local addonName = addonInfo.Name
+    local enableStatus = focusAddonSet.Addons and focusAddonSet.Addons[addonName] and true or false
+    AddonSetChangedAddons[focusAddonSet.Name] = AddonSetChangedAddons[focusAddonSet.Name] or {}
+    local changedAddons = AddonSetChangedAddons[focusAddonSet.Name]
+    
+    if changedAddons[addonName] ~= nil then
+        changedAddons[addonName] = nil
+    else
+        changedAddons[addonName] = not enableStatus
+    end
+
+    Addon:UpdateAddonSetAddonItems(addonName)
 end
 
 -- 应用插件集：鼠标划入

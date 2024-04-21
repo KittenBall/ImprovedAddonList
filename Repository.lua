@@ -84,11 +84,12 @@ function Addon:SetAddonRemark(name, remark)
         return
     end
 
+    remark = strtrim(remark)
+    
     if remark == nil or remark == "" then
         self.Saved.AddonRemarks[name] = nil
         return true
     else
-        remark = strtrim(remark)
         local addonInfos = self:GetAddonInfos()
         for _, addonInfo in ipairs(addonInfos) do
             if addonInfo.Name ~= name then
@@ -495,7 +496,13 @@ end
 
 -- 新建插件集
 function Addon:NewAddonSet(name)
-    if type(name) ~= "string" or name == "" then
+    if type(name) ~= "string" then
+        return
+    end
+
+    name = strtrim(name)
+    
+    if name == "" then
         return
     end
     

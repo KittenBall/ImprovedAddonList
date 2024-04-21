@@ -282,7 +282,7 @@ local function onAddonsSetOpButtonClick(self)
     local addons = {}
     local addonInfos = Addon:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if addonInfo.Enabled then
+        if not Addon:IsAddonManager(addonInfo.Name) and addonInfo.Enabled then
             tinsert(addons, addonInfo.Name)
         end
     end

@@ -1,6 +1,25 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
+    local playerNams = Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    if not playerNams then
+        return 
+    end
+
+    local settings = {}
+    for _, playerName in ipairs(playerNams) do
+        local setting = {
+            Title = playerName,
+            Value = playerName,
+            Type = "dynamicEditBoxItem",
+        }
+        tinsert(settings, setting)
+    end
+
+    return settings
+end
+
 -- 创建插件集设置信息
 local function CreateAddonSetSettingsInfo(addonSetName)
     if not addonSetName then
@@ -52,7 +71,28 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                 -- 载入条件
                 Title = L["addon_set_settings_group_load_condition"],
                 Items = {
-                    
+                    -- 玩家名称/服务器
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_name_and_realm"],
+                        Event = "AddonSetSettings.Conditions.NameAndRealm",
+                        Tooltip = L["addon_set_settings_condition_name_and_realm_tips"],
+                        Label = L["addon_set_settings_condition_name_and_realm_tips"],
+                        Type = "dynamicEditBox",
+                        MaxLines = 2,
+                        MaxLetters = 60,
+                        GetItems = function(self)
+                            return GetAddonSetPlayerNameConditionsSettingsInfo(self.Arg1)
+                        end,
+                        AddItem = function(self, playerName)
+                            if Addon:AddPlayerNameConditionToAddonSet(self.Arg1, playerName) then
+                                return { Title = playerName, Value = playerName, Type = "dynamicEditBoxItem" }
+                            end
+                        end,
+                        RemoveItem = function(self, playerName)
+                            return Addon:RemovePlayerNameConditionFromAddonSet(self.Arg1, playerName)
+                        end
+                    }
                 }
             }
         }
@@ -135,4 +175,73 @@ function Addon:SetAddonSetEnabled(addonSetName, enabled)
     addonSet.Enabled = enabled
 
     return true
+end
+
+-- 根据插件集名称获取插件集加载条件
+function Addon:GetAddonSetConditionsByName(addonSetName)
+    local addonSet = self:GetAddonSetByName(addonSetName)
+    if not addonSet then
+        return
+    end
+    
+    addonSet.Conditions = addonSet.Conditions or {}
+    
+    return addonSet.Conditions
+end
+
+-- 根据插件集名称获取插件集角色名加载条件
+function Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.PlayerNames = conditions.PlayerNames or {}
+
+    return conditions.PlayerNames
+end
+
+-- 添加插件集条件：玩家名称
+function Addon:AddPlayerNameConditionToAddonSet(addonSetName, playerName)
+    if not playerName or type(playerName) ~= "string" then
+        return
+    end
+
+    local playerNames = self:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    if not playerNames then
+        return
+    end
+
+    playerName = strtrim(playerName)
+
+    if playerName == "" then
+        return
+    end
+
+    if strsub(playerName, -1) == "-" then
+        self:ShowError(L["addon_set_settings_condition_name_and_realm_error_ends_with_dash"]:format(WrapTextInColor(playerName, NORMAL_FONT_COLOR)))
+        return
+    end
+
+    if tContains(playerNames, playerName) then
+        self:ShowError(L["addon_set_settings_condition_name_and_realm_error_duplicate"]:format(WrapTextInColor(playerName, NORMAL_FONT_COLOR)))
+        return
+    end
+
+    tinsert(playerNames, playerName)
+    return true
+end
+
+-- 移除插件集条件：玩家名称
+function Addon:RemovePlayerNameConditionFromAddonSet(addonSetName, playerName)
+    if not playerName or type(playerName) ~= "string" then
+        return
+    end
+
+    local playerNames = self:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    if not playerNames then
+        return
+    end
+
+    return tDeleteItem(playerNames, playerName)
 end
