@@ -1,6 +1,25 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+local function PlayerNamePatternToSettingsItem(playerNamePattern)
+    local playerName = playerNamePattern.PlayerName
+    if not playerName or playerName == "" then
+        playerName = L["addon_set_settings_condition_name_and_realm"]
+    end
+    
+    local server = playerNamePattern.Server
+    if not server or server == "" then
+        server = L["addon_set_settings_condition_name_and_realm"]
+    end
+    
+    return {
+        Title = playerNamePattern.Pattern,
+        Value = playerNamePattern.Pattern,
+        Type = "dynamicEditBoxItem",
+        Tooltip = L["addon_set_settings_condition_name_and_realm_tooltip"]:format(playerName, ser)
+    }
+end
+
 local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
     local playerNams = Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
     if not playerNams then
@@ -8,13 +27,8 @@ local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
     end
 
     local settings = {}
-    for _, playerName in ipairs(playerNams) do
-        local setting = {
-            Title = playerName,
-            Value = playerName,
-            Type = "dynamicEditBoxItem",
-        }
-        tinsert(settings, setting)
+    for _, playerNamePattern in ipairs(playerNams) do
+        tinsert(settings, PlayerNamePatternToSettingsItem(playerNamePattern))
     end
 
     return settings
@@ -85,13 +99,94 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                             return GetAddonSetPlayerNameConditionsSettingsInfo(self.Arg1)
                         end,
                         AddItem = function(self, playerName)
-                            if Addon:AddPlayerNameConditionToAddonSet(self.Arg1, playerName) then
-                                return { Title = playerName, Value = playerName, Type = "dynamicEditBoxItem" }
+                            local playerNamePattern = Addon:AddPlayerNameConditionToAddonSet(self.Arg1, playerName)
+                            if playerNamePattern then
+                                return PlayerNamePatternToSettingsItem(playerNamePattern)
                             end
                         end,
                         RemoveItem = function(self, playerName)
                             return Addon:RemovePlayerNameConditionFromAddonSet(self.Arg1, playerName)
                         end
+                    },
+                    -- 战争模式
+                    {
+                        Arg1= addonSetName,
+                        Title = L["addon_set_settings_condition_warmode"],
+                        Event = "AddonSetSettings.Conditions.WarMode",
+                        Type = "singleChoice",
+                        Tooltip = L["addon_set_settings_condition_warmode_tips"],
+                        Description = function(self)
+                            local warMode = self:GetValue()
+                            if warMode == nil then
+                                return L["addon_set_settings_condition_warmode_none"]
+                            elseif warMode == true then
+                                return L["addon_set_settings_condition_warmode_enabled"]
+                            else
+                                return L["addon_set_settings_condition_warmode_disabled"]
+                            end
+                        end,
+                        GetValue = function(self)
+                            return Addon:GetAddonSetWarModeConditionByName(self.Arg1)
+                        end,
+                        SetValue = function(self, warMode)
+                            Addon:SetWarModeConditionToAddonSet(self.Arg1, warMode)
+                        end,
+                        Choices = {
+                            {
+                                Text = L["addon_set_settings_condition_warmode_choice_none"],
+                                Value = nil
+                            },
+                            {
+                                Text = L["addon_set_settings_condition_warmode_choice_enabled"],
+                                Value = true
+                            },
+                            {
+                                Text = L["addon_set_settings_condition_warmode_choice_disabled"],
+                                Value = false
+                            }
+                        }
+                    },
+                    -- 阵营
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_faction"],
+                        Event = "AddonSetSettings.Conditions.Faction",
+                        Type = "singleChoice",
+                        Tooltip = L["addon_set_settings_condition_faction_tips"],
+                        Description = function(self)
+                            local faction = self:GetValue()
+                            local factionLabel = FACTION_LABELS_FROM_STRING[faction]
+                            if not factionLabel then
+                                factionLabel = L["addon_set_settings_condition_faction_none"]
+                            else
+                                local factionGroup = PLAYER_FACTION_GROUP[faction]
+                                if factionGroup then
+                                    factionLabel = WrapTextInColor(factionLabel, PLAYER_FACTION_COLORS[factionGroup])
+                                    factionLabel = CreateSimpleTextureMarkup(FACTION_LOGO_TEXTURES[factionGroup], 14, 14) .. " " .. factionLabel
+                                end
+                            end
+                            return factionLabel
+                        end,
+                        GetValue = function(self)
+                            return Addon:GetAddonSetFactionConditionByName(self.Arg1)
+                        end,
+                        SetValue = function(self, faction)
+                            Addon:SetFactionConditionToAddonSet(self.Arg1, faction)
+                        end,
+                        Choices = {
+                            {
+                                Text = L["addon_set_settings_condition_faction_choice_none"],
+                                Value = nil
+                            },
+                            {
+                                Text = FACTION_LABELS[0],
+                                Value = PLAYER_FACTION_GROUP[0]
+                            },
+                            {
+                                Text = FACTION_LABELS[1],
+                                Value = PLAYER_FACTION_GROUP[1]
+                            }
+                        }
                     }
                 }
             }
@@ -218,18 +313,47 @@ function Addon:AddPlayerNameConditionToAddonSet(addonSetName, playerName)
         return
     end
 
-    if strsub(playerName, -1) == "-" then
-        self:ShowError(L["addon_set_settings_condition_name_and_realm_error_ends_with_dash"]:format(WrapTextInColor(playerName, NORMAL_FONT_COLOR)))
-        return
-    end
-
-    if tContains(playerNames, playerName) then
+    if FindValueInTableIf(playerNames, function(item) return item.Pattern == playerName end) then
         self:ShowError(L["addon_set_settings_condition_name_and_realm_error_duplicate"]:format(WrapTextInColor(playerName, NORMAL_FONT_COLOR)))
         return
     end
 
-    tinsert(playerNames, playerName)
-    return true
+    local playerNameLen, preByte, dashIndex = playerName:len(), nil, 0
+    for index, byte in ipairs({strbyte(playerName, 1, playerNameLen)}) do
+        -- 92:\ 45:-
+        if byte == 45 and preByte ~= 92 then
+            if dashIndex > 0 then
+                self:ShowError(L["addon_set_settings_condition_name_and_realm_error_too_much_dash"]:format(WrapTextInColor(playerName, NORMAL_FONT_COLOR)))
+                return
+            end
+            dashIndex = index
+        end
+
+        preByte = byte
+    end
+
+    local name, server
+    if dashIndex > 0 then
+        name = strsub(playerName, 1, dashIndex - 1)
+        server = strsub(playerName, dashIndex + 1, playerNameLen)
+    else
+        name = playerName
+    end
+
+    name = name and name:gsub("\\%-", "-") or ""
+    name = strtrim(name)
+    server = server and server:gsub("\\%-", "-") or ""
+    server = strtrim(server)
+
+    if name == "" and server == "" then
+        self:ShowError(L["addon_set_settings_condition_name_and_realm_error_empty"])
+        return
+    end
+
+    local playerNamePattern = { Pattern = playerName, PlayerName = name, Server = server }
+    tinsert(playerNames, playerNamePattern)
+
+    return playerNamePattern
 end
 
 -- 移除插件集条件：玩家名称
@@ -243,5 +367,61 @@ function Addon:RemovePlayerNameConditionFromAddonSet(addonSetName, playerName)
         return
     end
 
-    return tDeleteItem(playerNames, playerName)
+    local size = #playerNames;
+	local index = size;
+	while index > 0 do
+        local item = playerNames[index] do
+            if item and item.Pattern == playerName then
+                table.remove(playerNames, index)
+            else
+                table.remove(playerNames, index)
+            end
+        end
+		index = index - 1;
+	end
+    return size - #playerNames
+end
+
+-- 根据插件集名称获取插件集战争模式加载条件
+function Addon:GetAddonSetWarModeConditionByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    return conditions.WarMode
+end
+
+-- 设置插件集战争模式加载条件
+-- @param warMode: true:在战争模式下加载 false：非战争模式下加载 nil：无所谓
+function Addon:SetWarModeConditionToAddonSet(addonSetName, warMode)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.WarMode = warMode
+    return true
+end
+
+-- 根据插件集名称获取插件集阵营加载条件
+function Addon:GetAddonSetFactionConditionByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    return conditions.Faction
+end
+
+-- 设置插件集阵营加载条件
+-- @param faction: 阵营
+function Addon:SetFactionConditionToAddonSet(addonSetName, faction)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.Faction = faction
+    return true
 end

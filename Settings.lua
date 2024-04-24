@@ -23,15 +23,10 @@ function Addon:GetOrCreateSettingsDialog(type)
     self.SettingsDialogs[type] = dialog
 
     dialog:SetFrameStrata("DIALOG")
+    dialog:SetFrameLevel(1000)
     dialog:SetPoint("CENTER")
     dialog:SetMouseMotionEnabled(true)
     dialog:SetMouseClickEnabled(true)
-
-    dialog:SetScript("OnKeyDown", function(self, key)
-        if key == "ESCAPE" then
-            self:Hide()
-        end
-    end)
 
     -- 框体外点击消失
     dialog:SetScript("OnShow", function(self)
@@ -393,6 +388,7 @@ ImprovedAddonListSettingsItemDynamicEditBoxItemMixin = CreateFromMixins(Improved
 
 function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnAppendLoad()
     self.Title:SetTextColor(WHITE_FONT_COLOR:GetRGB())
+    self.SubTitle:SetFontObject(GameFontDisableTiny)
 end
 
 function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnBind(item)
