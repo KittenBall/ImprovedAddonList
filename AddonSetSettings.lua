@@ -1,22 +1,29 @@
 local addonName, Addon = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
+-- 玩家名称/服务器
 local function PlayerNamePatternToSettingsItem(playerNamePattern)
     local playerName = playerNamePattern.PlayerName
     if not playerName or playerName == "" then
-        playerName = L["addon_set_settings_condition_name_and_realm"]
+        playerName = L["addon_set_settings_condition_name_and_realm_any"]
     end
     
     local server = playerNamePattern.Server
     if not server or server == "" then
-        server = L["addon_set_settings_condition_name_and_realm"]
+        server = L["addon_set_settings_condition_name_and_realm_any"]
     end
     
     return {
         Title = playerNamePattern.Pattern,
         Value = playerNamePattern.Pattern,
         Type = "dynamicEditBoxItem",
-        Tooltip = L["addon_set_settings_condition_name_and_realm_tooltip"]:format(playerName, ser)
+        OnEnter = function(self, frame)
+            GameTooltip:SetOwner(frame)
+            GameTooltip:AddLine(L["addon_set_settings_condition_name_and_realm"], 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["addon_set_settings_condition_name_and_realm_name_tooltip"], playerName, nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["addon_set_settings_condition_name_and_realm_realm_tooltip"], server, nil, nil, nil, 1, 1, 1)
+            GameTooltip:Show()
+        end
     }
 end
 
@@ -29,6 +36,143 @@ local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
     local settings = {}
     for _, playerNamePattern in ipairs(playerNams) do
         tinsert(settings, PlayerNamePatternToSettingsItem(playerNamePattern))
+    end
+
+    return settings
+end
+
+-- 专精职责
+local SPECIALIZATION_ROLES = { 
+    "TANK", "DAMAGER", "HEALER", 
+    ["TANK"] = INLINE_TANK_ICON .. " " .. TANK,
+    ["DAMAGER"] = INLINE_DAMAGER_ICON .. " " .. DAMAGER,
+    ["HEALER"] = INLINE_HEALER_ICON .. " " .. HEALER
+}
+
+local function GetAddonSetSpecializationRoleConditionsSettingInfo(addonSetName)
+    local specializationRoles = Addon:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
+    if not specializationRoles then
+        return
+    end
+
+    local settings = {}
+    for _, role in ipairs(SPECIALIZATION_ROLES) do
+        local setting = {
+            Title = SPECIALIZATION_ROLES[role],
+            Value = role,
+            Type = "multiChoiceItem",
+            Checked = specializationRoles[role]
+        }
+
+        tinsert(settings, setting)
+    end
+
+    return settings
+end
+
+-- 专精
+local SPECIALIZATIONS = {}
+
+do
+    for classId = 1, GetNumClasses() do
+        SPECIALIZATIONS[classId] = {}
+
+        local className, classFile = GetClassInfo(classId)
+        if classFile then
+           for i = 1, GetNumSpecializationsForClassID(classId) do
+                local specId, specName, _, icon = GetSpecializationInfoForClassID(classId, i)
+                if specName then
+                    local color = RAID_CLASS_COLORS[classFile]
+                    local title = CreateAtlasMarkup(GetClassAtlas(classFile)) .. "|T"..(icon or "error")..":0|t "..(WrapTextInColor(specName, color) or "error")
+                    SPECIALIZATIONS[classId][i] = { SpecId = specId, Title = title }
+                end
+           end 
+        end
+    end
+end
+
+local function GetAddonSetSpecializationConditionsSettingInfo(addonSetName)
+    local specializations = Addon:GetAddonSetSpecializationConditionsByName(addonSetName)
+    if not specializations then
+        return
+    end
+
+    local settings = {}
+    for classId, specs in pairs(SPECIALIZATIONS) do
+        for _, specInfo in pairs(specs) do
+            local setting = {
+                Title = specInfo.Title,
+                Value = specInfo.SpecId,
+                Type = "multiChoiceItem",
+                Checked = specializations[specInfo.SpecId]
+            }
+
+            tinsert(settings, setting)
+        end
+    end
+
+    return settings
+end
+
+-- 种族
+local RACES = {}
+
+do
+    local races = {
+        [1] = true,
+        [2] = true,
+        [3] = true,
+        [4] = true,
+        [5] = true,
+        [6] = true,
+        [7] = true,
+        [8] = true,
+        [9] = true,
+        [10] = true,
+        [11] = true,
+        [22] = true,
+        [24] = true,
+        [25] = true,
+        [26] = true,
+        [27] = true,
+        [28] = true,
+        [29] = true,
+        [30] = true,
+        [31] = true,
+        [32] = true,
+        [34] = true,
+        [35] = true,
+        [36] = true,
+        [37] = true,
+        [52] = true,
+        [70] = true,
+    }
+
+    for raceId, enabled in pairs(races) do
+        if enabled then
+            local raceInfo = C_CreatureInfo.GetRaceInfo(raceId)
+            if raceInfo then
+                RACES[raceInfo.clientFileString] = raceInfo.raceName
+            end
+        end
+    end
+end
+
+local function GetAddonSetRaceConditionsSettingInfo(addonSetName)
+    local races = Addon:GetAddonSetRaceConditionsByName(addonSetName)
+    if not races then
+        return
+    end
+
+    local settings = {}
+    for raceFileName, raceName in pairs(RACES) do
+        local setting = {
+            Title = raceName,
+            Value = raceFileName,
+            Type = "multiChoiceItem",
+            Checked = races[raceFileName]
+        }
+        tinsert(settings, setting)
     end
 
     return settings
@@ -187,6 +331,48 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                                 Value = PLAYER_FACTION_GROUP[1]
                             }
                         }
+                    },
+                    -- 专精
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_specialization"],
+                        Event = "AddonSetSettings.Conditions.Specialization",
+                        Type = "multiChoice",
+                        InitCollapsed = true,
+                        GetItems = function(self)
+                            return GetAddonSetSpecializationConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, specializationId, checked)
+                            return Addon:SetSpecializationConditionEnabledToAddonSet(self.Arg1, specializationId, checked)
+                        end
+                    },
+                    -- 专精角色
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_specialization_role"],
+                        Event = "AddonSetSettings.Conditions.SpecializationRole",
+                        Type = "multiChoice",
+                        InitCollapsed = true,
+                        GetItems = function(self)
+                            return GetAddonSetSpecializationRoleConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, role, checked)
+                            return Addon:SetSpecializationRoleConditionEnabledToAddonSet(self.Arg1, role, checked)
+                        end
+                    },
+                    -- 玩家种族
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_race"],
+                        Event = "AddonSetSettings.Conditions.Races",
+                        Type = "multiChoice",
+                        InitCollapsed = true,
+                        GetItems = function(self)
+                            return GetAddonSetRaceConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, raceName, checked)
+                            return Addon:SetRaceConditionEnabledToAddonSet(self.Arg1, raceName, checked)
+                        end
                     }
                 }
             }
@@ -423,5 +609,76 @@ function Addon:SetFactionConditionToAddonSet(addonSetName, faction)
     end
 
     conditions.Faction = faction
+    return true
+end
+
+-- 获取插件集专精职责加载条件
+function Addon:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.SpecializationRoles = conditions.SpecializationRoles or {}
+
+    return conditions.SpecializationRoles
+end
+
+-- 设置插件集专精职责是否启用
+
+function Addon:SetSpecializationRoleConditionEnabledToAddonSet(addonSetName, role, enabled)
+    local roles = self:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
+    if not roles then
+        return
+    end
+
+    roles[role] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集玩家种族加载条件
+function Addon:GetAddonSetRaceConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.Races = conditions.Races or {}
+
+    return conditions.Races
+end
+
+-- 设置插件集玩家种族是否启用
+function Addon:SetRaceConditionEnabledToAddonSet(addonSetName, raceName, enabled)
+    local races = self:GetAddonSetRaceConditionsByName(addonSetName)
+    if not races then
+        return
+    end
+
+    races[raceName] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集专精加载条件
+function Addon:GetAddonSetSpecializationConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.Specializations = conditions.Specializations or {}
+
+    return conditions.Specializations
+end
+
+-- 设置插件集专精是否启用
+
+function Addon:SetSpecializationConditionEnabledToAddonSet(addonSetName, specializationId, enabled)
+    local specializations = self:GetAddonSetSpecializationConditionsByName(addonSetName)
+    if not specializations then
+        return
+    end
+
+    specializations[specializationId] = enabled and true or nil
     return true
 end

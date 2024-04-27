@@ -215,6 +215,11 @@ ImprovedAddonListSettingsItemMixin = {}
 
 function ImprovedAddonListSettingsItemMixin:OnLoad()
     local function onSettingsMenuUpdate(self, event)
+        if not self.GetElementData then
+            -- 此时被回收了
+            return
+        end
+
         local item = self:GetElementData():GetData()
         if item and item.Event == event then
             self:OnBind(item)
@@ -223,12 +228,17 @@ function ImprovedAddonListSettingsItemMixin:OnLoad()
     Addon:RegisterCallback("SettingsMenuUpdate", onSettingsMenuUpdate, self)
 end
 
+function ImprovedAddonListSettingsItemMixin:OnBind(item)
+end
+
 function ImprovedAddonListSettingsItemMixin:OnEnter()
     local item = self:GetElementData():GetData()
     if item.Tooltip then
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:AddLine(item.Tooltip, 1, 1, 1, true)
         GameTooltip:Show()
+    elseif item.OnEnter then
+        item:OnEnter(self)
     end
 end
 
@@ -358,10 +368,6 @@ end
 -- 动态编辑框
 ImprovedAddonListSettingsItemDynamicEditBoxMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
 
-function ImprovedAddonListSettingsItemDynamicEditBoxMixin:OnBind(item)
-    
-end
-
 function ImprovedAddonListSettingsItemDynamicEditBoxMixin:OnClick()
     local node = self:GetElementData()
     local item = node:GetData()
@@ -388,10 +394,6 @@ ImprovedAddonListSettingsItemDynamicEditBoxItemMixin = CreateFromMixins(Improved
 
 function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnAppendLoad()
     self.Title:SetTextColor(WHITE_FONT_COLOR:GetRGB())
-    self.SubTitle:SetFontObject(GameFontDisableTiny)
-end
-
-function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnBind(item)
 end
 
 function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnDelete()
@@ -412,6 +414,46 @@ end
 
 function ImprovedAddonListSettingsItemDynamicEditBoxItemMixin:OnDeleteLeave()
     GameTooltip:Hide()
+end
+
+-- 多选项
+ImprovedAddonListSettingsItemMultiChoiceMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemMultiChoiceMixin:OnBind(item)
+    local collapsed = self:GetElementData():IsCollapsed()
+    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (collapsed and "expand.png" or "collapse.png")
+    self.CollapseStatus:SetTexture(tex)
+end
+
+function ImprovedAddonListSettingsItemMultiChoiceMixin:OnClick()
+    local node = self:GetElementData()
+    node:ToggleCollapsed()
+    self:Update()
+end
+
+-- 多选项-子项
+ImprovedAddonListSettingsItemMultiChoiceItemMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemMultiChoiceItemMixin:OnAppendLoad()
+    self.Title:SetTextColor(WHITE_FONT_COLOR:GetRGB())
+end
+
+function ImprovedAddonListSettingsItemMultiChoiceItemMixin:OnBind(item)
+    local checked = item.Checked
+    local tex = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (checked and "enabled.png" or "enable_status_border.png")
+    self.CheckStatus:SetTexture(tex)
+end
+
+function ImprovedAddonListSettingsItemMultiChoiceItemMixin:OnClick()
+    local node = self:GetElementData()
+    local item = node:GetData()
+    local parentNode = node:GetParent()
+    local parentItem = parentNode:GetData()
+    local checked = not item.Checked
+    if parentItem.OnItemCheckedChange and parentItem:OnItemCheckedChange(item.Value, checked) then
+        item.Checked = checked
+        self:Update()
+    end
 end
 
 -- 设置窗体
@@ -438,6 +480,10 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsItemDynamicEditBoxTemplate", Initializer)
     elseif data.Type == "dynamicEditBoxItem" then
         factory("ImprovedAddonListSettingsItemDynamicEditBoxItemTemplate", Initializer)
+    elseif data.Type == "multiChoice" then
+        factory("ImprovedAddonListSettingsItemMultiChoiceTemplate", Initializer)
+    elseif data.Type == "multiChoiceItem" then
+        factory("ImprovedAddonListSettingsItemMultiChoiceItemTemplate", Initializer)
     end
 end
 
@@ -469,7 +515,7 @@ function SettingsFrameMixin:OnLoad()
     self.Title = Title
     Title:SetPoint("CENTER", self, "TOP", 0, 0)
 
-    local ScrollView = CreateScrollBoxListTreeListView(6, 0, 0, 0, 0, 1)
+    local ScrollView = CreateScrollBoxListTreeListView(10, 0, 0, 0, 0, 1)
     ScrollView:SetElementFactory(SettingListItemNodeUpdater)
     ScrollView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollBox:Init(ScrollView)
@@ -489,6 +535,7 @@ function SettingsFrameMixin:ShowSettings(settingsInfo)
             local categoryNode = rootNode:Insert({ IsGroup = true, Title = groupInfo.Title })
             for _, settingsItem in ipairs(groupInfo.Items) do
                 local subNode = categoryNode:Insert(settingsItem)
+                subNode:SetCollapsed(settingsItem.InitCollapsed)
                 
                 local subItems = settingsItem.Items or (settingsItem.GetItems and settingsItem:GetItems())
                 if subItems then

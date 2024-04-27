@@ -170,4 +170,36 @@
         </Scripts>
     </Button>
 
+    <Button name="ImprovedAddonListSettingsItemMultiChoiceTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemMultiChoiceMixin" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <Texture parentKey="CollapseStatus">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="0"/>
+                    </Anchors>
+                </Texture>
+			</Layer>
+        </Layers>
+        <Scripts>
+            <OnClick method="OnClick"/>
+        </Scripts>
+    </Button>
+
+    <Button name="ImprovedAddonListSettingsItemMultiChoiceItemTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemMultiChoiceItemMixin" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <Texture parentKey="CheckStatus">
+                    <Size x="16" y="16"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="0"/>
+                    </Anchors>
+                </Texture>
+			</Layer>
+        </Layers>
+        <Scripts>
+			<OnLoad inherit="append" method="OnAppendLoad"/>
+            <OnClick method="OnClick"/>
+        </Scripts>
+    </Button>
 </Ui>
