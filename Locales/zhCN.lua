@@ -1,6 +1,6 @@
 local addonName, Addon = ...
 
-local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "zhCN")
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "zhCN", true)
 
 if not L then return end
 

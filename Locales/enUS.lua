@@ -1,6 +1,8 @@
 local addonName, Addon = ...
 
-local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS")
+
+if not L then return end
 
 L["save"] = "Left click to save the currently enabled addons to the current addon loading scheme\nRight click to reset the current addon loading scheme"
 L["save_as"] = "Save the currently enabled addons as a new addon loading scheme"
