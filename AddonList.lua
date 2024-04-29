@@ -307,8 +307,6 @@ end
 
 -- 启用全部按钮：鼠标点击
 local function onEnableAllButtonClick(self)
-    if Addon:IsAllAddonsEnabled() then return end
-
     Addon:EnableAllAddons()
     Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
@@ -328,8 +326,6 @@ end
 
 -- 禁用全部按钮：鼠标点击
 local function onDisableAllButtonClick(self)
-    if Addon:IsAllAddonsDisabled() then return end
-
     Addon:DisableAllAddons()
     Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
@@ -474,35 +470,32 @@ end
 function Addon:RefreshAddonListOptionButtonsStatus()
     local AddonListContainer = self:GetAddonListContainer()
     
+    local allEnabled, allDisabled, canReset, shouldReload = self:IsAllAddonsEnabled()
+
     -- 更新启用全部按钮
     local EnableAllButton = AddonListContainer.EnableAllButton
-    local isAllAddonsEnabled = self:IsAllAddonsEnabled()
-    local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all")
+    local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (allEnabled and "enable_all_checked" or "enable_all")
     EnableAllButton:SetNormalTexture(enableAllTexture)
     EnableAllButton:SetHighlightTexture(enableAllTexture)
     EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
     
     -- 更新禁用全部按钮
     local DisableAllButton = AddonListContainer.DisableAllButton
-    local isAllAddonsDisabled = self:IsAllAddonsDisabled()
-    local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all")
+    local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (allDisabled and "disable_all_checked" or "disable_all")
     DisableAllButton:SetNormalTexture(disableAllTexture)
     DisableAllButton:SetHighlightTexture(disableAllTexture)
     DisableAllButton:GetHighlightTexture():SetAlpha(0.2)
 
     -- 更新重置按钮
     local ResetButton = AddonListContainer.ResetButton
-    local addonListCanReset = self:IsAddonListCanReset()
-    local resetButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (addonListCanReset and "reset.png" or "reset_disabled.png")
+    local resetButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (canReset and "reset.png" or "reset_disabled.png")
     ResetButton:SetNormalTexture(resetButtonTexture)
     ResetButton:SetHighlightTexture(resetButtonTexture)
     ResetButton:GetHighlightTexture():SetAlpha(0.2)
-end
 
--- 刷新重载按钮指示器的状态
-function Addon:RefreshReloadIndicatorStatus()
+    -- 刷新重载按钮指示器
     local reloadUIIndicator = self:GetReloadUIIndicator()
-    local uiShouldReload = self:IsUIShouldReload() or false
+    local uiShouldReload = shouldReload or false
     reloadUIIndicator:SetShown(uiShouldReload)
     reloadUIIndicator.Animation:SetPlaying(uiShouldReload)
 end
@@ -537,7 +530,6 @@ function Addon:RefreshAddonListContainer()
 
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
-    self:RefreshReloadIndicatorStatus()
     self:RefreshAddonSetContainer()
 end 
 
@@ -555,7 +547,6 @@ function Addon:RefreshAddonInfo(addonName)
 
     self:RefreshAddonDetailContainer()
     self:RefreshAddonListOptionButtonsStatus()
-    self:RefreshReloadIndicatorStatus()
     self:RefreshAddonSetContainer()
 end
 

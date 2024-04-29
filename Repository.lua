@@ -408,25 +408,44 @@ end
 -- 所有插件是否都已启用
 function Addon:IsAllAddonsEnabled()
     local addonInfos = self:GetAddonInfos()
+
+    local allEnabled, allDisabled, canReset, shouldReload
     for _, addonInfo in ipairs(addonInfos) do
-        if not addonInfo.IsLocked and not addonInfo.Enabled then
-            return false
+        local isAddonManager = self:IsAddonManager(addonInfo.Name)
+        local locked = addonInfo.IsLocked
+        local enabled = addonInfo.Enabled
+        local initialEnabled = addonInfo.InitialEnabled
+
+        if allEnabled == nil and not isAddonManager and not locked and not enabled then
+            allEnabled = false
+        end
+
+        if allDisabled == nil and not isAddonManager and not locked and enabled then
+            allDisabled = false
+        end
+
+        if canReset == nil and initialEnabled ~= enabled then
+            canReset = true
+        end 
+
+        if shouldReload == nil and self:IsAddonShouldReload(addonInfo) then
+            shouldReload = true
+        end
+
+        if allEnabled ~= nil and canReset ~= nil and shouldReload ~= nil then
+            break
         end
     end
 
-    return true
-end
-
--- 所有插件是否都已禁用
-function Addon:IsAllAddonsDisabled()
-    local addonInfos = self:GetAddonInfos()
-    for _, addonInfo in ipairs(addonInfos) do
-        if not addonInfo.IsLocked and addonInfo.Enabled then
-            return false
-        end
+    if allEnabled == nil then
+        allEnabled = true
     end
 
-    return true
+    if allDisabled == nil then
+        allDisabled = true
+    end
+
+    return allEnabled, allDisabled, canReset, shouldReload
 end
 
 -- 获取插件集列表
