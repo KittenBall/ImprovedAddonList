@@ -7,11 +7,59 @@ Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE = 0
 Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL = 1
 -- 加载指示器：总是显示
 Addon.LOAD_INDICATOR_DISPLAY_ALWAYS = 2
+-- 插件图标：不显示
+Addon.ADDON_ICON_DISPLAY_INVISIBLE = 0
+-- 插件图标：只对有图标的插件显示
+Addon.ADDON_ICON_DISPLAY_ONLY_AVAILABLE = 1
+-- 插件图标：总是显示
+Addon.ADDON_ICON_DISPLAY_ALWAYS = 2
+-- 默认插件图标文本
+Addon.DefaultIconText = CreateSimpleTextureMarkup([[Interface\ICONS\INV_Misc_QuestionMark]], 14, 14)
 
 -- 基础设置
 local AddonSettingsInfo = { 
     Title = L["settings_tips"],
     Groups = {
+        {
+            Title = L["settings_group_general"],
+            Items = {
+                -- 插件图标
+                {
+                    Title = L["settings_addon_icon_display_mode"],
+                    Type = "singleChoice",
+                    Event = "AddonSettings.AddonIconDisplayMode",
+                    Description = function(self)
+                        return Addon:GetAddonIconDisplayTypeDescription()
+                    end,
+                    GetValue = function(self)
+                        return Addon:GetAddonIconDisplayType()
+                    end,
+                    SetValue = function(self, value)
+                        Addon:SetAddonIconDisplayType(value)
+                    end,
+                    Reset = function(self)
+                        Addon:SetAddonIconDisplayType(nil)
+                    end,
+                    Choices = {
+                        {
+                            Text = L["settings_addon_icon_dislay_invisble"],
+                            Value = Addon.ADDON_ICON_DISPLAY_INVISIBLE,
+                            Tooltip = L["settings_addon_icon_dislay_invisble_tooltip"]
+                        },
+                        {
+                            Text = L["settings_addon_icon_display_only_available"],
+                            Value = Addon.ADDON_ICON_DISPLAY_ONLY_AVAILABLE,
+                            Tooltip = L["settings_addon_icon_display_only_available_tooltip"]
+                        },
+                        {
+                            Text = L["settings_addon_icon_display_always"],
+                            Value = Addon.ADDON_ICON_DISPLAY_ALWAYS,
+                            Tooltip = L["settings_addon_icon_display_always_tooltip"]
+                        }
+                    }
+                }
+            }
+        },
         {
             Title = L["settings_group_load_indicator"],
             Items = {
@@ -29,6 +77,9 @@ local AddonSettingsInfo = {
                     end,
                     SetValue = function(self, value)
                         Addon:SetLoadIndicatorDisplayType(value)
+                    end,
+                    Reset = function(self)
+                        Addon:SetLoadIndicatorDisplayType(nil)
                     end,
                     Choices = {
                         {
@@ -164,12 +215,11 @@ end
 -- 设置加载指示器显示方式
 function Addon:SetLoadIndicatorDisplayType(loadIndicatorDisplayType)
     self.Saved.Config.LoadIndicatorDisplayType = loadIndicatorDisplayType
-    self:TriggerEvent("Operations.SetLoadIndicatorDisplayType")
 end
 
 -- 获取加载指示器说明文本
 function Addon:GetLoadIndicatorDisplayTypeDescription()
-    local loadIndicatorDisplayType = self.Saved.Config.LoadIndicatorDisplayType
+    local loadIndicatorDisplayType = self:GetLoadIndicatorDisplayType()
     if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
         return L["settings_load_indicator_dislay_invisble"]
     elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
@@ -236,4 +286,40 @@ end
 -- 设置插件加载指示器：未启用
 function Addon:SetLoadIndicatorDisabledColor(color)
     self.Saved.Config.LoadIndicatorDisabledColor = color and { r = color.r, g = color.g, b = color.b }
+end
+
+-- 获取插件图标显示方式
+function Addon:GetAddonIconDisplayType()
+    return self.Saved.Config.AddonIconDisplayType or Addon.ADDON_ICON_DISPLAY_ALWAYS
+end
+
+-- 设置加载指示器显示方式
+function Addon:SetAddonIconDisplayType(addonIconDisplayType)
+    self.Saved.Config.AddonIconDisplayType = addonIconDisplayType
+end
+
+-- 获取插件图标显示方式描述
+function Addon:GetAddonIconDisplayTypeDescription()
+    local addonIconDisplayType = self:GetAddonIconDisplayType()
+    if addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_INVISIBLE then
+        return L["settings_addon_icon_dislay_invisble"]
+    elseif addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_ALWAYS then
+        return L["settings_addon_icon_display_always"]
+    else
+        return L["settings_addon_icon_display_only_available"]
+    end
+end
+
+-- 创建插件图标文本
+function Addon:CreateAddonIconText(iconText)
+    local addonIconDisplayType = self:GetAddonIconDisplayType()
+    if addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_ALWAYS then
+        iconText = iconText or Addon.DefaultIconText
+    elseif addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_ONLY_AVAILABLE then 
+        iconText = iconText or ""
+    else
+        iconText = ""
+    end
+
+    return iconText
 end

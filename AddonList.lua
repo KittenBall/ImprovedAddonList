@@ -80,9 +80,11 @@ ImprovedAddonListAddonItemMixin = {}
 function ImprovedAddonListAddonItemMixin:Update()
     local addonInfo = self:GetAddonInfo()
 
+    local iconText = Addon:CreateAddonIconText(addonInfo.IconText)
+
     -- 设置标题和加载指示器
     local loadIndicatorDisplayType = Addon:GetLoadIndicatorDisplayType()
-    local label = addonInfo.IconText .. " "
+    local label = iconText .. " "
     if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
         label = label .. addonInfo.TitleWithoutColor
         self.LoadIndicator:Hide()
@@ -362,6 +364,11 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
     end)
 end
 
+-- 插件图标设置变更：显示模式
+local function OnAddonIconDisplayModeChanged(self)
+    self:RefreshAddonList()
+end
+
 -- 插件加载指示器设置变更：显示模式
 local function OnLoadIndicatorDisplayModeSettingChanged(self)
     self:RefreshAddonList()
@@ -460,6 +467,7 @@ function Addon:OnAddonListContainerLoad()
     addonListTreeView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonListScrollBox, AddonListScrollBar, addonListTreeView)
 
+    self:RegisterCallback("AddonSettings.AddonIconDisplayMode", OnAddonIconDisplayModeChanged, self)
     self:RegisterCallback("AddonSettings.LoadIndicatorDisplayMode", OnLoadIndicatorDisplayModeSettingChanged, self)
     self:RegisterCallback("AddonSettings.LoadIndicatorColor", OnLoadIndicatorColorSettingChanged, self)
 

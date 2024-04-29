@@ -321,10 +321,11 @@ ImprovedAddonListAddonSetAddonListItemMixin = {}
 function ImprovedAddonListAddonSetAddonListItemMixin:Update()
     local addonInfo = self:GetElementData()
 
-    local label = addonInfo.IconText .. " " .. addonInfo.Title
+    local iconText = Addon:CreateAddonIconText(addonInfo.IconText)
+    local label = iconText .. " " .. addonInfo.Title
     -- 显示备注
     if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
-        label = addonInfo.IconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
+        label = iconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     end
 
     self.Label:SetText(label)

@@ -146,9 +146,6 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     -- 图标
     local iconTexture = C_AddOns.GetAddOnMetadata(query, "IconTexture")
     local iconAtlas = C_AddOns.GetAddOnMetadata(query, "IconAtlas")
-    if not iconTexture and not iconAtlas then
-        iconTexture = [[Interface\ICONS\INV_Misc_QuestionMark]]
-    end
 
     local iconText
     if iconTexture then
