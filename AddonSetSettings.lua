@@ -73,6 +73,7 @@ end
 -- 专精
 local SPECIALIZATIONS = {}
 
+-- copied from WeakAuras
 do
     for classId = 1, GetNumClasses() do
         SPECIALIZATIONS[classId] = {}
@@ -117,6 +118,7 @@ end
 -- 种族
 local RACES = {}
 
+-- copied from WeakAuras
 do
     local races = {
         [1] = true,
@@ -171,6 +173,36 @@ local function GetAddonSetRaceConditionsSettingInfo(addonSetName)
             Value = raceFileName,
             Type = "multiChoiceItem",
             Checked = races[raceFileName]
+        }
+        tinsert(settings, setting)
+    end
+
+    return settings
+end
+
+-- 副本类型
+local INSTANCE_TYPES = {
+    ["none"] = L["addon_set_settings_condition_instance_type_none"],
+    ["pvp"] = L["addon_set_settings_condition_instance_type_pvp"],
+    ["arena"] = L["addon_set_settings_condition_instance_type_arena"],
+    ["scenario"] = L["addon_set_settings_condition_instance_type_scenario"],
+    ["raid"] = L["addon_set_settings_condition_instance_type_raid"],
+    ["party"] = L["addon_set_settings_condition_instance_type_party"]
+}
+
+local function GetAddonSetInstanceTypeConditionsSettingInfo(addonSetName)
+    local instanceTypes = Addon:GetAddonSetInstanceTypeConditionsByName(addonSetName)
+    if not instanceTypes then
+        return
+    end
+
+    local settings = {}
+    for instanceType, title in pairs(INSTANCE_TYPES) do
+        local setting = {
+            Title = title,
+            Value = instanceType,
+            Type = "multiChoiceItem",
+            Checked = instanceTypes[instanceType]
         }
         tinsert(settings, setting)
     end
@@ -250,6 +282,19 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         end,
                         RemoveItem = function(self, playerName)
                             return Addon:RemovePlayerNameConditionFromAddonSet(self.Arg1, playerName)
+                        end
+                    },
+                    -- 满级
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_max_level"],
+                        Event = "AddonSetSettings.Conditions.MaxLevel",
+                        Type = "switch",
+                        IsEnabled = function(self)
+                            return Addon:IsAddonSetMaxLevelEnabledToAddonSet(self.Arg1)
+                        end,
+                        SetEnabled = function(self, enabled)
+                            return Addon:SetMaxLevelConditionEnabledToAddonSet(self.Arg1, enabled)
                         end
                     },
                     -- 战争模式
@@ -372,6 +417,20 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         end,
                         OnItemCheckedChange = function(self, raceName, checked)
                             return Addon:SetRaceConditionEnabledToAddonSet(self.Arg1, raceName, checked)
+                        end
+                    },
+                    -- 副本类型
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_instance_type"],
+                        Event = "AddonSetSettings.Conditions.InstanceTypes",
+                        Type = "multiChoice",
+                        InitCollapsed = true,
+                        GetItems = function(self)
+                            return GetAddonSetInstanceTypeConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, instanceType, checked)
+                            return Addon:SetInstanceTypeConditionEnabledToAddonSet(self.Arg1, instanceType, checked)
                         end
                     }
                 }
@@ -680,5 +739,48 @@ function Addon:SetSpecializationConditionEnabledToAddonSet(addonSetName, special
     end
 
     specializations[specializationId] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集是否满级加载
+function Addon:IsAddonSetMaxLevelEnabledToAddonSet(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+    
+    return conditions.MaxLevel and true or false
+end
+
+-- 设置插件集是否满级加载
+function Addon:SetMaxLevelConditionEnabledToAddonSet(addonSetName, enabled)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end 
+
+    conditions.MaxLevel = enabled and true or false
+    return true
+end
+
+-- 获取插件集副本类型加载条件
+function Addon:GetAddonSetInstanceTypeConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.InstanceTypes = conditions.InstanceTypes or {}
+    return conditions.InstanceTypes
+end
+
+-- 设置插件集副本类型是否启用
+function Addon:SetInstanceTypeConditionEnabledToAddonSet(addonSetName, instanceType, enabled)
+    local instanceTyps = self:GetAddonSetInstanceTypeConditionsByName(addonSetName)
+    if not instanceTyps then
+        return
+    end
+
+    instanceTyps[instanceType] = enabled and true or nil
     return true
 end

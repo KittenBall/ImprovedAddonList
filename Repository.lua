@@ -409,7 +409,7 @@ end
 function Addon:IsAllAddonsEnabled()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if not addonInfo.IsLocked and not addonInfo.Enabled then
+        if not self:IsAddonManager(addonInfo.Name) and not addonInfo.IsLocked and not addonInfo.Enabled then
             return false
         end
     end
@@ -421,7 +421,7 @@ end
 function Addon:IsAllAddonsDisabled()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        if not addonInfo.IsLocked and addonInfo.Enabled then
+        if not self:IsAddonManager(addonInfo.Name) and not addonInfo.IsLocked and addonInfo.Enabled then
             return false
         end
     end
