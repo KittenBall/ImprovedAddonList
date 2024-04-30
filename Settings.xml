@@ -2,6 +2,38 @@
 
     <Script file="Settings.lua"/>
 
+    <Slider name="ImprovedAddonListSettingsSliderTemplate" mixin="ImprovedAddonListSettingsSliderMixin" orientation="HORIZONTAL" virtual="true">
+		<ThumbTexture parentKey="Thumb" file="Interface\Addons\ImprovedAddonList\Media\slider_thumb.png">
+            <Size x="14" y="14"/>
+        </ThumbTexture>
+        <Layers>
+            <Layer>
+                <Texture parentKey="TrackInactive" file="Interface\Addons\ImprovedAddonList\Media\slider_track.png">
+                    <Size y="4"/>
+                    <TextureSliceMargins left="4" right="4" top="4" bottom="4"/> 
+                    <Anchors>
+                        <Anchor point="LEFT"/>
+                        <Anchor point="RIGHT"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="TrackActive" file="Interface\Addons\ImprovedAddonList\Media\slider_track.png" alphaMode="ADD">
+                    <Size y="4"/>
+                    <TextureSliceMargins left="4" right="4" top="4" bottom="4"/>
+                    <Color color="NORMAL_FONT_COLOR"/>
+                    <Anchors>
+                        <Anchor point="LEFT"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+            <OnValueChanged method="OnValueChanged"/>
+            <OnMouseDown method="OnMouseDown"/>
+            <OnMouseUp method="OnMouseUp"/>
+        </Scripts>
+    </Slider>
+
     <Button name="ImprovedAddonListSettingsGroupItemTemplate" mixin="ImprovedAddonListSettingsGroupItemMixin" virtual="true">
         <Layers>
             <Layer level="OVERLAY" textureSubLevel="1">
@@ -123,6 +155,56 @@
                     <OnClick>
                         self:GetParent():OnClick()
                     </OnClick>
+                </Scripts>
+            </Button>
+        </Frames>
+    </Button>
+
+    <Button name="ImprovedAddonListSettingsItemSliderTemplate" inherits="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemSliderMixin" virtual="true">
+        <Frames>
+            <Slider parentKey="Slider" inherits="ImprovedAddonListSettingsSliderTemplate">
+                <Size y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativePoint="CENTER" relativeKey="$parent"/>
+                </Anchors>
+            </Slider>
+        </Frames>
+        <Layers>
+            <Layer>
+                <FontString parentKey="MinValue" inherits="GameFontWhiteTiny">
+                    <Anchors>
+                        <Anchor point="RIGHT" relativeKey="$parent.Slider" relativePoint="LEFT" x="-3" y="1"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="MaxValue" inherits="GameFontWhiteTiny">
+                    <Anchors>
+                        <Anchor point="RIGHT" x="-5" y="1"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="Value" inherits="GameFontNormalTiny" hidden="true">
+                    <Anchors>
+                        <Anchor point="BOTTOM" relativeKey="$parent.Slider.Thumb" relativePoint="TOP" x="0" y="5"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Button parentKey="Confirm">
+                <Size x="16" y="16"/>
+                <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\slider_confirm.png"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.MinValue" x="-2" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnConfirmClick()
+                    </OnClick>
+                    <!-- <OnEnter>
+                        self:GetParent():OnDeleteEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        self:GetParent():OnDeleteLeave()
+                    </OnLeave> -->
                 </Scripts>
             </Button>
         </Frames>

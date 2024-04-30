@@ -16,6 +16,13 @@ Addon.ADDON_ICON_DISPLAY_ALWAYS = 2
 -- 默认插件图标文本
 Addon.DefaultIconText = CreateSimpleTextureMarkup([[Interface\ICONS\INV_Misc_QuestionMark]], 14, 14)
 
+-- 默认框体缩放比例
+Addon.DEFAULT_UI_SCALE = 1
+-- 最小框体缩放比例
+Addon.MIN_UI_SCALE = 0.7
+-- 最大框体缩放比例
+Addon.MAX_UI_SCALE = 2.1
+
 -- 基础设置
 local AddonSettingsInfo = { 
     Title = L["settings_tips"],
@@ -57,6 +64,26 @@ local AddonSettingsInfo = {
                             Tooltip = L["settings_addon_icon_display_always_tooltip"]
                         }
                     }
+                },
+                -- 框体缩放
+                {
+                    Title = L["settings_ui_scale"],
+                    Type = "slider",
+                    Event = "AddonSettings.UIScale",
+                    MinValue = Addon.MIN_UI_SCALE,
+                    MaxValue = Addon.MAX_UI_SCALE,
+                    GetValue = function(self)
+                        return Addon:GetUIScale()
+                    end,
+                    SetValue = function(self, value)
+                        self.Value = value
+                    end,
+                    Save = function(self)
+                        Addon:SetUIScale(self.Value)
+                    end,
+                    Reset = function(self)
+                        Addon:SetUIScale(nil)
+                    end
                 }
             }
         },
@@ -93,9 +120,9 @@ local AddonSettingsInfo = {
                             Tooltip = L["settings_load_indicator_display_only_colorful_tooltip"]
                         },
                         {
-                            Text = L["settings_Load_indicator_display_always"],
+                            Text = L["settings_load_indicator_display_always"],
                             Value = Addon.LOAD_INDICATOR_DISPLAY_ALWAYS,
-                            Tooltip = L["settings_Load_indicator_display_always_tooltip"]
+                            Tooltip = L["settings_load_indicator_display_always_tooltip"]
                         }
                     }
                 },
@@ -225,7 +252,7 @@ function Addon:GetLoadIndicatorDisplayTypeDescription()
     elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
         return L["settings_load_indicator_display_only_colorful"]
     else
-        return L["settings_Load_indicator_display_always"]
+        return L["settings_load_indicator_display_always"]
     end
 end
 
@@ -322,4 +349,22 @@ function Addon:CreateAddonIconText(iconText)
     end
 
     return iconText
+end
+
+-- 获取插件框体缩放比例
+function Addon:GetUIScale()
+    return self.Saved.Config.UIScale or Addon.DEFAULT_UI_SCALE
+end
+
+-- 设置插件框体缩放比例
+function Addon:SetUIScale(uiScale)
+    if uiScale then
+        if uiScale < Addon.MIN_UI_SCALE then
+            uiScale = Addon.MIN_UI_SCALE
+        elseif uiScale > Addon.MAX_UI_SCALE then
+            uiScale = Addon.MAX_UI_SCALE
+        end
+    end
+
+    self.Saved.Config.UIScale = uiScale
 end

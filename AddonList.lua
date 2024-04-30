@@ -359,6 +359,8 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
+    if not userInput then return end
+    
     self.searchJob = C_Timer.NewTimer(0.25, function()
         Addon:RefreshAddonListContainer()
     end)

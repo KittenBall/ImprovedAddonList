@@ -365,6 +365,102 @@ function ImprovedAddonListSettingsItemSwitchMixin:OnClick()
     end
 end
 
+-- 滑动条
+ImprovedAddonListSettingsSliderMixin = {}
+
+function ImprovedAddonListSettingsSliderMixin:OnLoad()
+    -- xml设置似乎失效了
+    self:SetValueStep(0.01)
+    self:SetMinMaxValues(0, 100)
+    self:SetValue(0)
+end
+
+function ImprovedAddonListSettingsSliderMixin:OnValueChanged(value)
+    local minValue, maxValue = self:GetMinMaxValues()
+    local percent = 0
+    if maxValue > minValue and value > minValue then
+        percent = (value - minValue) / (maxValue - minValue)
+    end
+
+    local width = self:GetWidth() * percent
+    if width <= 0 then
+        width = 1
+    end
+
+    self.TrackActive:SetWidth(width)
+
+    local parent = self:GetParent()
+    if parent and parent.OnValueChanged then
+        parent:OnValueChanged(value / 100)
+    end
+end
+
+function ImprovedAddonListSettingsSliderMixin:OnMouseDown()
+    if self:IsDraggingThumb() then
+        local parent = self:GetParent()
+        if parent.OnSliderThumbDragStart then
+            parent:OnSliderThumbDragStart()
+        end
+    end
+end
+
+function ImprovedAddonListSettingsSliderMixin:OnMouseUp()
+    local parent = self:GetParent()
+    if parent.OnSliderThumbDragStop then
+        parent:OnSliderThumbDragStop()
+    end
+end
+
+ImprovedAddonListSettingsItemSliderMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
+
+function ImprovedAddonListSettingsItemSliderMixin:OnBind(item)
+    local min, max = item.MinValue, item.MaxValue
+    if min >= max then
+        error(item.Title .. "'s min value(" .. min .. ") must less than max value(" .. max .. ")")
+    end
+
+    local value = item:GetValue()
+    if value < min or value > max then
+        error("value(" .. value .. ") invalid, because slider's min and max values is [" .. min .. "," ..  max .. "]")    
+    end
+
+    local percent = (value - min) / (max - min)
+
+    self.MinValue:SetText(tostring(min))
+    self.MaxValue:SetText(tostring(max))
+    self.Slider:SetPoint("RIGHT", self:GetParent(), "RIGHT", -(self.MaxValue:GetStringWidth() + 8), 0)
+    self.Slider:SetValue(percent * 100, false)
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnValueChanged(percent)
+    if not self.GetElementData then
+        -- 此时还未绑定界面
+        return
+    end
+
+    local item = self:GetElementData():GetData()
+    local value = (item.MaxValue - item.MinValue) * percent + item.MinValue
+    local value = math.floor(value * 100 + 0.5) / 100
+    self.Value:SetText(tostring(value))
+    self.Confirm:SetShown(value ~= item:GetValue())
+    -- 临时保存变量
+    item:SetValue(value)
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnSliderThumbDragStart()
+    self.Value:Show()
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnSliderThumbDragStop()
+    self.Value:Hide()
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnConfirmClick()
+    local item = self:GetElementData():GetData()
+    item:Save()
+    TriggerSettingsMenuUpdate(item)
+end
+
 -- 动态编辑框
 ImprovedAddonListSettingsItemDynamicEditBoxMixin = CreateFromMixins(ImprovedAddonListSettingsItemMixin)
 
@@ -476,6 +572,8 @@ local function SettingListItemNodeUpdater(factory, node)
         factory("ImprovedAddonListSettingsItemEditBoxTemplate", Initializer)
     elseif data.Type == "switch" then
         factory("ImprovedAddonListSettingsItemSwitchTemplate", Initializer)
+    elseif data.Type == "slider" then
+        factory("ImprovedAddonListSettingsItemSliderTemplate", Initializer)
     elseif data.Type == "dynamicEditBox" then
         factory("ImprovedAddonListSettingsItemDynamicEditBoxTemplate", Initializer)
     elseif data.Type == "dynamicEditBoxItem" then

@@ -152,6 +152,10 @@ local function OnReloadUIIndicatorLeave(self)
     GameTooltip:Hide()
 end
 
+local function OnUIScaleChanged(self)
+    self:GetOrCreateUI():SetScale(self:GetUIScale())
+end
+
 -- UI函数
 function Addon:GetOrCreateUI()
     local UI = self.UI
@@ -167,6 +171,7 @@ function Addon:GetOrCreateUI()
     UI:SetPoint("CENTER")
     UI:SetTitle(ADDON_LIST)
     UI:SetFrameStrata("HIGH")
+    UI:SetScale(self:GetUIScale())
 
     -- 启用过期插件按钮
     local EnableExpiredAddonsButton = CreateFrame("CheckButton", nil, UI, "UICheckButtonTemplate")
@@ -237,6 +242,8 @@ function Addon:GetOrCreateUI()
     self:OnAddonDetailContainerLoad()
     self:OnAddonSetContainerLoad()
     self:OnAddonListContainerLoad()
+
+    self:RegisterCallback("AddonSettings.UIScale", OnUIScaleChanged, self)
 
     return UI
 end
