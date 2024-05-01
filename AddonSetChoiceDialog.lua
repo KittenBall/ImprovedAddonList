@@ -123,7 +123,6 @@ local AddonSetChoiceDialogMixin = {}
 
 function AddonSetChoiceDialogMixin:Init()
     self:SetWidth(200)
-    self:SetPoint("CENTER")
     self:SetFrameStrata("DIALOG")
     self:SetFrameLevel(400)
     self:SetMouseMotionEnabled(true)
@@ -301,7 +300,7 @@ function AddonSetChoiceDialogMixin:RefreshAddonSetList()
         end
     end
 
-    self.ScrollBox:SetDataProvider(addonSetDataProvider, ScrollBoxConstants.RetainScrollPosition)
+    self.ScrollBox:SetDataProvider(addonSetDataProvider, ScrollBoxConstants.DiscardScrollPosition)
 end
 
 function AddonSetChoiceDialogMixin:SetupChoiceInfo(owner, choiceInfo)

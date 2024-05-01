@@ -24,38 +24,26 @@ local function onAddonSetTipButtonEnter(self)
     if not activeAddonSet or not activeAddonSet.Addons then
         return
     end
-
-    GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(L["addon_set_not_full_load_tips"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR)), 1, 1, 1, true)
-    GameTooltip:AddLine(" ")
-
-    local unloadedAddons = {}
+    
+    local addons = {}
     for addonName, enabled in pairs(activeAddonSet.Addons) do
         if enabled then
-            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
-            if addonInfo and not addonInfo.Enabled then
-                tinsert(unloadedAddons, addonInfo)
-            end
+            table.insert(addons, { Name = addonName })
         end
     end
+    table.sort(addons, function(a, b) return a.Name < b.Name end)
 
-    table.sort(unloadedAddons, function(a, b) return a.Name < b.Name end)
-
-    local lockedText = CreateSimpleTextureMarkup("Interface\\AddOns\\ImprovedAddonList\\Media\\lock.png", 14, 14)
-    for _, addonInfo in ipairs(unloadedAddons) do
-        if addonInfo.IsLocked then
-            GameTooltip:AddDoubleLine(addonInfo.Title, lockedText, 1, 1, 1)
-        else
-            GameTooltip:AddLine(addonInfo.Title)
-        end
-    end
-
-    GameTooltip:Show()
+    local addonListTooltipInfo = {
+        Addons = addons,
+        Label = L["addon_set_not_full_load_tips"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR)),
+        Owner = self
+    }
+    Addon:ShowAddonListTooltips(addonListTooltipInfo)
 end
 
 -- 插件集提示按钮：鼠标移出
 local function onAddonSetTipButtonLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 -- 插件集提示按钮：鼠标点击

@@ -190,7 +190,7 @@
         </Layers>
         <Frames>
             <Button parentKey="Confirm">
-                <Size x="16" y="16"/>
+                <Size x="18" y="18"/>
                 <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\slider_confirm.png"/>
                 <Anchors>
                     <Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.MinValue" x="-2" y="0"/>
@@ -199,12 +199,12 @@
                     <OnClick>
                         self:GetParent():OnConfirmClick()
                     </OnClick>
-                    <!-- <OnEnter>
-                        self:GetParent():OnDeleteEnter()
+                    <OnEnter>
+                        self:GetParent():OnConfirmEnter()
                     </OnEnter>
                     <OnLeave>
-                        self:GetParent():OnDeleteLeave()
-                    </OnLeave> -->
+                        self:GetParent():OnConfirmLeave()
+                    </OnLeave>
                 </Scripts>
             </Button>
         </Frames>

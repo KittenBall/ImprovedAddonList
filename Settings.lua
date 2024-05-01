@@ -428,7 +428,7 @@ function ImprovedAddonListSettingsItemSliderMixin:OnBind(item)
 
     self.MinValue:SetText(tostring(min))
     self.MaxValue:SetText(tostring(max))
-    self.Slider:SetPoint("RIGHT", self:GetParent(), "RIGHT", -(self.MaxValue:GetStringWidth() + 8), 0)
+    self.Slider:SetPoint("RIGHT", self, "RIGHT", -(self.MaxValue:GetStringWidth() + 8), 0)
     self.Slider:SetValue(percent * 100, false)
 end
 
@@ -448,17 +448,35 @@ function ImprovedAddonListSettingsItemSliderMixin:OnValueChanged(percent)
 end
 
 function ImprovedAddonListSettingsItemSliderMixin:OnSliderThumbDragStart()
+    if self.Value.FadeJob then
+        self.Value.FadeJob:Cancel()
+    end
     self.Value:Show()
 end
 
 function ImprovedAddonListSettingsItemSliderMixin:OnSliderThumbDragStop()
-    self.Value:Hide()
+    if self.Value.FadeJob then
+        self.Value.FadeJob:Cancel()
+    end
+    self.Value.FadeJob = C_Timer.NewTimer(3, function()
+        self.Value:Hide()
+    end)
 end
 
 function ImprovedAddonListSettingsItemSliderMixin:OnConfirmClick()
     local item = self:GetElementData():GetData()
     item:Save()
     TriggerSettingsMenuUpdate(item)
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnConfirmEnter()
+    GameTooltip:SetOwner(self.Confirm)
+    GameTooltip:AddLine(L["settings_slider_confirm_tips"], 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListSettingsItemSliderMixin:OnConfirmLeave()
+    GameTooltip:Hide()
 end
 
 -- 动态编辑框

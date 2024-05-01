@@ -27,6 +27,7 @@ AddonList.xml
 AddonDetail.lua
 AddonSet.xml
 AddonSetChoiceDialog.xml
+AddonListTooltips.xml
 Settings.xml
 AddonSettings.lua
 AddonSetSettings.lua

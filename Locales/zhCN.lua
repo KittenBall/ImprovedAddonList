@@ -86,6 +86,7 @@ L["edit_remark_error_remark_duplicate"] = "与插件“%s”备注重复"
 L["reload_ui_tips_title"] = "需要重载的插件"
 
 L["settings_dynamic_edit_box_delete_tips"] = "删除"
+L["settings_slider_confirm_tips"] = "保存并应用"
 
 L["settings_group_general"] = "综合"
 L["settings_addon_icon_display_mode"] = "插件图标显示方式"

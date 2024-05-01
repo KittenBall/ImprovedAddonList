@@ -1,0 +1,19 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+    <Script file="AddonListTooltips.lua"/>
+
+    <Button name="ImprovedAddonListAddonListTooltipsItemTemplate" mixin="ImprovedAddonListAddonListTooltipsItemMixin" virtual="true">
+		<Size x="200" y="20"/>
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT" wordwrap="false">
+					<Size y="12"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="0"/>
+                        <Anchor point="RIGHT" x="-4" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Button>
+</Ui>

@@ -137,19 +137,22 @@ end
 
 -- 重载插件指示器：鼠标划入
 local function OnReloadUIIndicatorEnter(self)
-    GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(L["reload_ui_tips_title"])
-    
-    for _, title in ipairs(Addon:GetAddonTitlesShouldReload()) do
-        GameTooltip:AddLine(title, 1, 1, 1)
+    local addons = {}
+    for _, name in ipairs(Addon:GetAddonNamesShouldReload()) do
+        table.insert(addons, { Name = name })
     end
-    
-    GameTooltip:Show()
+
+    local addonListTooltipInfo = {
+        Addons = addons,
+        Label = L["reload_ui_tips_title"],
+        Owner = self
+    }
+    Addon:ShowAddonListTooltips(addonListTooltipInfo)
 end
 
 -- 重载插件指示器：鼠标移出
 local function OnReloadUIIndicatorLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 local function OnUIScaleChanged(self)
@@ -384,8 +387,7 @@ function AlertDialogMixin:Init()
     local Label = self:CreateFontString(nil, nil, "GameFontHighlight")
     self.Label = Label
     Label:SetPoint("TOP", 0, -20)
-    Label:SetPoint("LEFT", 20, 0)
-    Label:SetPoint("RIGHT", -20, 0)
+    Label:SetWidth(280)
     Label:SetSpacing(4)
 
     local CancelButton = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate, UIButtonTemplate")

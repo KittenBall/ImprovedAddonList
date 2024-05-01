@@ -320,15 +320,15 @@ function Addon:CanAddonLoadOnDemand(query)
 end
 
 -- 获取需要重载的插件名
-function Addon:GetAddonTitlesShouldReload()
+function Addon:GetAddonNamesShouldReload()
     local addonInfos = self:GetAddonInfos()
-    local addonTitles = {}
+    local addonNames = {}
     for _, addonInfo in ipairs(addonInfos) do
         if self:IsAddonShouldReload(addonInfo) then
-            table.insert(addonTitles, addonInfo.Title)
+            table.insert(addonNames, addonInfo.Name)
         end
     end
-    return addonTitles
+    return addonNames
 end
 
 -- 插件是否需要重载
@@ -429,7 +429,7 @@ function Addon:IsAllAddonsEnabled()
             shouldReload = true
         end
 
-        if allEnabled ~= nil and canReset ~= nil and shouldReload ~= nil then
+        if allEnabled ~= nil and allDisabled and canReset ~= nil and shouldReload ~= nil then
             break
         end
     end
@@ -497,9 +497,9 @@ function Addon:ApplyAddonSetAddons(addonSetName)
                     C_AddOns.DisableAddOn(addonName)
                 end
             end
-        end
 
-        self:UpdateAddonInfos()
+            self:UpdateAddonInfoByName(addonName)
+        end
     end
 end
 

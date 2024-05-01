@@ -1,4 +1,5 @@
-local AddonName, Addon = ...
+local addonName, Addon = ...
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 -- 待实现需求：
 -- 一：插件分组
