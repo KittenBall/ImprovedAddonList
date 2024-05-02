@@ -366,6 +366,7 @@ function Addon:ResetAddonList()
             C_AddOns.DisableAddOn(addonInfo.Name)
         end
     end
+    self:UpdateAddonInfos()
 end
 
 -- 插件列表是否可以重置
@@ -388,6 +389,7 @@ function Addon:EnableAllAddons()
             C_AddOns.EnableAddOn(addonInfo.Name)
         end
     end
+    self:UpdateAddonInfos()
 end
 
 -- 禁用所有插件
@@ -400,6 +402,7 @@ function Addon:DisableAllAddons()
             C_AddOns.DisableAddOn(addonInfo.Name)
         end
     end
+    self:UpdateAddonInfos()
 end
 
 -- 所有插件是否都已启用
@@ -536,7 +539,7 @@ function Addon:NewAddonSet(name)
         end
     end
 
-    tinsert(addonSets, { Name = name, Enabled = true })
+    tinsert(addonSets, { Name = name, Enabled = true, Addons = {} })
 
     return true
 end
@@ -582,6 +585,9 @@ function Addon:SetAddonSetAddonList(addonSetName, addonList)
             end
         end
     end
+
+    -- 插件集不保存此插件
+    addons[AddonName] = nil
 end
 
 -- 合并插件列表到插件集
@@ -601,4 +607,7 @@ function Addon:MergeAddonListToAddonSet(addonSetName, addonList)
             end
         end
     end
+
+    -- 插件集不保存此插件
+    addons[AddonName] = nil
 end

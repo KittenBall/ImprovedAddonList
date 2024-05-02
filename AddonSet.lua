@@ -18,6 +18,12 @@ local function onAddonSetListButtonClick(self)
     Addon:ShowAddonSetDialog()
 end
 
+local EnabledAndNotInAddonSetColor = CreateColor(DISABLED_FONT_COLOR:GetRGB())
+EnabledAndNotInAddonSetColor.a = 0.33
+
+local DisabledAndInAddonSetColor = CreateColor(RED_FONT_COLOR:GetRGB())
+DisabledAndInAddonSetColor.a = 0.33
+
 -- 插件集提示按钮：鼠标划入
 local function onAddonSetTipButtonEnter(self)
     local activeAddonSet = Addon:GetActiveAddonSet()
@@ -25,20 +31,36 @@ local function onAddonSetTipButtonEnter(self)
         return
     end
     
+    local legends = {
+        DisabledAndInAddonSet = {
+            Title = L["addon_set_not_perfect_match_disabled_but_in_addon_set"],
+            Color = DisabledAndInAddonSetColor
+        },
+        EnabledAndNotInAddonSet = {
+            Title = L["addon_set_not_perfect_match_enabled_but_not_in_addon_set"],
+            Color = EnabledAndNotInAddonSetColor
+        }
+    }
+
     local addons = {}
-    for addonName, enabled in pairs(activeAddonSet.Addons) do
-        if enabled then
-            table.insert(addons, { Name = addonName })
+    local addonInfos = Addon:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        local addonName = addonInfo.Name
+        if not Addon:IsAddonManager(addonName) then
+            if addonInfo.Enabled and not activeAddonSet.Addons[addonName] then
+                tinsert(addons, { Name = addonName, Legend = "EnabledAndNotInAddonSet" }) 
+            elseif not addonInfo.Enabled and activeAddonSet.Addons[addonName] then
+                tinsert(addons, { Name = addonName, Legend = "DisabledAndInAddonSet" })
+            end
         end
     end
-    table.sort(addons, function(a, b) return a.Name < b.Name end)
 
     local addonListTooltipInfo = {
+        Legends = legends,
         Addons = addons,
-        Label = L["addon_set_not_full_load_tips"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR)),
-        Owner = self
+        Label = L["addon_set_not_perfect_match_tips"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR))
     }
-    Addon:ShowAddonListTooltips(addonListTooltipInfo)
+    Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
 end
 
 -- 插件集提示按钮：鼠标移出
@@ -47,23 +69,28 @@ local function onAddonSetTipButtonLeave(self)
 end
 
 -- 插件集提示按钮：鼠标点击
-local function onAddonSetTipButtonClick(self)
+local function onAddonSetTipButtonClick(self, button)
     local activeAddonSet = Addon:GetActiveAddonSet()
     if not activeAddonSet or not activeAddonSet.Addons then
         return
     end
 
-    for addonName, enabled in pairs(activeAddonSet.Addons) do
-        if enabled then
-            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
-            if addonInfo and not addonInfo.Enabled
-                and not Addon:IsAddonManager(addonInfo.Name) and not Addon:IsAddonLocked(addonInfo.Name) then
-                    C_AddOns.EnableAddOn(addonInfo.Name)
+    if button == "RightButton" then
+        -- merge
+        for addonName, enabled in pairs(activeAddonSet.Addons) do
+            if enabled then
+                local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
+                if addonInfo and not addonInfo.Enabled
+                    and not Addon:IsAddonManager(addonInfo.Name) and not Addon:IsAddonLocked(addonInfo.Name) then
+                        C_AddOns.EnableAddOn(addonInfo.Name)
+                end
             end
         end
+        Addon:UpdateAddonInfos()
+    elseif button == "LeftButton" then
+        Addon:ApplyAddonSetAddons(activeAddonSet.Name)
     end
 
-    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -74,30 +101,25 @@ local function onActiveAddonSetLabelEnter(self)
         return
     end
 
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:AddLine(L["addon_set_addon_list"], 1, 1, 1)
-    
     local addons = {}
-    for addonName, enabled in pairs(activeAddonSet.Addons) do
-        if enabled then
-            local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
-            if addonInfo then
-                tinsert(addons, addonInfo.Title)
-            end
+    local addonInfos = Addon:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        local addonName = addonInfo.Name
+        if not Addon:IsAddonManager(addonName) and activeAddonSet.Addons[addonName] then
+            tinsert(addons, { Name = addonName })
         end
     end
 
-    table.sort(addons)
-    for _, addonTitle in ipairs(addons) do
-        GameTooltip:AddLine(addonTitle, 1, 1, 1, false)
-    end
-
-    GameTooltip:Show()
+    local addonListTooltipInfo = {
+        Addons = addons,
+        Label = L["addon_set_addon_list"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR))
+    }
+    Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
 end
 
 -- 当前插件集文本：鼠标移出
 local function onActiveAddonSetLabelLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 function Addon:OnAddonSetContainerLoad()
@@ -123,12 +145,15 @@ function Addon:OnAddonSetContainerLoad()
     AddonSetTipButton:SetScript("OnEnter", onAddonSetTipButtonEnter)
     AddonSetTipButton:SetScript("OnLeave", onAddonSetTipButtonLeave)
     AddonSetTipButton:SetScript("OnClick", onAddonSetTipButtonClick)
+    AddonSetTipButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     AddonSetTipButton:Hide()
 
     local ActiveAddonSetContainer = CreateFrame("Frame", nil, AddonSetContainer, "InsetFrameTemplate3")
     ActiveAddonSetContainer:SetPoint("LEFT")
     ActiveAddonSetContainer:SetPoint("RIGHT", AddonSetListButton, "LEFT", -5, 0)
     ActiveAddonSetContainer:SetHeight(20)
+    ActiveAddonSetContainer:SetScript("OnEnter", onActiveAddonSetLabelEnter)
+    ActiveAddonSetContainer:SetScript("OnLeave", onActiveAddonSetLabelLeave)
 
     local ActiveAddonSetPrefix = ActiveAddonSetContainer:CreateFontString(nil, nil, "GameFontNormalSmall2")
     ActiveAddonSetPrefix:SetPoint("LEFT", 5, 0)
@@ -141,8 +166,6 @@ function Addon:OnAddonSetContainerLoad()
     ActiveAddonSetLabel:SetPoint("LEFT", ActiveAddonSetPrefix, "RIGHT", 8, 0)
     ActiveAddonSetLabel:SetPoint("RIGHT", -5, 0)
     ActiveAddonSetLabel:SetMaxLines(1)
-    ActiveAddonSetLabel:SetScript("OnEnter", onActiveAddonSetLabelEnter)
-    ActiveAddonSetLabel:SetScript("OnLeave", onActiveAddonSetLabelLeave)
 
     self:RefreshAddonSetContainer()
 end
@@ -162,17 +185,22 @@ function Addon:RefreshAddonSetContainer()
     end
 
     if activeAddonSet and activeAddonSet.Addons then
-        local fullLoad = true
-        for addonName, enabled in pairs(activeAddonSet.Addons) do
-            if enabled then
-                local addonInfo = self:GetAddonInfoByNameOrNil(addonName)
-                if addonInfo and not addonInfo.Enabled then
-                    fullLoad = false
+        local addonInfos = self:GetAddonInfos()
+        local perfectMatch = true
+
+        -- 检查是否完全匹配
+        for _, addonInfo in ipairs(addonInfos) do
+            if not self:IsAddonManager(addonInfo.Name) then
+                if addonInfo.Enabled and not activeAddonSet.Addons[addonInfo.Name] then
+                    perfectMatch = false
+                    break
+                elseif not addonInfo.Enabled and activeAddonSet.Addons[addonInfo.Name] then
+                    perfectMatch = false
                     break
                 end
             end
         end
-        addonSetContainer.AddonSetTipButton:SetShown(not fullLoad)
+        addonSetContainer.AddonSetTipButton:SetShown(not perfectMatch)
     else
         addonSetContainer.AddonSetTipButton:Hide()
     end
@@ -225,8 +253,8 @@ end
 -- value:Table:{ key = addonName, value = [true, false, nil] }
 local AddonSetChangedAddons = {}
 
--- 当前插件集是否已启用全部插件
-local function IsAllAddonEnabledInCurrentFocusAddonSet()
+-- 当前插件集所有插件是否都已启用
+local function IsAllAddonsEnabledInCurrentFocusAddonSet()
     local currentAddonSet = Addon:GetCurrentFocusAddonSet()
     if not currentAddonSet then
         return false
@@ -234,73 +262,44 @@ local function IsAllAddonEnabledInCurrentFocusAddonSet()
 
     local currentChangedAddons = AddonSetChangedAddons[currentAddonSet.Name]
     local addonInfos = Addon:GetAddonInfos()
+    local currentAddonSetAddons = currentAddonSet.Addons
 
+    local allEnabled, allDisabled, canReset
     for _, addonInfo in ipairs(addonInfos) do
+        local isAddonManager = Addon:IsAddonManager(addonInfo.Name)
+        local enabled = addonInfo.Enabled
         local addonName = addonInfo.Name
-        if not Addon:IsAddonManager(addonName) then
-            local tempEnableStatus = currentChangedAddons and currentChangedAddons[addonName]
-            if tempEnableStatus == false then
-                return false
-            elseif tempEnableStatus == nil then
-                if not currentAddonSet.Addons or not currentAddonSet.Addons[addonName] then
-                    return false
-                end
+        local tempEnableStatus = currentChangedAddons and currentChangedAddons[addonName]
+        local enableStatus = currentAddonSetAddons and currentAddonSetAddons[addonName]
+
+        if not isAddonManager then
+            if allEnabled == nil and (tempEnableStatus == false or (tempEnableStatus == nil and not enableStatus)) then
+                allEnabled = false
             end
+
+            if allDisabled == nil and (tempEnableStatus == true or (tempEnableStatus == nil and enableStatus)) then
+                allDisabled = false
+            end
+
+            if canReset == nil and (tempEnableStatus ~= nil and tempEnableStatus ~= enableStatus) then
+                canReset = true
+            end
+        end
+
+        if allEnabled ~= nil and allDisabled ~= nil and canReset ~= nil then
+            break
         end
     end
 
-    return true
-end
-
--- 当前插件集是否已禁用全部插件
-local function IsAllAddonDisabledInCurrentFocusAddonSet()
-    local currentAddonSet = Addon:GetCurrentFocusAddonSet()
-    if not currentAddonSet then
-        return true
+    if allEnabled == nil then
+        allEnabled = true
     end
 
-    local currentChangedAddons = AddonSetChangedAddons[currentAddonSet.Name]
-    local addonInfos = Addon:GetAddonInfos()
-
-    for _, addonInfo in ipairs(addonInfos) do
-        local addonName = addonInfo.Name
-        if not Addon:IsAddonManager(addonName) then
-            local tempEnableStatus = currentChangedAddons and currentChangedAddons[addonName]
-            if tempEnableStatus == true then
-                return false
-            elseif tempEnableStatus == nil then
-                if currentAddonSet.Addons and currentAddonSet.Addons[addonName] then
-                    return false
-                end
-            end
-        end
+    if allDisabled == nil then
+        allDisabled = true
     end
 
-    return true
-end
-
--- 当前插件集插件列表是否可重置
-local function IsAddonListCanResetInCurrentFocusAddonSet()
-    local currentAddonSet = Addon:GetCurrentFocusAddonSet()
-    if not currentAddonSet then
-        return false
-    end
-
-    local currentChangedAddons = AddonSetChangedAddons[currentAddonSet.Name]
-    local addonInfos = Addon:GetAddonInfos()
-
-    for _, addonInfo in ipairs(addonInfos) do
-        local addonName = addonInfo.Name
-        if not Addon:IsAddonManager(addonName) then
-            local tempEnableStatus = currentChangedAddons and currentChangedAddons[addonName]
-            local enableStatus = currentAddonSet.Addons and currentAddonSet.Addons[addonName] and true or false
-            if tempEnableStatus ~= nil and tempEnableStatus ~= enableStatus then
-                return true
-            end
-        end
-    end
-
-    return false
+    return allEnabled, allDisabled, canReset
 end
 
 -- 插件集插件列表项
@@ -625,17 +624,25 @@ end
 
 -- 启用全部按钮：鼠标点击
 local function onEnableAllButtonClick(self)
-    local focusAddonSetName = Addon:GetCurrentFocusAddonSetName()
-    if not focusAddonSetName then
+    local focusAddonSet = Addon:GetCurrentFocusAddonSet()
+    if not focusAddonSet then
         return
     end
 
-    AddonSetChangedAddons[focusAddonSetName] = AddonSetChangedAddons[focusAddonSetName] or {}
-    local ChangedAddons = AddonSetChangedAddons[focusAddonSetName]
+    AddonSetChangedAddons[focusAddonSet.Name] = AddonSetChangedAddons[focusAddonSet.Name] or {}
+    local ChangedAddons = AddonSetChangedAddons[focusAddonSet.Name]
+    local currentAddonSetAddons = focusAddonSet.Addons
 
     local addonInfos = Addon:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        ChangedAddons[addonInfo.Name] = true
+        local enableStatus = currentAddonSetAddons and currentAddonSetAddons[addonInfo.Name]
+        if enableStatus then
+            -- 清除临时状态，这样会使用实际的启用状态
+            -- 点击列表项时才不会有问题
+            ChangedAddons[addonInfo.Name] = nil
+        else
+            ChangedAddons[addonInfo.Name] = true
+        end
     end
 
     Addon:RefreshAddonSetAddonListContainer()
@@ -661,17 +668,25 @@ end
 
 -- 禁用全部按钮：鼠标点击
 local function onDisableAllButtonClick(self)
-    local focusAddonSetName = Addon:GetCurrentFocusAddonSetName()
-    if not focusAddonSetName then
+    local focusAddonSet = Addon:GetCurrentFocusAddonSet()
+    if not focusAddonSet then
         return
     end
 
-    AddonSetChangedAddons[focusAddonSetName] = AddonSetChangedAddons[focusAddonSetName] or {}
-    local ChangedAddons = AddonSetChangedAddons[focusAddonSetName]
+    AddonSetChangedAddons[focusAddonSet.Name] = AddonSetChangedAddons[focusAddonSet.Name] or {}
+    local ChangedAddons = AddonSetChangedAddons[focusAddonSet.Name]
+    local currentAddonSetAddons = focusAddonSet.Addons
 
     local addonInfos = Addon:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
-        ChangedAddons[addonInfo.Name] = false
+        local enableStatus = currentAddonSetAddons and currentAddonSetAddons[addonInfo.Name]
+        if not enableStatus then
+            -- 清除临时状态，这样会使用实际的启用状态
+            -- 点击列表项时才不会有问题
+            ChangedAddons[addonInfo.Name] = nil
+        else
+            ChangedAddons[addonInfo.Name] = false
+        end
     end
 
     Addon:RefreshAddonSetAddonListContainer()
@@ -1161,7 +1176,7 @@ function Addon:RefreshAddonSetAddonListOptionButtonsStatus()
     
     -- 更新启用全部按钮
     local EnableAllButton = AddonListContainer.EnableAllButton
-    local isAllAddonsEnabled = IsAllAddonEnabledInCurrentFocusAddonSet()
+    local isAllAddonsEnabled, isAllAddonsDisabled, addonListCanReset = IsAllAddonsEnabledInCurrentFocusAddonSet()
     local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsEnabled and "enable_all_checked" or "enable_all")
     EnableAllButton:SetNormalTexture(enableAllTexture)
     EnableAllButton:SetHighlightTexture(enableAllTexture)
@@ -1169,7 +1184,6 @@ function Addon:RefreshAddonSetAddonListOptionButtonsStatus()
     
     -- 更新禁用全部按钮
     local DisableAllButton = AddonListContainer.DisableAllButton
-    local isAllAddonsDisabled = IsAllAddonDisabledInCurrentFocusAddonSet()
     local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonsDisabled and "disable_all_checked" or "disable_all")
     DisableAllButton:SetNormalTexture(disableAllTexture)
     DisableAllButton:SetHighlightTexture(disableAllTexture)
@@ -1177,7 +1191,6 @@ function Addon:RefreshAddonSetAddonListOptionButtonsStatus()
 
     -- 更新重置按钮
     local ResetButton = AddonListContainer.ResetButton
-    local addonListCanReset = IsAddonListCanResetInCurrentFocusAddonSet()
     local resetButtonTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (addonListCanReset and "reset.png" or "reset_disabled.png")
     ResetButton:SetNormalTexture(resetButtonTexture)
     ResetButton:SetHighlightTexture(resetButtonTexture)

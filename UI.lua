@@ -144,10 +144,9 @@ local function OnReloadUIIndicatorEnter(self)
 
     local addonListTooltipInfo = {
         Addons = addons,
-        Label = L["reload_ui_tips_title"],
-        Owner = self
+        Label = L["reload_ui_tips_title"]
     }
-    Addon:ShowAddonListTooltips(addonListTooltipInfo)
+    Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
 end
 
 -- 重载插件指示器：鼠标移出

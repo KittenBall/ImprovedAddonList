@@ -167,8 +167,10 @@ L["addon_set_replace_addons_tips"] = "将当前已启用的插件加入到插件
 L["addon_set_enable_all_tips"] = "将所有插件加入“%s”"
 L["addon_set_disable_all_tips"] = "将所有插件移出“%s”"
 L["addon_set_can_not_find"] = "未找到名为“%s”的插件集"
-L["addon_set_not_full_load_tips"] = "插件集“%s”未完全启用，点击完全启用此插件集。\n\n该操作不会禁用目前已启用但不属于当前插件集的插件，也不会修改被锁定的插件的启用状态，无论其是否属于当前插件集"
-L["addon_set_addon_list"] = "插件列表"
+L["addon_set_not_perfect_match_tips"] = "插件集“%s”未完全匹配。\n左键点击替换：启用插件集内的所有插件并禁用其它所有插件\n右键点击合并：启用插件集内的所有插件，该操作不会禁用目前已启用但不属于当前插件集的插件。\n任何操作都不会修改被锁定的插件的启用状态，无论其是否属于当前插件集"
+L["addon_set_not_perfect_match_enabled_but_not_in_addon_set"] = "已启用但不在插件集内"
+L["addon_set_not_perfect_match_disabled_but_in_addon_set"] = "未启用但在插件集内"
+L["addon_set_addon_list"] = "插件集\n%s"
 
 L["addon_set_choice_enable_all_tips"] = "选择所有插件集"
 L["addon_set_choice_disable_all_tips"] = "取消选择所有插件集"

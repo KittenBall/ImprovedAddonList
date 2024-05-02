@@ -98,7 +98,7 @@ function ImprovedAddonListAddonItemMixin:Update()
 
     -- 显示备注
     if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
-        label = addonInfo.IconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
+        label = iconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     end
 
     self.Label:SetText(label)
@@ -310,7 +310,6 @@ end
 -- 启用全部按钮：鼠标点击
 local function onEnableAllButtonClick(self)
     Addon:EnableAllAddons()
-    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -329,7 +328,6 @@ end
 -- 禁用全部按钮：鼠标点击
 local function onDisableAllButtonClick(self)
     Addon:DisableAllAddons()
-    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
@@ -350,7 +348,6 @@ local function onResetButtonClick(self)
     if not Addon:IsAddonListCanReset() then return end
 
     Addon:ResetAddonList()
-    Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
 end
 
