@@ -397,7 +397,8 @@ local function onApplyAddonSetButtonClick(self)
         return
     end
 
-    if IsAddonListCanResetInCurrentFocusAddonSet() then
+    local _, _, canReset = IsAllAddonsEnabledInCurrentFocusAddonSet()
+    if canReset then
         Addon:ShowError(L["addon_set_apply_error_unsave"]:format(WrapTextInColor(focusAddonSetName, NORMAL_FONT_COLOR)))
         return
     end

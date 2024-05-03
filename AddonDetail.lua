@@ -338,7 +338,7 @@ function Addon:OnAddonDetailContainerLoad()
     addonSetOpButton:SetPoint("RIGHT", remarkButton, "LEFT", -4, 0)
     
     -- 加载按钮
-    local loadButton = CreateFrame("Button", nil, AddonDetailFrame)
+    local loadButton = CreateFrame("Button", nil, AddonDetailContainer)
     AddonDetailContainer.LoadButton = loadButton
     loadButton:SetNormalFontObject(ImprovedAddonListButtonNormalFont)
     loadButton:SetHighlightFontObject(ImprovedAddonListButtonHighlightFont)

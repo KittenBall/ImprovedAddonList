@@ -210,6 +210,213 @@ local function GetAddonSetInstanceTypeConditionsSettingInfo(addonSetName)
     return settings
 end
 
+-- 副本难度类型
+-- copied from WeakAuras
+local InstanceDifficultyTypes = {
+    -- 5人普通
+    [1] = L["addon_set_settings_condition_instance_difficulty_type_dungeon_normal"],
+    -- 5人英雄
+    [2] = L["addon_set_settings_condition_instance_difficulty_type_dungeon_heroic"],
+    -- 10人团 普通难度
+    [3] = L["addon_set_settings_condition_instance_difficulty_type_legecy_raid_10_normal"],
+    -- 25人团 普通难度
+    [4] = L["addon_set_settings_condition_instance_difficulty_type_legacy_raid_25_normal"],
+    -- 10人团 英雄难度
+    [5] = L["addon_set_settings_condition_instance_difficulty_type_legecy_raid_10_heroic"],
+    -- 25人团 英雄难度
+    [6] = L["addon_set_settings_condition_instance_difficulty_type_legacy_raid_25_heroic"],
+    -- 随机团
+    [7] = L["addon_set_settings_condition_instance_difficulty_type_legacy_lfr"],
+    -- 史诗钥石
+    [8] = L["addon_set_settings_condition_instance_difficulty_type_mythic_keystone"],
+    -- 40人
+    [9] = L["addon_set_settings_condition_instance_difficulty_type_legacy_raid_40"],
+    -- 场景战役 英雄
+    [11] = L["addon_set_settings_condition_instance_difficulty_type_scenario_heroic"],
+    -- 场景战役 普通
+    [12] = L["addon_set_settings_condition_instance_difficulty_type_scenario_normal"],
+    -- 团队副本 普通
+    [14] = L["addon_set_settings_condition_instance_difficulty_type_raid_normal"],
+    -- 团队副本 英雄
+    [15] = L["addon_set_settings_condition_instance_difficulty_type_raid_heroic"],
+    -- 团队副本 史诗
+    [16] = L["addon_set_settings_condition_instance_difficulty_type_raid_mythic"],
+    -- 随机团
+    [17] = L["addon_set_settings_condition_instance_difficulty_type_raid_lfr"],
+    -- 地下城 史诗
+    [23] = L["addon_set_settings_condition_instance_difficulty_type_dungeon_mythic"],
+    -- 地下城 时光漫游
+    [24] = L["addon_set_settings_condition_instance_difficulty_type_dungeon_timewalking"],
+    -- 团队副本 时光漫游
+    [33] = L["addon_set_settings_condition_instance_difficulty_type_raid_timewalking"],
+    -- 海岛探险 普通
+    [38] = L["addon_set_settings_condition_instance_difficulty_type_island_normal"],
+    -- 海岛探险 英雄
+    [39] = L["addon_set_settings_condition_instance_difficulty_type_island_heroic"],
+    -- 海岛探险 史诗
+    [40] = L["addon_set_settings_condition_instance_difficulty_type_island_mythic"],
+    -- 海岛探险 PVP
+    [45] = L["addon_set_settings_condition_instance_difficulty_type_island_pvp"],
+    -- 战争前线 普通
+    [147] = L["addon_set_settings_condition_instance_difficulty_type_warfront_normal"],
+    -- 战争前线 英雄
+    [149] = L["addon_set_settings_condition_instance_difficulty_type_warfront_heroic"],
+    -- 恩佐斯的幻象
+    [152] = GetDifficultyInfo(152),
+    -- 托加斯特
+    [167] = GetDifficultyInfo(167),
+    -- 晋升之路：勇气
+    [168] = GetDifficultyInfo(168),
+    -- 晋升之路：忠诚
+    [169] = GetDifficultyInfo(169),
+    -- 晋升之路：智慧
+    [170] = GetDifficultyInfo(170),
+    -- 晋升之路：谦逊
+    [171] = GetDifficultyInfo(171),
+}
+
+local function GetAddonSetInstanceDifficultyTypesSettingInfo(addonSetName)
+    local instanceDifficultyTypes = Addon:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
+    if not instanceDifficultyTypes then
+        return
+    end
+
+    local settings = {}
+    for difficulty, title in pairs(InstanceDifficultyTypes) do
+        local setting = {
+            Title = title,
+            Value = difficulty,
+            Type = "multiChoiceItem",
+            Checked = instanceDifficultyTypes[difficulty]
+        }
+        tinsert(settings, setting)
+    end
+    table.sort(settings, function(a, b) return b.Title > a.Title end)
+
+    return settings
+end
+
+-- 副本难度
+-- 副本难度，难度id和难度的映射
+Addon.InstanceDifficultyInfo = {
+    -- 5人普通
+    [1] = "normal",
+    -- 5人英雄
+    [2] = "heroic",
+    -- 10人团 普通难度
+    [3] = "normal",
+    -- 25人团 普通难度
+    [4] = "normal",
+    -- 10人团，英雄难度
+    [5] = "heroic",
+    -- 25人团，英雄难度
+    [6] = "heroic",
+    -- 随机团，
+    [7] = "lfr",
+    -- 史诗钥石
+    [8] = "challenge",
+    -- 40人团
+    [9] = "normal",
+    -- 场景战役，英雄
+    [11] = "heroic",
+    -- 场景战役，普通
+    [12] = "normal",
+    -- 团队副本，普通
+    [14] = "normal",
+    -- 团队副本，英雄
+    [15] = "heroic",
+    -- 团队副本，史诗
+    [16] = "mythic",
+    -- 随机团，
+    [17] = "lfr",
+    -- 史诗地下城
+    [23] = "mythic",
+    -- 时光漫游地下城
+    [24] = "timewalking",
+    -- 时光漫游团本
+    [33] = "timewalking",
+    -- 海岛探险，普通
+    [38] = "normal",
+    -- 海岛探险，英雄
+    [39] = "heroic",
+    -- 海岛探险，史诗
+    [40] = "mythic",
+    -- 战争前线，普通
+    [147] = "normal",
+    -- 战争前线，英雄
+    [149] = "heroic"
+}
+
+local InstanceDifficulties = {
+    none = NONE,
+    normal = PLAYER_DIFFICULTY1,
+    heroic = PLAYER_DIFFICULTY2,
+    mythic = PLAYER_DIFFICULTY6,
+    lfr = PLAYER_DIFFICULTY3,
+    challenge = PLAYER_DIFFICULTY5,
+    timewalking = PLAYER_DIFFICULTY_TIMEWALKER
+}
+
+local function GetAddonSetInstanceDifficultyConditionsSettingInfo(addonSetName)
+    local instanceDifficulties = Addon:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
+    if not instanceDifficulties then
+        return
+    end
+
+    local settings = {}
+    for difficulty, title in pairs(InstanceDifficulties) do
+        local setting = {
+            Title = title,
+            Value = difficulty,
+            Type = "multiChoiceItem",
+            Checked = instanceDifficulties[difficulty]
+        }
+        tinsert(settings, setting)
+    end
+
+    return settings
+end
+
+-- 词缀
+local AffixsInfo = {}
+
+do
+    local Affixs = {
+        9, 10,
+        3, 124, 134, 135, 136, 124,
+        6, 7, 8, 11, 123
+    }
+
+    for _, affixId in ipairs(Affixs) do
+        local name, description, icon = C_ChallengeMode.GetAffixInfo(affixId)
+        AffixsInfo[affixId] = {
+            Name = CreateSimpleTextureMarkup(icon, 14, 14) .. " " .. name,
+            Description = description,
+        }
+    end
+end
+
+local function GetAddonSetMythicPlusAffixConditionsSettingInfo(addonSetName)
+    local mythicPlusAffixs = Addon:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
+    if not mythicPlusAffixs then
+        return
+    end
+
+    local settings = {}
+    for affixId, info in pairs(AffixsInfo) do
+        local setting = {
+            Title = info.Name,
+            Value = affixId,
+            Type = "multiChoiceItem",
+            Checked = mythicPlusAffixs[affixId],
+            Tooltip = info.Description
+        }
+        tinsert(settings, setting)
+    end
+
+    return settings
+end
+
 -- 创建插件集设置信息
 local function CreateAddonSetSettingsInfo(addonSetName)
     if not addonSetName then
@@ -383,7 +590,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_specialization"],
                         Event = "AddonSetSettings.Conditions.Specialization",
                         Type = "multiChoice",
-                        InitCollapsed = true,
                         GetItems = function(self)
                             return GetAddonSetSpecializationConditionsSettingInfo(self.Arg1)
                         end,
@@ -397,7 +603,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_specialization_role"],
                         Event = "AddonSetSettings.Conditions.SpecializationRole",
                         Type = "multiChoice",
-                        InitCollapsed = true,
                         GetItems = function(self)
                             return GetAddonSetSpecializationRoleConditionsSettingInfo(self.Arg1)
                         end,
@@ -411,7 +616,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_race"],
                         Event = "AddonSetSettings.Conditions.Races",
                         Type = "multiChoice",
-                        InitCollapsed = true,
                         GetItems = function(self)
                             return GetAddonSetRaceConditionsSettingInfo(self.Arg1)
                         end,
@@ -425,14 +629,52 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_instance_type"],
                         Event = "AddonSetSettings.Conditions.InstanceTypes",
                         Type = "multiChoice",
-                        InitCollapsed = true,
                         GetItems = function(self)
                             return GetAddonSetInstanceTypeConditionsSettingInfo(self.Arg1)
                         end,
                         OnItemCheckedChange = function(self, instanceType, checked)
                             return Addon:SetInstanceTypeConditionEnabledToAddonSet(self.Arg1, instanceType, checked)
                         end
-                    }
+                    },
+                    -- 副本难度
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_instance_difficulty"],
+                        Event = "AddonSetSettings.Conditions.InstanceDifficulty",
+                        Type = "multiChoice",
+                        GetItems = function(self)
+                            return GetAddonSetInstanceDifficultyConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, difficulty, checked)
+                            return Addon:SetInstanceDifficultyConditionEnabledToAddonSet(self.Arg1, difficulty, checked)
+                        end
+                    },
+                    -- 副本难度类型
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_instance_difficulty_type"],
+                        Event = "AddonSetSettings.Conditions.InstanceDifficultyType",
+                        Type = "multiChoice",
+                        GetItems = function(self)
+                            return GetAddonSetInstanceDifficultyTypesSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, difficulty, checked)
+                            return Addon:SetInstanceDifficultyTypeConditionEnabledToAddonSet(self.Arg1, difficulty, checked)
+                        end
+                    },
+                    -- 史诗钥石词缀
+                    {
+                        Arg1 = addonSetName,
+                        Title = L["addon_set_settings_condition_mythic_plus_affix"],
+                        Event = "AddonSetSettings.Conditions.MythicPlusAffix",
+                        Type = "multiChoice",
+                        GetItems = function(self)
+                            return GetAddonSetMythicPlusAffixConditionsSettingInfo(self.Arg1)
+                        end,
+                        OnItemCheckedChange = function(self, affixId, checked)
+                            return Addon:SetMythicPlusAffixConditionEnabledToAddonSet(self.Arg1, affixId, checked)
+                        end
+                    },
                 }
             }
         }
@@ -782,5 +1024,71 @@ function Addon:SetInstanceTypeConditionEnabledToAddonSet(addonSetName, instanceT
     end
 
     instanceTyps[instanceType] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集副本难度加载条件
+function Addon:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.InstanceDifficulties = conditions.InstanceDifficulties or {}
+    return conditions.InstanceDifficulties
+end
+
+-- 设置插件集副本难度是否启用
+function Addon:SetInstanceDifficultyConditionEnabledToAddonSet(addonSetName, instanceDifficulty, enabled)
+    local instanceDifficulties = self:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
+    if not instanceDifficulties then
+        return
+    end
+
+    instanceDifficulties[instanceDifficulty] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集副本难度类型加载条件
+function Addon:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.InstanceDifficultyTypes = conditions.InstanceDifficultyTypes or {}
+    return conditions.InstanceDifficultyTypes
+end
+
+-- 设置插件集副本难度类型是否启用
+function Addon:SetInstanceDifficultyTypeConditionEnabledToAddonSet(addonSetName, instanceDifficultyType, enabled)
+    local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
+    if not instanceDifficultyTypes then
+        return
+    end
+
+    instanceDifficultyTypes[instanceDifficultyType] = enabled and true or nil
+    return true
+end
+
+-- 获取插件集史诗钥石词缀加载条件
+function Addon:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    if not conditions then
+        return
+    end
+
+    conditions.MythicPlusAffixs = conditions.MythicPlusAffixs or {}
+    return conditions.MythicPlusAffixs
+end
+
+-- 设置插件集史诗钥石词缀是否启用
+function Addon:SetMythicPlusAffixConditionEnabledToAddonSet(addonSetName, affixId, enabled)
+    local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
+    if not mythicPlusAffixs then
+        return
+    end
+
+    mythicPlusAffixs[affixId] = enabled and true or nil
     return true
 end

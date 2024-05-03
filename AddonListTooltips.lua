@@ -120,17 +120,16 @@ function AddonListTooltipsMixin:RefreshLegends(legends, stride)
             local row = math.floor((legendsSize - 1) / stride)
             local column = (legendsSize - 1) % stride
             local x = columnWidth * column + self.Padding + (columnWidth - legendWidth) / 2
-            local y = row * 16 + self.Padding
-
+            local y = row * 20 + self.Padding
             legend.Icon:ClearAllPoints()
             legend.Icon:SetPoint("LEFT", x, 0)
-            legend.Icon:SetPoint("TOP", self.Label, "BOTTOM", 0, -(y + 2))
+            legend.Icon:SetPoint("TOP", self.Label, "BOTTOM", 0, -(y + 4))
         end
     end
 
-    local rows = math.floor(legendsSize / stride)
+    local rows = math.ceil(legendsSize / stride)
     if rows > 0 then
-        self.LegendsHeight = rows * 16 + self.Padding
+        self.LegendsHeight = rows * 20 + self.Padding
     else
         self.LegendsHeight = 0
     end
@@ -182,7 +181,7 @@ function AddonListTooltipsMixin:SetupAddons(owner, info)
         self.ScrollBar:Show()
         self.ScrollBox:SetPoint("RIGHT", self.ScrollBar, "LEFT", -5, 0)
         self.ScrollBar:SetPoint("RIGHT", self, "RIGHT", -self.Padding, 0)
-        self.ScrollBar:SetPoint("BOTTOM", self, "BOTTOM", self.Padding, 0)
+        self.ScrollBar:SetPoint("BOTTOM", self, "BOTTOM", 0, self.Padding)
         self.ScrollBar:SetPoint("TOP", self.Label, "BOTTOM", 0, -self.Padding - self.LegendsHeight)
     else
         self.ScrollBar:Hide()
