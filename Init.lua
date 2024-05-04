@@ -35,6 +35,8 @@ local function OnInitialize()
 
     -- 更新插件信息
     Addon:UpdateAddonInfos()
+
+    Addon:UnregisterEvent("PLAYER_LOGIN", OnInitialize)
 end
 
 Addon:RegisterEvent("PLAYER_LOGIN", OnInitialize)

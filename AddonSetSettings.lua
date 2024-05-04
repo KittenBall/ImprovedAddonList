@@ -28,13 +28,13 @@ local function PlayerNamePatternToSettingsItem(playerNamePattern)
 end
 
 local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
-    local playerNams = Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
-    if not playerNams then
+    local playerNames = Addon:GetAddonSetPlayerNameConditions(addonSetName)
+    if not playerNames then
         return 
     end
 
     local settings = {}
-    for _, playerNamePattern in ipairs(playerNams) do
+    for _, playerNamePattern in ipairs(playerNames) do
         tinsert(settings, PlayerNamePatternToSettingsItem(playerNamePattern))
     end
 
@@ -50,7 +50,7 @@ local SPECIALIZATION_ROLES = {
 }
 
 local function GetAddonSetSpecializationRoleConditionsSettingInfo(addonSetName)
-    local specializationRoles = Addon:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
+    local specializationRoles = Addon:GetAddonSetSpecializationRoleConditions(addonSetName)
     if not specializationRoles then
         return
     end
@@ -93,7 +93,7 @@ do
 end
 
 local function GetAddonSetSpecializationConditionsSettingInfo(addonSetName)
-    local specializations = Addon:GetAddonSetSpecializationConditionsByName(addonSetName)
+    local specializations = Addon:GetAddonSetSpecializationConditions(addonSetName)
     if not specializations then
         return
     end
@@ -161,7 +161,7 @@ do
 end
 
 local function GetAddonSetRaceConditionsSettingInfo(addonSetName)
-    local races = Addon:GetAddonSetRaceConditionsByName(addonSetName)
+    local races = Addon:GetAddonSetRaceConditions(addonSetName)
     if not races then
         return
     end
@@ -191,7 +191,7 @@ local INSTANCE_TYPES = {
 }
 
 local function GetAddonSetInstanceTypeConditionsSettingInfo(addonSetName)
-    local instanceTypes = Addon:GetAddonSetInstanceTypeConditionsByName(addonSetName)
+    local instanceTypes = Addon:GetAddonSetInstanceTypeConditions(addonSetName)
     if not instanceTypes then
         return
     end
@@ -228,7 +228,7 @@ local InstanceDifficultyTypes = {
     -- 随机团
     [7] = L["addon_set_settings_condition_instance_difficulty_type_legacy_lfr"],
     -- 史诗钥石
-    [8] = L["addon_set_settings_condition_instance_difficulty_type_mythic_keystone"],
+    [8] = GetDifficultyInfo(8),
     -- 40人
     [9] = L["addon_set_settings_condition_instance_difficulty_type_legacy_raid_40"],
     -- 场景战役 英雄
@@ -276,7 +276,7 @@ local InstanceDifficultyTypes = {
 }
 
 local function GetAddonSetInstanceDifficultyTypesSettingInfo(addonSetName)
-    local instanceDifficultyTypes = Addon:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
+    local instanceDifficultyTypes = Addon:GetAddonSetInstanceDifficultyTypeConditions(addonSetName)
     if not instanceDifficultyTypes then
         return
     end
@@ -299,6 +299,8 @@ end
 -- 副本难度
 -- 副本难度，难度id和难度的映射
 Addon.InstanceDifficultyInfo = {
+    -- 没有该难度，占位
+    [0] = "none",
     -- 5人普通
     [1] = "normal",
     -- 5人英雄
@@ -358,7 +360,7 @@ local InstanceDifficulties = {
 }
 
 local function GetAddonSetInstanceDifficultyConditionsSettingInfo(addonSetName)
-    local instanceDifficulties = Addon:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
+    local instanceDifficulties = Addon:GetAddonSetInstanceDifficultyConditions(addonSetName)
     if not instanceDifficulties then
         return
     end
@@ -397,7 +399,7 @@ do
 end
 
 local function GetAddonSetMythicPlusAffixConditionsSettingInfo(addonSetName)
-    local mythicPlusAffixs = Addon:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
+    local mythicPlusAffixs = Addon:GetAddonSetMythicPlusAffixConditions(addonSetName)
     if not mythicPlusAffixs then
         return
     end
@@ -413,6 +415,8 @@ local function GetAddonSetMythicPlusAffixConditionsSettingInfo(addonSetName)
         }
         tinsert(settings, setting)
     end
+
+    table.sort(settings, function(a, b) return a.Value < b.Value end)
 
     return settings
 end
@@ -478,6 +482,7 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Type = "dynamicEditBox",
                         MaxLines = 2,
                         MaxLetters = 60,
+                        InitExpand = true,
                         GetItems = function(self)
                             return GetAddonSetPlayerNameConditionsSettingsInfo(self.Arg1)
                         end,
@@ -496,18 +501,43 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Arg1 = addonSetName,
                         Title = L["addon_set_settings_condition_max_level"],
                         Event = "AddonSetSettings.Conditions.MaxLevel",
-                        Type = "switch",
-                        IsEnabled = function(self)
-                            return Addon:IsAddonSetMaxLevelEnabledToAddonSet(self.Arg1)
+                        Type = "singleChoice",
+                        Tooltip = L["addon_set_settings_condition_maxlevel_tips"],
+                        Description = function(self)
+                            local maxLevel = self:GetValue()
+                            if maxLevel == nil then
+                                return L["addon_set_settings_condition_maxlevel_none"]
+                            elseif maxLevel == true then
+                                return L["addon_set_settings_condition_maxlevel_enabled"]
+                            else
+                                return L["addon_set_settings_condition_maxlevel_disabled"]
+                            end
                         end,
-                        SetEnabled = function(self, enabled)
-                            return Addon:SetMaxLevelConditionEnabledToAddonSet(self.Arg1, enabled)
-                        end
+                        GetValue = function(self)
+                            return Addon:GetAddonSetMaxLevelCondition(self.Arg1)
+                        end,
+                        SetValue = function(self, maxLevel)
+                            return Addon:SetMaxLevelConditionEnabledToAddonSet(self.Arg1, maxLevel)
+                        end,
+                        Choices = {
+                            {
+                                Text = L["addon_set_settings_condition_maxlevel_choice_none"],
+                                Value = nil
+                            },
+                            {
+                                Text = L["addon_set_settings_condition_maxlevel_choice_enabled"],
+                                Value = true
+                            },
+                            {
+                                Text = L["addon_set_settings_condition_maxlevel_choice_disabled"],
+                                Value = false
+                            }
+                        }
                     },
                     -- 战争模式
                     {
                         Arg1= addonSetName,
-                        Title = L["addon_set_settings_condition_warmode"],
+                        Title = PVP_LABEL_WAR_MODE,
                         Event = "AddonSetSettings.Conditions.WarMode",
                         Type = "singleChoice",
                         Tooltip = L["addon_set_settings_condition_warmode_tips"],
@@ -522,7 +552,7 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                             end
                         end,
                         GetValue = function(self)
-                            return Addon:GetAddonSetWarModeConditionByName(self.Arg1)
+                            return Addon:GetAddonSetWarModeCondition(self.Arg1)
                         end,
                         SetValue = function(self, warMode)
                             Addon:SetWarModeConditionToAddonSet(self.Arg1, warMode)
@@ -564,7 +594,7 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                             return factionLabel
                         end,
                         GetValue = function(self)
-                            return Addon:GetAddonSetFactionConditionByName(self.Arg1)
+                            return Addon:GetAddonSetFactionCondition(self.Arg1)
                         end,
                         SetValue = function(self, faction)
                             Addon:SetFactionConditionToAddonSet(self.Arg1, faction)
@@ -738,8 +768,10 @@ function Addon:EditAddonSetName(addonSetName, newAddonSetName)
 end
 
 -- 插件集是否启用
-function Addon:IsAddonSetEnabled(addonSetName)
-    local addonSet = self:GetAddonSetByName(addonSetName)
+function Addon:IsAddonSetEnabled(addonSet)
+    if type(addonSet) == "string" then
+        addonSet = self:GetAddonSetByName(addonSet)
+    end
     if not addonSet then
         return false
     end
@@ -748,8 +780,10 @@ function Addon:IsAddonSetEnabled(addonSetName)
 end
 
 -- 设置插件集启用状态
-function Addon:SetAddonSetEnabled(addonSetName, enabled)
-    local addonSet = self:GetAddonSetByName(addonSetName)
+function Addon:SetAddonSetEnabled(addonSet, enabled)
+    if type(addonSet) == "string" then
+        addonSet = self:GetAddonSetByName(addonSet)
+    end
     if not addonSet then
         return false
     end
@@ -759,9 +793,12 @@ function Addon:SetAddonSetEnabled(addonSetName, enabled)
     return true
 end
 
--- 根据插件集名称获取插件集加载条件
-function Addon:GetAddonSetConditionsByName(addonSetName)
-    local addonSet = self:GetAddonSetByName(addonSetName)
+-- 获取插件集加载条件
+function Addon:GetAddonSetConditions(query)
+    local addonSet = query
+    if type(query) == "string" then
+        addonSet = self:GetAddonSetByName(query)
+    end
     if not addonSet then
         return
     end
@@ -771,9 +808,9 @@ function Addon:GetAddonSetConditionsByName(addonSetName)
     return addonSet.Conditions
 end
 
--- 根据插件集名称获取插件集角色名加载条件
-function Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+-- 获取插件集角色名加载条件
+function Addon:GetAddonSetPlayerNameConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -783,13 +820,36 @@ function Addon:GetAddonSetPlayerNameConditionsByName(addonSetName)
     return conditions.PlayerNames
 end
 
+-- 插件集是否满足角色名加载条件
+function Addon:IsAddonSetMetPlayerNameConditions(addonSet, name, relam)
+    if not addonSet then
+        return false
+    end
+
+    local playerNames = self:GetAddonSetPlayerNameConditions(addonSet)
+    if not playerNames or #playerNames == 0 then
+        return true
+    end
+    
+    for _, info in ipairs(playerNames) do
+        local playerName = info.PlayerName
+        local server = info.Server
+        if (not playerName or playerName == "" or name == playerName)
+            and (not server or server == "" or server == relam) then
+            return true
+        end
+    end
+
+    return false
+end
+
 -- 添加插件集条件：玩家名称
 function Addon:AddPlayerNameConditionToAddonSet(addonSetName, playerName)
     if not playerName or type(playerName) ~= "string" then
         return
     end
 
-    local playerNames = self:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    local playerNames = self:GetAddonSetPlayerNameConditions(addonSetName)
     if not playerNames then
         return
     end
@@ -849,7 +909,7 @@ function Addon:RemovePlayerNameConditionFromAddonSet(addonSetName, playerName)
         return
     end
 
-    local playerNames = self:GetAddonSetPlayerNameConditionsByName(addonSetName)
+    local playerNames = self:GetAddonSetPlayerNameConditions(addonSetName)
     if not playerNames then
         return
     end
@@ -869,9 +929,9 @@ function Addon:RemovePlayerNameConditionFromAddonSet(addonSetName, playerName)
     return size - #playerNames
 end
 
--- 根据插件集名称获取插件集战争模式加载条件
-function Addon:GetAddonSetWarModeConditionByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+-- 获取插件集战争模式加载条件
+function Addon:GetAddonSetWarModeCondition(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -882,7 +942,7 @@ end
 -- 设置插件集战争模式加载条件
 -- @param warMode: true:在战争模式下加载 false：非战争模式下加载 nil：无所谓
 function Addon:SetWarModeConditionToAddonSet(addonSetName, warMode)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditions(addonSetName)
     if not conditions then
         return
     end
@@ -891,9 +951,23 @@ function Addon:SetWarModeConditionToAddonSet(addonSetName, warMode)
     return true
 end
 
--- 根据插件集名称获取插件集阵营加载条件
-function Addon:GetAddonSetFactionConditionByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+-- 插件集是否满足战争模式加载条件
+function Addon:IsAddonSetMetWarModeCondition(addonSet, warModeDesired)
+    if not addonSet then
+        return false
+    end
+
+    local warMode = self:GetAddonSetWarModeCondition(addonSet)
+    if warMode == nil or warMode == warModeDesired then
+        return true
+    else
+        return false
+    end
+end
+
+-- 获取插件集阵营加载条件
+function Addon:GetAddonSetFactionCondition(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -904,7 +978,7 @@ end
 -- 设置插件集阵营加载条件
 -- @param faction: 阵营
 function Addon:SetFactionConditionToAddonSet(addonSetName, faction)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+    local conditions = self:GetAddonSetConditions(addonSetName)
     if not conditions then
         return
     end
@@ -913,9 +987,23 @@ function Addon:SetFactionConditionToAddonSet(addonSetName, faction)
     return true
 end
 
+-- 插件集是否满足阵营加载条件
+function Addon:IsAddonSetMetFactionCondition(addonSet, faction)
+    if not addonSet then
+        return false
+    end
+
+    local factionCondition = self:GetAddonSetFactionCondition(addonSet)
+    if factionCondition == nil or faction == factionCondition then
+        return true
+    else
+        return false
+    end
+end
+
 -- 获取插件集专精职责加载条件
-function Addon:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetSpecializationRoleConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -926,9 +1014,8 @@ function Addon:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
 end
 
 -- 设置插件集专精职责是否启用
-
 function Addon:SetSpecializationRoleConditionEnabledToAddonSet(addonSetName, role, enabled)
-    local roles = self:GetAddonSetSpecializationRoleConditionsByName(addonSetName)
+    local roles = self:GetAddonSetSpecializationRoleConditions(addonSetName)
     if not roles then
         return
     end
@@ -937,9 +1024,23 @@ function Addon:SetSpecializationRoleConditionEnabledToAddonSet(addonSetName, rol
     return true
 end
 
+-- 插件集是否满足专精职责加载条件
+function Addon:IsAddonSetMetSpecializationRoleCondition(addonSet, role)
+    if not addonSet then
+        return false
+    end
+    
+    local roles = self:GetAddonSetSpecializationRoleConditions(addonSet)
+    if roles == nil or next(roles) == nil or role == nil then
+        return true
+    end
+
+    return roles[role] or false
+end
+
 -- 获取插件集玩家种族加载条件
-function Addon:GetAddonSetRaceConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetRaceConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -951,7 +1052,7 @@ end
 
 -- 设置插件集玩家种族是否启用
 function Addon:SetRaceConditionEnabledToAddonSet(addonSetName, raceName, enabled)
-    local races = self:GetAddonSetRaceConditionsByName(addonSetName)
+    local races = self:GetAddonSetRaceConditions(addonSetName)
     if not races then
         return
     end
@@ -960,9 +1061,23 @@ function Addon:SetRaceConditionEnabledToAddonSet(addonSetName, raceName, enabled
     return true
 end
 
+-- 插件集是否满足种族加载条件
+function Addon:IsAddonSetMetRaceCondition(addonSet, raceName)
+    if not addonSet then
+        return false
+    end
+
+    local races = self:GetAddonSetRaceConditions(addonSet)
+    if races == nil or next(races) == nil or raceName == nil then
+        return true
+    end
+
+    return races[raceName] or false
+end
+
 -- 获取插件集专精加载条件
-function Addon:GetAddonSetSpecializationConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetSpecializationConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -973,9 +1088,8 @@ function Addon:GetAddonSetSpecializationConditionsByName(addonSetName)
 end
 
 -- 设置插件集专精是否启用
-
 function Addon:SetSpecializationConditionEnabledToAddonSet(addonSetName, specializationId, enabled)
-    local specializations = self:GetAddonSetSpecializationConditionsByName(addonSetName)
+    local specializations = self:GetAddonSetSpecializationConditions(addonSetName)
     if not specializations then
         return
     end
@@ -984,30 +1098,59 @@ function Addon:SetSpecializationConditionEnabledToAddonSet(addonSetName, special
     return true
 end
 
+-- 插件集是否满足专精加载条件
+function Addon:IsAddonSetMetSpecializationCondition(addonSet, specializationId)
+    if not addonSet then
+        return false
+    end
+
+    local specializations = self:GetAddonSetSpecializationConditions(addonSet)
+    if specializations == nil or next(specializations) == nil or type(specializationId) ~= "number" then
+        return true
+    end
+
+    return specializations[specializationId] or false
+end
+
 -- 获取插件集是否满级加载
-function Addon:IsAddonSetMaxLevelEnabledToAddonSet(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetMaxLevelCondition(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
     
-    return conditions.MaxLevel and true or false
+    return conditions.MaxLevel
 end
 
 -- 设置插件集是否满级加载
-function Addon:SetMaxLevelConditionEnabledToAddonSet(addonSetName, enabled)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+-- @param:maxLevel true:满级 false:非满级 nil:无所谓
+function Addon:SetMaxLevelConditionEnabledToAddonSet(addonSetName, maxLevel)
+    local conditions = self:GetAddonSetConditions(addonSetName)
     if not conditions then
         return
     end 
 
-    conditions.MaxLevel = enabled and true or false
+    conditions.MaxLevel = maxLevel
     return true
 end
 
+-- 插件集是否满足满级条件
+function Addon:IsAddonSetMetMaxLevelCondition(addonSet, maxLevel)
+    if not addonSet then
+        return false
+    end
+
+    local maxLevelCondition = self:GetAddonSetMaxLevelCondition(addonSet)
+    if maxLevelCondition == nil or maxLevelCondition == maxLevel then
+        return true
+    else
+        return false
+    end
+end
+
 -- 获取插件集副本类型加载条件
-function Addon:GetAddonSetInstanceTypeConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetInstanceTypeConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -1018,18 +1161,32 @@ end
 
 -- 设置插件集副本类型是否启用
 function Addon:SetInstanceTypeConditionEnabledToAddonSet(addonSetName, instanceType, enabled)
-    local instanceTyps = self:GetAddonSetInstanceTypeConditionsByName(addonSetName)
-    if not instanceTyps then
+    local instanceTypes = self:GetAddonSetInstanceTypeConditions(addonSetName)
+    if not instanceTypes then
         return
     end
 
-    instanceTyps[instanceType] = enabled and true or nil
+    instanceTypes[instanceType] = enabled and true or nil
     return true
 end
 
+-- 插件集是否满足副本类型加载条件
+function Addon:IsAddonSetMetInstanceTypeCondition(addonSet, instanceType)
+    if not addonSet then
+        return false
+    end
+
+    local instanceTypes = self:GetAddonSetInstanceTypeConditions(addonSet)
+    if instanceTypes == nil or next(instanceTypes) == nil or instanceType == nil then
+        return true
+    end
+
+    return instanceTypes[instanceType] or false
+end
+
 -- 获取插件集副本难度加载条件
-function Addon:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetInstanceDifficultyConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -1040,7 +1197,7 @@ end
 
 -- 设置插件集副本难度是否启用
 function Addon:SetInstanceDifficultyConditionEnabledToAddonSet(addonSetName, instanceDifficulty, enabled)
-    local instanceDifficulties = self:GetAddonSetInstanceDifficultyConditionsByName(addonSetName)
+    local instanceDifficulties = self:GetAddonSetInstanceDifficultyConditions(addonSetName)
     if not instanceDifficulties then
         return
     end
@@ -1049,9 +1206,23 @@ function Addon:SetInstanceDifficultyConditionEnabledToAddonSet(addonSetName, ins
     return true
 end
 
+-- 插件集是否满足副本难度加载条件
+function Addon:IsAddonSetMetInstanceDifficultyCondition(addonSet, difficulty)
+    if not addonSet then
+        return false
+    end
+
+    local instanceDifficulties = self:GetAddonSetInstanceDifficultyConditions(addonSet)
+    if instanceDifficulties == nil or next(instanceDifficulties) == nil or difficulty == nil then
+        return true
+    end
+
+    return instanceDifficulties[difficulty] or false
+end
+
 -- 获取插件集副本难度类型加载条件
-function Addon:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetInstanceDifficultyTypeConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -1062,7 +1233,7 @@ end
 
 -- 设置插件集副本难度类型是否启用
 function Addon:SetInstanceDifficultyTypeConditionEnabledToAddonSet(addonSetName, instanceDifficultyType, enabled)
-    local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditionsByName(addonSetName)
+    local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditions(addonSetName)
     if not instanceDifficultyTypes then
         return
     end
@@ -1071,9 +1242,23 @@ function Addon:SetInstanceDifficultyTypeConditionEnabledToAddonSet(addonSetName,
     return true
 end
 
+-- 插件集是否满足副本难度类型加载条件
+function Addon:IsAddonSetMetInstanceDifficultyTypeCondition(addonSet, instanceDifficultyType)
+    if not addonSet then
+        return false
+    end
+
+    local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditions(addonSet)
+    if instanceDifficultyTypes == nil or next(instanceDifficultyTypes) == nil or instanceDifficultyType == nil then
+        return true
+    end
+
+    return instanceDifficultyTypes[instanceDifficultyType] or false
+end
+
 -- 获取插件集史诗钥石词缀加载条件
-function Addon:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
-    local conditions = self:GetAddonSetConditionsByName(addonSetName)
+function Addon:GetAddonSetMythicPlusAffixConditions(query)
+    local conditions = self:GetAddonSetConditions(query)
     if not conditions then
         return
     end
@@ -1084,11 +1269,31 @@ end
 
 -- 设置插件集史诗钥石词缀是否启用
 function Addon:SetMythicPlusAffixConditionEnabledToAddonSet(addonSetName, affixId, enabled)
-    local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditionsByName(addonSetName)
+    local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditions(addonSetName)
     if not mythicPlusAffixs then
         return
     end
 
     mythicPlusAffixs[affixId] = enabled and true or nil
     return true
+end
+
+-- 插件集是否满足史诗钥石词缀加载条件
+function Addon:IsAddonSetMetMythicPlusAffixCondition(addonSet, affixIds)
+    if not addonSet then
+        return false
+    end
+
+    local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditions(addonSet)
+    if mythicPlusAffixs == nil or next(mythicPlusAffixs) == nil or affixIds == nil then
+        return true
+    end
+
+    for _, affixId in ipairs(affixIds) do
+        if mythicPlusAffixs[affixId] then
+            return true
+        end
+    end
+
+    return false
 end

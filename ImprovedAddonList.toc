@@ -32,4 +32,5 @@ Settings.xml
 AddonSettings.lua
 AddonSetSettings.lua
 Init.lua
+Condition.lua
 Cmd.lua

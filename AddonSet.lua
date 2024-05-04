@@ -31,16 +31,10 @@ local function onAddonSetTipButtonEnter(self)
         return
     end
     
-    local legends = {
-        DisabledAndInAddonSet = {
-            Title = L["addon_set_not_perfect_match_disabled_but_in_addon_set"],
-            Color = DisabledAndInAddonSetColor
-        },
-        EnabledAndNotInAddonSet = {
-            Title = L["addon_set_not_perfect_match_enabled_but_not_in_addon_set"],
-            Color = EnabledAndNotInAddonSetColor
-        }
-    }
+    local disabledAndInAddonSetKey = "DisabledAndInAddonSet"
+    local enabledAndNotInAddonSetKey = "EnabledAndNotInAddonSet"
+    local disabledAndInAddonSetCount = 0
+    local enabledAndNotInAddonSetCount = 0
 
     local addons = {}
     local addonInfos = Addon:GetAddonInfos()
@@ -48,12 +42,25 @@ local function onAddonSetTipButtonEnter(self)
         local addonName = addonInfo.Name
         if not Addon:IsAddonManager(addonName) then
             if addonInfo.Enabled and not activeAddonSet.Addons[addonName] then
-                tinsert(addons, { Name = addonName, Legend = "EnabledAndNotInAddonSet" }) 
+                enabledAndNotInAddonSetCount = enabledAndNotInAddonSetCount + 1
+                tinsert(addons, { Name = addonName, Legend = enabledAndNotInAddonSetKey }) 
             elseif not addonInfo.Enabled and activeAddonSet.Addons[addonName] then
-                tinsert(addons, { Name = addonName, Legend = "DisabledAndInAddonSet" })
+                disabledAndInAddonSetCount = disabledAndInAddonSetCount + 1
+                tinsert(addons, { Name = addonName, Legend = disabledAndInAddonSetKey })
             end
         end
     end
+
+    local legends = {
+        [disabledAndInAddonSetKey] = {
+            Title = L["addon_set_not_perfect_match_disabled_but_in_addon_set"]:format(disabledAndInAddonSetCount),
+            Color = DisabledAndInAddonSetColor
+        },
+        [enabledAndNotInAddonSetKey] = {
+            Title = L["addon_set_not_perfect_match_enabled_but_not_in_addon_set"]:format(enabledAndNotInAddonSetCount),
+            Color = EnabledAndNotInAddonSetColor
+        }
+    }
 
     local addonListTooltipInfo = {
         Legends = legends,

@@ -5,7 +5,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     local observers = self[event]
     if not observers then return end
-    for _, func in pairs(observers) do
+    for func, _ in pairs(observers) do
         func(...)
     end
 end)
@@ -16,22 +16,17 @@ function Addon:RegisterEvent(event, func)
 
     eventFrame:RegisterEvent(event)
     eventFrame[event] = eventFrame[event] or {}
-    tinsert(eventFrame[event], func)
+    eventFrame[event][func] = true
 end
 
 function Addon:UnregisterEvent(event, func)
     if type(event) ~= "string" then error("event must be a string") end
     local observers = eventFrame[event]
     if not observers then return end
-
     if not func then
         wipe(observers)
     else
-        tDeleteItem(observers, func)
-    end
-
-    if #observers <= 0 then
-        eventFrame:UnregisterEvent(event)
+        observers[func] = nil
     end
 end
 
@@ -99,6 +94,6 @@ function Addon:HideUIPanel(frame)
     end
 
     Delegate:SetAttribute("panel-frame", frame);
-    Delegate:SetAttribute("panel-skipSetPoint", skipSetPoint);
+    Delegate:SetAttribute("panel-skipSetPoint", false);
     Delegate:SetAttribute("panel-hide", true);
 end

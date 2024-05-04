@@ -21,7 +21,7 @@ Addon.DEFAULT_UI_SCALE = 1
 -- 最小框体缩放比例
 Addon.MIN_UI_SCALE = 0.7
 -- 最大框体缩放比例
-Addon.MAX_UI_SCALE = 2.1
+Addon.MAX_UI_SCALE = 1.5
 
 -- 基础设置
 local AddonSettingsInfo = { 
