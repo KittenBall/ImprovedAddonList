@@ -21,12 +21,12 @@ jobs:
       - name: Create Retail Package
         uses: BigWigsMods/packager@master
           
-      - name: Create Classic Package
-        uses: BigWigsMods/packager@master
-        with:
-          args: -g classic
+      # - name: Create Classic Package
+      #   uses: BigWigsMods/packager@master
+      #   with:
+      #     args: -g classic
 
-      - name: Create BCC Package
-        uses: BigWigsMods/packager@master
-        with:
-          args: -g bcc
+      # - name: Create BCC Package
+      #   uses: BigWigsMods/packager@master
+      #   with:
+      #     args: -g bcc
