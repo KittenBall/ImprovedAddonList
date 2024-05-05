@@ -355,11 +355,13 @@ local function onAddonListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
-    if not userInput then return end
     
-    self.searchJob = C_Timer.NewTimer(0.25, function()
-        Addon:RefreshAddonListContainer()
-    end)
+    if userInput or (self.preText and self.preText ~= self:GetText()) then
+        self.preText = self:GetText()
+        self.searchJob = C_Timer.NewTimer(0.25, function()
+            Addon:RefreshAddonListContainer()
+        end)
+    end
 end
 
 -- 插件图标设置变更：显示模式

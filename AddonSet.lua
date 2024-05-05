@@ -750,15 +750,20 @@ local function onAddonSetListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
-    self.searchJob = C_Timer.NewTimer(0.25, function()
-        Addon:RefreshAddonSetListContainer()
-    end)
+    
+    if userInput or (self.preText and self.preText ~= self:GetText()) then
+        self.preText = self:GetText()
+        self.searchJob = C_Timer.NewTimer(0.25, function()
+            Addon:RefreshAddonSetListContainer()
+        end)
+    end
 end
 
 local function onAddonSetAddonListSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
+    
     self.searchJob = C_Timer.NewTimer(0.25, function()
         Addon:RefreshAddonSetAddonListContainer()
     end)

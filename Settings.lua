@@ -119,6 +119,10 @@ function SettingsSingleChoiceItemMixin:Update()
     self.RadioButton:SetTexture(tex)
 end
 
+function SettingsSingleChoiceItemMixin:GetWrapContentWidth()
+    return self.Label:GetUnboundedStringWidth() + 30
+end
+
 -- 创建单选项
 local function CreateSingleChoiceItem(parent)
     local item = Mixin(CreateFrame("Button", nil, parent), SettingsSingleChoiceItemMixin)
@@ -145,18 +149,20 @@ function Addon:ShowSingleChoiceDialog(owner, settingsItem)
 
     local paddingVertical = 10
     local marginVertical = 5
+    local maxItemWidth = 0
     for i, item in ipairs(Dialog.ChoiceItems) do
         item:ClearAllPoints()
         if i <= choicesSize then
             item:Show()
             item:SetPoint("TOPLEFT", 10, -(paddingVertical + (20 + marginVertical) * (i - 1)))
             item:SetPoint("RIGHT", -10, 0)
+            maxItemWidth = math.max(maxItemWidth, item:GetWrapContentWidth())
         else
             item:Hide()
         end
     end
 
-    Dialog:SetWidth(180)
+    Dialog:SetWidth(maxItemWidth + 20)
     Dialog:SetHeight(choicesSize * 20 + (choicesSize - 1) * marginVertical + paddingVertical * 2)
 
     Dialog:ClearAllPoints()

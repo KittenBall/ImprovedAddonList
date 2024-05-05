@@ -114,14 +114,13 @@ local function onAddonSetSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
-
-    if not userInput then
-        return
+    
+    if userInput or (self.preText and self.preText ~= self:GetText()) then
+        self.preText = self:GetText()
+        self.searchJob = C_Timer.NewTimer(0.25, function()
+            self:GetParent():RefreshAddonSetList()
+        end)
     end
-
-    self.searchJob = C_Timer.NewTimer(0.25, function()
-        self:GetParent():RefreshAddonSetList()
-    end)
 end
 
 local AddonSetChoiceDialogMixin = {}

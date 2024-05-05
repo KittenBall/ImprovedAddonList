@@ -112,9 +112,9 @@ L["addon_set_current"] = "当前插件集\n%s"
 
 L["addon_set_choice_enable_all_tips"] = "选择所有插件集"
 L["addon_set_choice_disable_all_tips"] = "取消选择所有插件集"
-L["addon_set_choice_merge_tips"] = "合并到所选插件集，当前插件列表"
-L["addon_set_choice_replace_tips"] = "替换所选插件集，当前插件列表"
-L["addon_set_choice_delete_tips"] = "从所选插件集中删除，当前插件列表"
+L["addon_set_choice_merge_tips"] = "合并到所选插件集\n当前插件列表"
+L["addon_set_choice_replace_tips"] = "替换所选插件集\n当前插件列表"
+L["addon_set_choice_delete_tips"] = "从所选插件集中删除\n当前插件列表"
 
 L["addon_set_settings_group_basic"] = "基础信息"
 L["addon_set_settings_name"] = "名称"
