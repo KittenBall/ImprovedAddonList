@@ -35,8 +35,8 @@ function AddonListTooltipsMixin:Init()
     self.ScrollBoxItemHorizontalSpacing = 5
     self.ScrollBoxItemVerticalSpacing = 5
 
-    self:SetFrameStrata("DIALOG")
-    self:SetFrameLevel(400)
+    self:SetFrameStrata("TOOLTIP")
+    self:SetFrameLevel(1)
     self:SetClampedToScreen(true)
 
     local Label = self:CreateFontString(nil, nil, "GameFontHighlight")

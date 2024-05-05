@@ -119,7 +119,7 @@ local function onActiveAddonSetLabelEnter(self)
 
     local addonListTooltipInfo = {
         Addons = addons,
-        Label = L["addon_set_addon_list"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR))
+        Label = L["addon_set_current"]:format(WrapTextInColor(activeAddonSet.Name, NORMAL_FONT_COLOR))
     }
     Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
 end

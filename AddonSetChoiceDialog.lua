@@ -19,17 +19,17 @@ function ImprovedAddonListAddonSetChoiceDialogItemMixin:OnClick()
 end
 
 local function showAddonListGameTooltip(self, title)
-    GameTooltip:SetOwner(self)
-    GameTooltip:AddLine(title, nil, nil, nil, true)
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(L["addon_set_addon_list"], 1, 1, 1, true)
-
-    local addons = self:GetParent():GetTargetAddons()
-    for _, addon in ipairs(addons) do
-        GameTooltip:AddLine(addon, 1, 1, 1)
+    local addons = {}
+    for _, addonName in ipairs(self:GetParent():GetTargetAddons()) do
+        tinsert(addons, { Name = addonName })
     end
 
-    GameTooltip:Show()
+    local addonListTooltipInfo = {
+        Addons = addons,
+        Label = title
+    }
+
+    Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
 end
 
 local function onMergeButtonEnter(self)
@@ -37,7 +37,7 @@ local function onMergeButtonEnter(self)
 end
 
 local function onMergeButtonLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 local function onMergeButtonClick(self)
@@ -49,7 +49,7 @@ local function onReplaceButtonEnter(self)
 end
 
 local function onReplaceButtonLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 local function onReplaceButtonClick(self)
@@ -61,7 +61,7 @@ local function onDeleteButtonEnter(self)
 end
 
 local function onDeleteButtonLeave(self)
-    GameTooltip:Hide()
+    Addon:HideAddonListTooltips()
 end
 
 local function onDeleteButtonClick(self)
@@ -114,6 +114,11 @@ local function onAddonSetSearchBoxTextChanged(self, userInput)
     if self.searchJob then
         self.searchJob:Cancel()
     end
+
+    if not userInput then
+        return
+    end
+
     self.searchJob = C_Timer.NewTimer(0.25, function()
         self:GetParent():RefreshAddonSetList()
     end)
@@ -236,29 +241,40 @@ function AddonSetChoiceDialogMixin:IsAllAddonSetSelected()
     local item = dataProvider:FindByPredicate(function(data)
         return data.Checked ~= true
     end)
-    
-    return item == nil
-end
 
-function AddonSetChoiceDialogMixin:IsAllAddonSetDeselected()
-    local dataProvider = self:GetDataProvider()
-    local item = dataProvider:FindByPredicate(function(data)
-        return data.Checked == true
-    end)
+    local allSelected, allDeselected
+    for _, element in dataProvider:Enumerate() do
+        if allSelected == nil and element.Checked ~= true then
+            allSelected = false
+        end
+        if allDeselected == nil and element.Checked == true then
+            allDeselected = false
+        end
+        if allSelected ~= nil and allDeselected ~= nil then
+            break
+        end
+    end
+
+    if allSelected == nil then
+        allSelected = true
+    end
+
+    if allDeselected == nil then
+        allDeselected = true
+    end
     
-    return item == nil
+    return allSelected, allDeselected
 end
 
 function AddonSetChoiceDialogMixin:UpdateButtonStatus()
     local EnableAllButton = self.EnableAllButton
-    local isAllAddonSetSelected = self:IsAllAddonSetSelected()
+    local isAllAddonSetSelected, isAllAddonSetDeselected = self:IsAllAddonSetSelected()
     local enableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonSetSelected and "enable_all_checked" or "enable_all")
     EnableAllButton:SetNormalTexture(enableAllTexture)
     EnableAllButton:SetHighlightTexture(enableAllTexture)
     EnableAllButton:GetHighlightTexture():SetAlpha(0.2)
     
     local DisableAllButton = self.DisableAllButton
-    local isAllAddonSetDeselected = self:IsAllAddonSetDeselected()
     local disableAllTexture = "Interface\\AddOns\\ImprovedAddonList\\Media\\" .. (isAllAddonSetDeselected and "disable_all_checked" or "disable_all")
     DisableAllButton:SetNormalTexture(disableAllTexture)
     DisableAllButton:SetHighlightTexture(disableAllTexture)

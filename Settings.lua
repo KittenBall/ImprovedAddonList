@@ -19,12 +19,11 @@ function Addon:GetOrCreateSettingsDialog(type)
     end
 
     local UI = self:GetOrCreateUI()
-    dialog = CreateFrame("Frame", nil, UI)
+    dialog = CreateFrame("Frame", nil, UI, "TooltipBackdropTemplate")
     self.SettingsDialogs[type] = dialog
 
     dialog:SetFrameStrata("DIALOG")
     dialog:SetFrameLevel(1000)
-    dialog:SetPoint("CENTER")
     dialog:SetMouseMotionEnabled(true)
     dialog:SetMouseClickEnabled(true)
 
@@ -43,8 +42,6 @@ function Addon:GetOrCreateSettingsDialog(type)
         end
     end)
 
-    local border = CreateFrame("Frame", nil, dialog, "DialogBorderDarkTemplate")
-    dialog.Border = border
     return dialog
 end
 
@@ -52,7 +49,7 @@ end
 local SettingsSingleChoiceItemMixin = {}
 
 function SettingsSingleChoiceItemMixin:OnLoad()
-    self:SetHeight(30)
+    self:SetHeight(20)
 
     local label = self:CreateFontString(nil, nil, "GameFontWhite")
     self.Label = label
@@ -61,7 +58,7 @@ function SettingsSingleChoiceItemMixin:OnLoad()
 
     local radioButton = self:CreateTexture()
     self.RadioButton = radioButton
-    radioButton:SetSize(16, 16)
+    radioButton:SetSize(14, 14)
     radioButton:SetPoint("RIGHT", -5, 0)
 
     local hightlightOverlay = self:CreateTexture(nil, "HIGHLIGHT")
@@ -130,7 +127,7 @@ local function CreateSingleChoiceItem(parent)
 end
 
 -- 显示单选弹窗
-function Addon:ShowSingleChoiceDialog(settingsItem)
+function Addon:ShowSingleChoiceDialog(owner, settingsItem)
     local Dialog = self:GetOrCreateSettingsDialog(settingsItem.Type)
     Dialog.ChoiceItems = Dialog.ChoiceItems or {}
 
@@ -146,21 +143,24 @@ function Addon:ShowSingleChoiceDialog(settingsItem)
         item:SetChoiceItem(settingsItem, choice)
     end
 
-    local paddingVertical = 15
+    local paddingVertical = 10
     local marginVertical = 5
     for i, item in ipairs(Dialog.ChoiceItems) do
         item:ClearAllPoints()
         if i <= choicesSize then
             item:Show()
-            item:SetPoint("TOPLEFT", 10, -(paddingVertical + (30 + marginVertical) * (i - 1)))
+            item:SetPoint("TOPLEFT", 10, -(paddingVertical + (20 + marginVertical) * (i - 1)))
             item:SetPoint("RIGHT", -10, 0)
         else
             item:Hide()
         end
     end
 
-    Dialog:SetWidth(250)
-    Dialog:SetHeight(choicesSize * 30 + (choicesSize - 1) * marginVertical + paddingVertical * 2)
+    Dialog:SetWidth(180)
+    Dialog:SetHeight(choicesSize * 20 + (choicesSize - 1) * marginVertical + paddingVertical * 2)
+
+    Dialog:ClearAllPoints()
+    Dialog:SetPoint("TOPRIGHT", owner, "BOTTOMRIGHT", 0, -3)
 end
 
 -- 设置项：组
@@ -278,13 +278,15 @@ ImprovedAddonListSettingsItemSingleChoiceMixin = CreateFromMixins(ImprovedAddonL
 
 -- 单选项：获得当前值
 function ImprovedAddonListSettingsItemSingleChoiceMixin:OnBind(item)
-    self.Value:SetText(item:Description())
+    local value = item:GetValue()
+    local choice = FindValueInTableIf(item.Choices, function(choice) return choice.Value == value end)
+    self.Value:SetText(choice and (choice.Description or choice.Text) or "")
 end
 
 -- 单选项：点击
 function ImprovedAddonListSettingsItemSingleChoiceMixin:OnClick()
     local item = self:GetElementData():GetData()
-    Addon:ShowSingleChoiceDialog(item)
+    Addon:ShowSingleChoiceDialog(self, item)
 end
 
 -- 颜色选择器

@@ -41,6 +41,19 @@ local function GetAddonSetPlayerNameConditionsSettingsInfo(addonSetName)
     return settings
 end
 
+-- 阵营
+local FACTION_GROUPS = {}
+
+do
+    for i = 0, 1 do
+        local faction = PLAYER_FACTION_GROUP[i]
+        local factionColor = PLAYER_FACTION_COLORS[i]
+        local factionLabel = FACTION_LABELS_FROM_STRING[faction]
+        local factionLabel = WrapTextInColor(factionLabel, factionColor)
+        FACTION_GROUPS[faction] = CreateSimpleTextureMarkup(FACTION_LOGO_TEXTURES[i], 14, 14) .. " " .. factionLabel
+    end
+end
+
 -- 专精职责
 local SPECIALIZATION_ROLES = { 
     "TANK", "DAMAGER", "HEALER", 
@@ -503,16 +516,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Event = "AddonSetSettings.Conditions.MaxLevel",
                         Type = "singleChoice",
                         Tooltip = L["addon_set_settings_condition_maxlevel_tips"],
-                        Description = function(self)
-                            local maxLevel = self:GetValue()
-                            if maxLevel == nil then
-                                return L["addon_set_settings_condition_maxlevel_none"]
-                            elseif maxLevel == true then
-                                return L["addon_set_settings_condition_maxlevel_enabled"]
-                            else
-                                return L["addon_set_settings_condition_maxlevel_disabled"]
-                            end
-                        end,
                         GetValue = function(self)
                             return Addon:GetAddonSetMaxLevelCondition(self.Arg1)
                         end,
@@ -522,14 +525,17 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Choices = {
                             {
                                 Text = L["addon_set_settings_condition_maxlevel_choice_none"],
+                                Description = L["addon_set_settings_condition_maxlevel_none"],
                                 Value = nil
                             },
                             {
                                 Text = L["addon_set_settings_condition_maxlevel_choice_enabled"],
+                                Description = L["addon_set_settings_condition_maxlevel_enabled"],
                                 Value = true
                             },
                             {
                                 Text = L["addon_set_settings_condition_maxlevel_choice_disabled"],
+                                Description = L["addon_set_settings_condition_maxlevel_disabled"],
                                 Value = false
                             }
                         }
@@ -541,16 +547,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Event = "AddonSetSettings.Conditions.WarMode",
                         Type = "singleChoice",
                         Tooltip = L["addon_set_settings_condition_warmode_tips"],
-                        Description = function(self)
-                            local warMode = self:GetValue()
-                            if warMode == nil then
-                                return L["addon_set_settings_condition_warmode_none"]
-                            elseif warMode == true then
-                                return L["addon_set_settings_condition_warmode_enabled"]
-                            else
-                                return L["addon_set_settings_condition_warmode_disabled"]
-                            end
-                        end,
                         GetValue = function(self)
                             return Addon:GetAddonSetWarModeCondition(self.Arg1)
                         end,
@@ -560,14 +556,17 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Choices = {
                             {
                                 Text = L["addon_set_settings_condition_warmode_choice_none"],
+                                Description = L["addon_set_settings_condition_warmode_none"],
                                 Value = nil
                             },
                             {
                                 Text = L["addon_set_settings_condition_warmode_choice_enabled"],
+                                Description = L["addon_set_settings_condition_warmode_enabled"],
                                 Value = true
                             },
                             {
                                 Text = L["addon_set_settings_condition_warmode_choice_disabled"],
+                                Description = L["addon_set_settings_condition_warmode_disabled"],
                                 Value = false
                             }
                         }
@@ -579,20 +578,6 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Event = "AddonSetSettings.Conditions.Faction",
                         Type = "singleChoice",
                         Tooltip = L["addon_set_settings_condition_faction_tips"],
-                        Description = function(self)
-                            local faction = self:GetValue()
-                            local factionLabel = FACTION_LABELS_FROM_STRING[faction]
-                            if not factionLabel then
-                                factionLabel = L["addon_set_settings_condition_faction_none"]
-                            else
-                                local factionGroup = PLAYER_FACTION_GROUP[faction]
-                                if factionGroup then
-                                    factionLabel = WrapTextInColor(factionLabel, PLAYER_FACTION_COLORS[factionGroup])
-                                    factionLabel = CreateSimpleTextureMarkup(FACTION_LOGO_TEXTURES[factionGroup], 14, 14) .. " " .. factionLabel
-                                end
-                            end
-                            return factionLabel
-                        end,
                         GetValue = function(self)
                             return Addon:GetAddonSetFactionCondition(self.Arg1)
                         end,
@@ -602,14 +587,15 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Choices = {
                             {
                                 Text = L["addon_set_settings_condition_faction_choice_none"],
+                                Description = L["addon_set_settings_condition_faction_none"],
                                 Value = nil
                             },
                             {
-                                Text = FACTION_LABELS[0],
+                                Text =  FACTION_GROUPS[PLAYER_FACTION_GROUP[0]],
                                 Value = PLAYER_FACTION_GROUP[0]
                             },
                             {
-                                Text = FACTION_LABELS[1],
+                                Text = FACTION_GROUPS[PLAYER_FACTION_GROUP[1]],
                                 Value = PLAYER_FACTION_GROUP[1]
                             }
                         }

@@ -35,9 +35,6 @@ local AddonSettingsInfo = {
                     Title = L["settings_addon_icon_display_mode"],
                     Type = "singleChoice",
                     Event = "AddonSettings.AddonIconDisplayMode",
-                    Description = function(self)
-                        return Addon:GetAddonIconDisplayTypeDescription()
-                    end,
                     GetValue = function(self)
                         return Addon:GetAddonIconDisplayType()
                     end,
@@ -96,9 +93,6 @@ local AddonSettingsInfo = {
                     Type = "singleChoice",
                     Event = "AddonSettings.LoadIndicatorDisplayMode",
                     Tooltip = L["settings_load_indicator_display_mode_tooltip"],
-                    Description = function(self)
-                        return Addon:GetLoadIndicatorDisplayTypeDescription()
-                    end,
                     GetValue = function(self)
                         return Addon:GetLoadIndicatorDisplayType()
                     end,
@@ -244,18 +238,6 @@ function Addon:SetLoadIndicatorDisplayType(loadIndicatorDisplayType)
     self.Saved.Config.LoadIndicatorDisplayType = loadIndicatorDisplayType
 end
 
--- 获取加载指示器说明文本
-function Addon:GetLoadIndicatorDisplayTypeDescription()
-    local loadIndicatorDisplayType = self:GetLoadIndicatorDisplayType()
-    if loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_INVISIBLE then
-        return L["settings_load_indicator_dislay_invisble"]
-    elseif loadIndicatorDisplayType == Addon.LOAD_INDICATOR_DISPLAY_ONLY_COLORFUL then
-        return L["settings_load_indicator_display_only_colorful"]
-    else
-        return L["settings_load_indicator_display_always"]
-    end
-end
-
 local function CreateColorFromRGB(rgb)
     return CreateColor(rgb.r, rgb.g, rgb.b)
 end
@@ -323,18 +305,6 @@ end
 -- 设置加载指示器显示方式
 function Addon:SetAddonIconDisplayType(addonIconDisplayType)
     self.Saved.Config.AddonIconDisplayType = addonIconDisplayType
-end
-
--- 获取插件图标显示方式描述
-function Addon:GetAddonIconDisplayTypeDescription()
-    local addonIconDisplayType = self:GetAddonIconDisplayType()
-    if addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_INVISIBLE then
-        return L["settings_addon_icon_dislay_invisble"]
-    elseif addonIconDisplayType == Addon.ADDON_ICON_DISPLAY_ALWAYS then
-        return L["settings_addon_icon_display_always"]
-    else
-        return L["settings_addon_icon_display_only_available"]
-    end
 end
 
 -- 创建插件图标文本
