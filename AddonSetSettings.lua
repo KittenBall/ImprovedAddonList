@@ -814,7 +814,7 @@ function Addon:IsAddonSetMetPlayerNameConditions(addonSet, name, relam)
 
     local playerNames = self:GetAddonSetPlayerNameConditions(addonSet)
     if not playerNames or #playerNames == 0 then
-        return true
+        return true, true
     end
     
     for _, info in ipairs(playerNames) do
@@ -822,7 +822,7 @@ function Addon:IsAddonSetMetPlayerNameConditions(addonSet, name, relam)
         local server = info.Server
         if (not playerName or playerName == "" or name == playerName)
             and (not server or server == "" or server == relam) then
-            return true
+            return true, false
         end
     end
 
@@ -944,10 +944,12 @@ function Addon:IsAddonSetMetWarModeCondition(addonSet, warModeDesired)
     end
 
     local warMode = self:GetAddonSetWarModeCondition(addonSet)
-    if warMode == nil or warMode == warModeDesired then
-        return true
+    if warMode == nil or warModeDesired == nil then
+        return true, true
+    elseif warMode == warModeDesired then
+        return true, false
     else
-        return false
+        return false, false
     end
 end
 
@@ -980,10 +982,12 @@ function Addon:IsAddonSetMetFactionCondition(addonSet, faction)
     end
 
     local factionCondition = self:GetAddonSetFactionCondition(addonSet)
-    if factionCondition == nil or faction == factionCondition then
-        return true
+    if factionCondition == nil or faction == nil then
+        return true, true
+    elseif faction == factionCondition then
+        return true, false
     else
-        return false
+        return false, false
     end
 end
 
@@ -1018,10 +1022,10 @@ function Addon:IsAddonSetMetSpecializationRoleCondition(addonSet, role)
     
     local roles = self:GetAddonSetSpecializationRoleConditions(addonSet)
     if roles == nil or next(roles) == nil or role == nil then
-        return true
+        return true, true
     end
 
-    return roles[role] or false
+    return roles[role] or false, false
 end
 
 -- 获取插件集玩家种族加载条件
@@ -1055,10 +1059,10 @@ function Addon:IsAddonSetMetRaceCondition(addonSet, raceName)
 
     local races = self:GetAddonSetRaceConditions(addonSet)
     if races == nil or next(races) == nil or raceName == nil then
-        return true
+        return true, true
     end
 
-    return races[raceName] or false
+    return races[raceName] or false, false
 end
 
 -- 获取插件集专精加载条件
@@ -1092,10 +1096,10 @@ function Addon:IsAddonSetMetSpecializationCondition(addonSet, specializationId)
 
     local specializations = self:GetAddonSetSpecializationConditions(addonSet)
     if specializations == nil or next(specializations) == nil or type(specializationId) ~= "number" then
-        return true
+        return true, true
     end
 
-    return specializations[specializationId] or false
+    return specializations[specializationId] or false, false
 end
 
 -- 获取插件集是否满级加载
@@ -1127,10 +1131,13 @@ function Addon:IsAddonSetMetMaxLevelCondition(addonSet, maxLevel)
     end
 
     local maxLevelCondition = self:GetAddonSetMaxLevelCondition(addonSet)
-    if maxLevelCondition == nil or maxLevelCondition == maxLevel then
-        return true
+    if maxLevelCondition == nil or maxLevel == nil then
+        return true, true
+    end
+    if maxLevelCondition == maxLevel then
+        return true, false
     else
-        return false
+        return false, false
     end
 end
 
@@ -1164,10 +1171,10 @@ function Addon:IsAddonSetMetInstanceTypeCondition(addonSet, instanceType)
 
     local instanceTypes = self:GetAddonSetInstanceTypeConditions(addonSet)
     if instanceTypes == nil or next(instanceTypes) == nil or instanceType == nil then
-        return true
+        return true, true
     end
 
-    return instanceTypes[instanceType] or false
+    return instanceTypes[instanceType] or false, false
 end
 
 -- 获取插件集副本难度加载条件
@@ -1200,10 +1207,10 @@ function Addon:IsAddonSetMetInstanceDifficultyCondition(addonSet, difficulty)
 
     local instanceDifficulties = self:GetAddonSetInstanceDifficultyConditions(addonSet)
     if instanceDifficulties == nil or next(instanceDifficulties) == nil or difficulty == nil then
-        return true
+        return true, true
     end
 
-    return instanceDifficulties[difficulty] or false
+    return instanceDifficulties[difficulty] or false, false
 end
 
 -- 获取插件集副本难度类型加载条件
@@ -1236,10 +1243,10 @@ function Addon:IsAddonSetMetInstanceDifficultyTypeCondition(addonSet, instanceDi
 
     local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditions(addonSet)
     if instanceDifficultyTypes == nil or next(instanceDifficultyTypes) == nil or instanceDifficultyType == nil then
-        return true
+        return true, true
     end
 
-    return instanceDifficultyTypes[instanceDifficultyType] or false
+    return instanceDifficultyTypes[instanceDifficultyType] or false, false
 end
 
 -- 获取插件集史诗钥石词缀加载条件
@@ -1272,14 +1279,14 @@ function Addon:IsAddonSetMetMythicPlusAffixCondition(addonSet, affixIds)
 
     local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditions(addonSet)
     if mythicPlusAffixs == nil or next(mythicPlusAffixs) == nil or affixIds == nil then
-        return true
+        return true, true
     end
 
     for _, affixId in ipairs(affixIds) do
         if mythicPlusAffixs[affixId] then
-            return true
+            return true, false
         end
     end
 
-    return false
+    return false, false
 end

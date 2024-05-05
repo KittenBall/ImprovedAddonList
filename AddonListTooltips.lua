@@ -143,6 +143,8 @@ function AddonListTooltipsMixin:RefreshLegends(legends, stride)
 end
 
 function AddonListTooltipsMixin:SetupAddons(owner, info)
+    self:SetScale(Addon:GetUIScale())
+
     local addonCount = info.Addons and #info.Addons or 0
     local stride = 1
     if addonCount * (self.ScrollBoxItemHeight + self.ScrollBoxItemVerticalSpacing) >= self.ScrollBoxMaxHeight then
@@ -236,24 +238,20 @@ function AddonListTooltipsMixin:SetOwner(owner)
 end
 
 function Addon:ShowAddonListTooltips(owner, info)
-    local UI = self:GetOrCreateUI()
-
-    if UI.AddonListTooltips then
-        UI.AddonListTooltips:SetupAddons(owner, info)
+    if self.AddonListTooltips then
+        self.AddonListTooltips:SetupAddons(owner, info)
         return 
     end
 
-    local AddonListTooltips = Mixin(CreateFrame("Frame", nil, UI, "TooltipBackdropTemplate"), AddonListTooltipsMixin)
-    UI.AddonListTooltips = AddonListTooltips
+    local AddonListTooltips = Mixin(CreateFrame("Frame", nil, UIParent, "TooltipBackdropTemplate"), AddonListTooltipsMixin)
+    self.AddonListTooltips = AddonListTooltips
 
     AddonListTooltips:Init()
     AddonListTooltips:SetupAddons(owner, info)
 end
 
 function Addon:HideAddonListTooltips()
-    local UI = self:GetOrCreateUI()
-    
-    if UI.AddonListTooltips then
-        UI.AddonListTooltips:Hide()
+    if self.AddonListTooltips then
+        self.AddonListTooltips:Hide()
     end
 end

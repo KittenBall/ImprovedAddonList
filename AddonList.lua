@@ -191,7 +191,6 @@ function ImprovedAddonListAddonItemMixin:OnClick()
     PlaySound(SOUNDKIT.UI_90_BLACKSMITHING_TREEITEMCLICK)
 end
 
--- 插件列表项：鼠标双击
 function ImprovedAddonListAddonItemMixin:OnDoubleClick()
     local addonInfo = self:GetAddonInfo()
     if addonInfo.IsLocked then

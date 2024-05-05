@@ -87,6 +87,8 @@ L["reload_ui_tips_title"] = "需要重载的插件"
 
 L["settings_dynamic_edit_box_delete_tips"] = "删除"
 L["settings_slider_confirm_tips"] = "保存并应用"
+L["settings_group_expand_all_tips"] = "展开全部"
+L["settings_group_collapse_all_tips"] = "折叠全部"
 
 L["settings_group_general"] = "综合"
 L["settings_addon_icon_display_mode"] = "插件图标显示方式"
@@ -246,6 +248,9 @@ L["addon_set_settings_condition_instance_difficulty_type_warfront_normal"] = "�
 L["addon_set_settings_condition_instance_difficulty_type_warfront_heroic"] = "战争前线（英雄）"
 L["addon_set_settings_condition_instance_difficulty"] = "副本难度"
 L["addon_set_settings_condition_mythic_plus_affix"] = "史诗钥石词缀"
+
+L["addon_set_condition_tooltip_label"] = "插件集\n%s\n满足以下条件：\n%s"
+L["addon_set_condition_met_none"] = "插件集未设置条件"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"

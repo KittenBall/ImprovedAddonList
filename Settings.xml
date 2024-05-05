@@ -56,11 +56,65 @@
 				<Anchors>
 					<Anchor point="RIGHT" x="-5" />
 				</Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnResetClick()
+                    </OnClick>
+                    <OnEnter>
+                        self:GetParent():OnResetEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        self:GetParent():OnResetLeave()
+                    </OnLeave>
+                </Scripts>
+			</Button>
+            <Button parentKey="ExpandAll">
+                <Size x="16" y="16"/>
+                <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\expand_all.png">
+					<Color color="NORMAL_FONT_COLOR"/>
+		        </NormalTexture>
+                <HighlightTexture file="Interface\Addons\ImprovedAddonList\Media\expand_all.png" alphaMode="ADD">
+					<Color color="WHITE_FONT_COLOR"/>
+		        </HighlightTexture>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.Reset" relativePoint="LEFT" x="-5" />
+				</Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnExpandClick()
+                    </OnClick>
+                    <OnEnter>
+                        self:GetParent():OnExpandEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        self:GetParent():OnExpandLeave()
+                    </OnLeave>
+                </Scripts>
+			</Button>
+            <Button parentKey="CollapseAll">
+                <Size x="16" y="16"/>
+                <NormalTexture file="Interface\Addons\ImprovedAddonList\Media\collapse_all.png">
+					<Color color="NORMAL_FONT_COLOR"/>
+		        </NormalTexture>
+                <HighlightTexture file="Interface\Addons\ImprovedAddonList\Media\collapse_all.png" alphaMode="ADD">
+					<Color color="WHITE_FONT_COLOR"/>
+		        </HighlightTexture>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.ExpandAll" relativePoint="LEFT" x="-5" />
+				</Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():OnCollapseClick()
+                    </OnClick>
+                    <OnEnter>
+                        self:GetParent():OnCollapseEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        self:GetParent():OnCollapseLeave()
+                    </OnLeave>
+                </Scripts>
 			</Button>
         </Frames>
-        <Scripts>
-            <OnLoad method="OnLoad"/>
-        </Scripts>
     </Button>
 
     <Button name="ImprovedAddonListSettingsItemTemplate" mixin="ImprovedAddonListSettingsItemMixin" virtual="true">

@@ -166,48 +166,92 @@ end
 -- 设置项：组
 ImprovedAddonListSettingsGroupItemMixin = {}
 
-function ImprovedAddonListSettingsGroupItemMixin:OnLoad()
-    self.Reset:SetScript("OnClick", function()
-        local childrenNodes = self:GetElementData():GetNodes()
-        if childrenNodes then
-            for _, node in ipairs(childrenNodes) do
-                local item = node:GetData()
-                if item and item.Reset then
-                    item:Reset()
-                    TriggerSettingsMenuUpdate(item)
-                end
+function ImprovedAddonListSettingsGroupItemMixin:OnResetClick()
+    local childrenNodes = self:GetElementData():GetNodes()
+    if childrenNodes then
+        for _, node in ipairs(childrenNodes) do
+            local item = node:GetData()
+            if item and item.Reset then
+                item:Reset()
+                TriggerSettingsMenuUpdate(item)
             end
         end
-    end)
-    
-    self.Reset:SetScript("OnEnter", function(button)
-        GameTooltip:SetOwner(button)
-        GameTooltip:AddLine(SETTINGS_DEFAULTS, 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    
-    self.Reset:SetScript("OnLeave", function(button)
-        GameTooltip:Hide()
-    end)
+    end
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnResetEnter()
+    GameTooltip:SetOwner(self.Reset)
+    GameTooltip:AddLine(SETTINGS_DEFAULTS, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnResetLeave()
+    GameTooltip:Hide()
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnExpandClick()
+    self:GetElementData():SetChildrenCollapsed(false)
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnExpandEnter()
+    GameTooltip:SetOwner(self.ExpandAll)
+    GameTooltip:AddLine(L["settings_group_expand_all_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnExpandLeave()
+    GameTooltip:Hide()
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnCollapseClick()
+    self:GetElementData():SetChildrenCollapsed(true)
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnCollapseEnter()
+    GameTooltip:SetOwner(self.CollapseAll)
+    GameTooltip:AddLine(L["settings_group_collapse_all_tips"], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ImprovedAddonListSettingsGroupItemMixin:OnCollapseLeave()
+    GameTooltip:Hide()
 end
 
 function ImprovedAddonListSettingsGroupItemMixin:Update()
     local data = self:GetElementData():GetData()
     self.Title:SetText(data.Title)
     
-    local canReset = false
+    local canReset, canExpand = false, false
     local childrenNodes = self:GetElementData():GetNodes()
     if childrenNodes then
         for _, node in ipairs(childrenNodes) do
             local item = node:GetData()
             if item and item.Reset then
                canReset = true
-               break 
+            end
+
+            if item and (item.Items or item.GetItems) then
+                canExpand = true
+            end 
+            
+            if canReset and canExpand then
+                break
             end
         end
     end
 
     self.Reset:SetShown(canReset)
+    self.ExpandAll:SetShown(canExpand)
+    self.CollapseAll:SetShown(canExpand)
+   
+    if canExpand then
+        self.ExpandAll:ClearAllPoints()
+        if canReset then
+            self.ExpandAll:SetPoint("RIGHT", self.Reset, "LEFT", -5, 0)
+        else
+            self.ExpandAll:SetPoint("RIGHT", -5, 0)
+        end
+    end
 end
 
 -- 设置项
@@ -623,20 +667,33 @@ local function ElementExtentCalculator(index, node)
 end
 
 function SettingsFrameMixin:OnLoad()
-    local ScrollBox = CreateFrame("Frame", nil, self, "WowScrollBoxList")
-    self.ScrollBox = ScrollBox
-
-    ScrollBox:SetPoint("TOPLEFT", 5, -7)
-    ScrollBox:SetPoint("BOTTOMRIGHT", -5, 7)
-
     local Title = self:CreateFontString(nil, nil, "GameFontNormal")
     self.Title = Title
     Title:SetPoint("CENTER", self, "TOP", 0, 0)
 
+    local ScrollBox = CreateFrame("Frame", nil, self, "WowScrollBoxList")
+    self.ScrollBox = ScrollBox
+
+    local Scrollbar = CreateFrame("EventFrame", nil, self, "MinimalScrollBar")
+    Scrollbar:SetPoint("TOPRIGHT", -10, -7)
+    Scrollbar:SetPoint("BOTTOMRIGHT", -10, 7)
+
+    local anchorsWithScrollBar = {
+        CreateAnchor("TOPLEFT", 5, -7);
+        CreateAnchor("BOTTOMRIGHT", Scrollbar, "BOTTOMLEFT", -5, 0),
+    }
+    
+    local anchorsWithoutScrollBar = {
+        CreateAnchor("TOPLEFT", 5, -7),
+        CreateAnchor("BOTTOMRIGHT", -7, 7);
+    }
+
     local ScrollView = CreateScrollBoxListTreeListView(10, 0, 0, 0, 0, 1)
     ScrollView:SetElementFactory(SettingListItemNodeUpdater)
     ScrollView:SetElementExtentCalculator(ElementExtentCalculator)
-    ScrollBox:Init(ScrollView)
+    
+    ScrollUtil.InitScrollBoxListWithScrollBar(ScrollBox, Scrollbar, ScrollView)
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(ScrollBox, Scrollbar, anchorsWithScrollBar, anchorsWithoutScrollBar)
 end
 
 -- 显示设置信息
