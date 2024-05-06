@@ -495,7 +495,7 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Type = "dynamicEditBox",
                         MaxLines = 2,
                         MaxLetters = 60,
-                        InitExpand = true,
+                        InitExpand = function(self) return true end,
                         GetItems = function(self)
                             return GetAddonSetPlayerNameConditionsSettingsInfo(self.Arg1)
                         end,
@@ -606,6 +606,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_specialization"],
                         Event = "AddonSetSettings.Conditions.Specialization",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetSpecializationConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetSpecializationConditionsSettingInfo(self.Arg1)
                         end,
@@ -619,6 +623,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_specialization_role"],
                         Event = "AddonSetSettings.Conditions.SpecializationRole",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetSpecializationRoleConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetSpecializationRoleConditionsSettingInfo(self.Arg1)
                         end,
@@ -632,6 +640,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_race"],
                         Event = "AddonSetSettings.Conditions.Races",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetRaceConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetRaceConditionsSettingInfo(self.Arg1)
                         end,
@@ -645,6 +657,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_instance_type"],
                         Event = "AddonSetSettings.Conditions.InstanceTypes",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetInstanceTypeConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetInstanceTypeConditionsSettingInfo(self.Arg1)
                         end,
@@ -658,6 +674,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_instance_difficulty"],
                         Event = "AddonSetSettings.Conditions.InstanceDifficulty",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetInstanceDifficultyConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetInstanceDifficultyConditionsSettingInfo(self.Arg1)
                         end,
@@ -671,6 +691,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_instance_difficulty_type"],
                         Event = "AddonSetSettings.Conditions.InstanceDifficultyType",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetInstanceDifficultyTypeConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetInstanceDifficultyTypesSettingInfo(self.Arg1)
                         end,
@@ -684,6 +708,10 @@ local function CreateAddonSetSettingsInfo(addonSetName)
                         Title = L["addon_set_settings_condition_mythic_plus_affix"],
                         Event = "AddonSetSettings.Conditions.MythicPlusAffix",
                         Type = "multiChoice",
+                        InitExpand = function(self)
+                            local conditions = Addon:GetAddonSetMythicPlusAffixConditions(addonSetName)
+                            return conditions and next(conditions) ~= nil
+                        end,
                         GetItems = function(self)
                             return GetAddonSetMythicPlusAffixConditionsSettingInfo(self.Arg1)
                         end,

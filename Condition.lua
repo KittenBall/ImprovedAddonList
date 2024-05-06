@@ -174,7 +174,10 @@ local function CheckAddonSetCondition()
     -- end
     if #metConditionAddonSets > 0 then
         table.sort(metConditionAddonSets, function(a, b) return #a.MetConditions > #b.MetConditions end)
-        Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
+
+        if metConditionAddonSets[1].AddonSet.Name ~= Addon:GetActiveAddonSetName() then
+            Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
+        end
     end
 end
 
@@ -245,7 +248,7 @@ function ImprovedAddonListConditionAddonSetItemMixin:OnEnter()
         Addons = addons,
         Label = L["addon_set_condition_tooltip_label"]:format(WrapTextInColor(addonSet.Name, NORMAL_FONT_COLOR), conditions)
     }
-    Addon:ShowAddonListTooltips(self, addonListTooltipInfo)
+    Addon:ShowAddonListTooltips(self:GetParent(), addonListTooltipInfo)
 end
 
 function ImprovedAddonListConditionAddonSetItemMixin:OnLeave()
@@ -269,7 +272,7 @@ function AddonSetConditionDialogMixin:Init()
     self:SetWidth(200)
     self:SetHeight(400)
     self:SetFrameStrata("DIALOG")
-    self:SetPoint("BOTTOMRIGHT", -180, 30)
+    self:SetPoint("BOTTOMRIGHT", -180, 120)
 
     local Label = self:CreateFontString(nil, nil, "GameFontNormalSmall")
     self.Label = Label
@@ -299,7 +302,7 @@ function AddonSetConditionDialogMixin:Init()
         CreateAnchor("BOTTOMRIGHT", -10, 10);
     }
 
-    local ScrollView = CreateScrollBoxListLinearView(1, 1, 1, 1)
+    local ScrollView = CreateScrollBoxListLinearView(1, 1, 1, 1, 1)
     ScrollView:SetElementInitializer("ImprovedAddonListConditionAddonSetItemTemplate", function(button, node) button:Update(node) end)
     ScrollView:SetElementExtentCalculator(function() return 25 end)
     
@@ -338,11 +341,17 @@ end
 function Addon:ShowAddonSetConditionDialog(info)
     local addonSetConditionDialog = self.AddonSetConditionDialog
     if not addonSetConditionDialog then
-        addonSetConditionDialog = Mixin(CreateFrame("Frame", nil, UIParent), AddonSetConditionDialogMixin)
+        addonSetConditionDialog = Mixin(CreateFrame("Frame", nil, UIParent, "TooltipBackdropTemplate"), AddonSetConditionDialogMixin)
         -- addonSetConditionDialog = Mixin(self:CreateDialog(nil, UIParent), AddonSetConditionDialogMixin)
         self.AddonSetConditionDialog = addonSetConditionDialog
         addonSetConditionDialog:Init()
     end
 
     addonSetConditionDialog:Setup(info)
+end
+
+function Addon:HideAddonSetConditionDialog()
+    if self.AddonSetConditionDialog then
+        self.AddonSetConditionDialog:Hide()
+    end
 end

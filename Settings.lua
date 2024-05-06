@@ -716,7 +716,12 @@ function SettingsFrameMixin:ShowSettings(settingsInfo)
             local categoryNode = rootNode:Insert({ IsGroup = true, Title = groupInfo.Title })
             for _, settingsItem in ipairs(groupInfo.Items) do
                 local subNode = categoryNode:Insert(settingsItem)
-                subNode:SetCollapsed(not settingsItem.InitExpand)
+                
+                local initExpand = false
+                if settingsItem.InitExpand then
+                    initExpand = settingsItem:InitExpand()
+                end
+                subNode:SetCollapsed(not initExpand)
                 
                 local subItems = settingsItem.Items or (settingsItem.GetItems and settingsItem:GetItems())
                 if subItems then

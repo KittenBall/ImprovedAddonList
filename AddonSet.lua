@@ -880,19 +880,31 @@ function Addon:ShowAddonSetDialog()
 
     local AddonSetScrollBox = CreateFrame("Frame", nil, AddonSetListContainer, "WowScrollBoxList")
     AddonSetListContainer.ScrollBox = AddonSetScrollBox
-    AddonSetScrollBox:SetPoint("TOP", AddonSetSearchBox, "BOTTOM", 0, -5)
-    AddonSetScrollBox:SetPoint("LEFT", 5, 0)
-    AddonSetScrollBox:SetPoint("BOTTOMRIGHT", -25, 7)
+
     -- 滚动条
     local AddonSetScrollBar = CreateFrame("EventFrame", nil, AddonSetListContainer, "MinimalScrollBar")
     AddonSetListContainer.ScrollBar =  AddonSetScrollBar
-    AddonSetScrollBar:SetPoint("TOPLEFT", AddonSetScrollBox, "TOPRIGHT", 5, 0)
-    AddonSetScrollBar:SetPoint("BOTTOMLEFT", AddonSetScrollBox, "BOTTOMRIGHT", 5, 0)
+    AddonSetScrollBar:SetPoint("TOP", AddonSetSearchBox, "BOTTOM", 0, -5)
+    AddonSetScrollBar:SetPoint("RIGHT", -15, 0)
+    AddonSetScrollBar:SetPoint("BOTTOMRIGHT", -15, 7)
+
+    local anchorsWithScrollBar = {
+        CreateAnchor("TOP", AddonSetSearchBox, "BOTTOM", 0, -5),
+        CreateAnchor("LEFT", 5, 0),
+        CreateAnchor("BOTTOMRIGHT", AddonSetScrollBar, "BOTTOMLEFT", -5, 0),
+    }
+    
+    local anchorsWithoutScrollBar = {
+        CreateAnchor("TOP", AddonSetSearchBox, "BOTTOM", 0, -5),
+        CreateAnchor("LEFT", 5, 0),
+        CreateAnchor("BOTTOMRIGHT", -7, 7)
+    }
 
     local addonSetListView = CreateScrollBoxListLinearView(1, 1, 1, 1, 1)
     addonSetListView:SetElementFactory(AddonSetListNodeUpdater)
     addonSetListView:SetElementExtentCalculator(ElementExtentCalculator)
     ScrollUtil.InitScrollBoxListWithScrollBar(AddonSetScrollBox, AddonSetScrollBar, addonSetListView)
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(AddonSetScrollBox, AddonSetScrollBar, anchorsWithScrollBar, anchorsWithoutScrollBar)
 
     AddonSetScrollBox.SelectionBehavior = ScrollUtil.AddSelectionBehavior(AddonSetScrollBox)
     AddonSetScrollBox.SelectionBehavior:RegisterCallback(SelectionBehaviorMixin.Event.OnSelectionChanged, AddonSetListNodeOnSelectionChanged)

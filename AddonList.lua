@@ -572,9 +572,8 @@ function Addon:RefreshAddonList()
     local rootNode = addonDataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
     local shouldFilter = searchText and strlen(searchText) > 0
-
+    
     for index, addonInfo in ipairs(addonInfos) do
-
         if shouldFilter then
             local nickName = self:GetAddonRemark(addonInfo.Name) or ""
             if addonInfo.Title:lower():match(searchText) or addonInfo.Name:lower():match(searchText) or nickName:lower():match(searchText) then
