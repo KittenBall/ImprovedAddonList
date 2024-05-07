@@ -27,7 +27,6 @@
             </Layer>
         </Layers>
         <Scripts>
-            <OnLoad method="OnLoad"/>
             <OnValueChanged method="OnValueChanged"/>
             <OnMouseDown method="OnMouseDown"/>
             <OnMouseUp method="OnMouseUp"/>
@@ -219,7 +218,7 @@
             <Slider parentKey="Slider" inherits="ImprovedAddonListSettingsSliderTemplate">
                 <Size y="16"/>
                 <Anchors>
-                    <Anchor point="LEFT" relativePoint="CENTER" relativeKey="$parent"/>
+                    <Anchor point="LEFT" relativePoint="CENTER" relativeKey="$parent" x="5"/>
                 </Anchors>
             </Slider>
         </Frames>

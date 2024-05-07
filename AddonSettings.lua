@@ -23,6 +23,11 @@ Addon.MIN_UI_SCALE = 0.7
 -- 最大框体缩放比例
 Addon.MAX_UI_SCALE = 1.5
 
+-- 载入条件提示最小自动消失时间
+Addon.MIN_LOAD_CONDITION_PROMPT_AUTO_DISMISS_TIME = 0
+-- 载入条件提示最大自动消失时间
+Addon.MAX_LOAD_CONDITION_PROMPT_AUTO_DISMISS_TIME =  300
+
 -- 基础设置
 local AddonSettingsInfo = { 
     Title = L["settings_tips"],
@@ -69,6 +74,10 @@ local AddonSettingsInfo = {
                     Event = "AddonSettings.UIScale",
                     MinValue = Addon.MIN_UI_SCALE,
                     MaxValue = Addon.MAX_UI_SCALE,
+                    ValueStep = 0.01,
+                    TrimValue = function(self, value)
+                        return math.floor(value * 100 + 0.5) / 100
+                    end,
                     GetValue = function(self)
                         return Addon:GetUIScale()
                     end,
@@ -205,8 +214,8 @@ local AddonSettingsInfo = {
         {
             Title = L["settings_group_addon_set"],
             Items = {
+                -- 切换提示
                 {
-                    -- 切换提示
                     Title = L["settings_addon_set_load_condition_detect"],
                     Tooltip = L["settings_addon_set_load_condition_detect_tooltip"],
                     Type = "switch",
@@ -215,8 +224,51 @@ local AddonSettingsInfo = {
                         return Addon:IsLoadConditionDetectEnabled()
                     end,
                     SetEnabled = function(self, enabled)
-                        print("set enabled", enabled)
                         return Addon:SetLoadConditionDetectEnabled(enabled)
+                    end,
+                    Reset = function(self)
+                        Addon:SetLoadConditionDetectEnabled(nil)
+                    end
+                },
+                -- 载入条件提示弹窗位置记忆
+                {
+                    Title = L["settings_addon_set_load_condition_prompt_position_save"],
+                    Tooltip = L["settings_addon_set_load_condition_prompt_position_save_tooltip"],
+                    Type = "switch",
+                    Event = "AddonSettings.LoadConditionPromptPositionSave",
+                    IsEnabled = function(self)
+                        return Addon:GetLoadConditionPromptPositionSaveEnabled()
+                    end,
+                    SetEnabled = function(self, enabled)
+                        return Addon:SetLoadConditionPromptPositionSaveEnabled(enabled)
+                    end,
+                    Reset = function(self)
+                        Addon:SetLoadConditionPromptPositionSaveEnabled(nil)
+                    end
+                },
+                -- 载入条件提示弹窗自动消失时间
+                {
+                    Title = L["settings_addon_set_load_condition_prompt_auto_dismiss_time"],
+                    Tooltip = L["settings_addon_set_load_condition_prompt_auto_dismiss_time_tooltip"],
+                    Type = "slider",
+                    Event = "AddonSettings.LoadConditionPromptAutoDismissTime",
+                    MinValue = Addon.MIN_LOAD_CONDITION_PROMPT_AUTO_DISMISS_TIME,
+                    MaxValue = Addon.MAX_LOAD_CONDITION_PROMPT_AUTO_DISMISS_TIME,
+                    ValueStep = 1,
+                    TrimValue = function(self, value)
+                        return math.floor(value)
+                    end,
+                    GetValue = function(self)
+                        return Addon:GetLoadConditionPromptAutoDismissTime()
+                    end,
+                    SetValue = function(self, value)
+                        self.Value = value
+                    end,
+                    Save = function(self)
+                        Addon:SetLoadConditionPromptAutoDismissTime(self.Value)
+                    end,
+                    Reset = function(self)
+                        Addon:SetLoadConditionPromptAutoDismissTime(nil)
                     end
                 }
             }
@@ -371,5 +423,46 @@ end
 -- 设置载入条件是否启用
 function Addon:SetLoadConditionDetectEnabled(enabled)
     self.Saved.Config.LoadConditionDetectEnabled = enabled
+    return true
+end
+
+-- 获取载入条件提示弹窗位置记忆
+function Addon:GetLoadConditionPromptPositionSaveEnabled()
+    local enabled = self.Saved.Config.LoadConditionPromptPositionSaveEnabled
+    if enabled == nil then
+        enabled = true
+    end
+
+    return enabled
+end
+
+-- 设置载入条件提示弹窗自动消失时间
+function Addon:SetLoadConditionPromptPositionSaveEnabled(enabled)
+    self.Saved.Config.LoadConditionPromptPositionSaveEnabled = enabled
+    return true
+end
+
+-- 保存载入条件提示弹窗位置
+function Addon:SaveLoadConditionPromptPosition(x, y)
+    self.Saved.Config.LoadConditionPromptPosition = { X = x, Y = y }
+end
+
+-- 保存载入条件提示弹窗位置
+function Addon:GetLoadConditionPromptPosition()
+    if not self:GetLoadConditionPromptPositionSaveEnabled() then
+        return
+    end
+    local position = self.Saved.Config.LoadConditionPromptPosition
+    return position and position.X, position and position.Y
+end
+
+-- 获取载入条件提示弹窗自动消失时间
+function Addon:GetLoadConditionPromptAutoDismissTime()
+    return self.Saved.Config.LoadConditionPromptAutoDismissTime or 30
+end
+
+-- 设置载入条件提示弹窗自动消失时间
+function Addon:SetLoadConditionPromptAutoDismissTime(time)
+    self.Saved.Config.LoadConditionPromptAutoDismissTime = time
     return true
 end

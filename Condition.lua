@@ -300,7 +300,6 @@ function AddonSetConditionDialogMixin:Init()
     self:SetWidth(200)
     self:SetHeight(350)
     self:SetFrameStrata("DIALOG")
-    self:SetPoint("BOTTOMRIGHT", -180, 120)
 
     self:SetMovable(true)
     self:EnableMouse(true)
@@ -322,9 +321,10 @@ function AddonSetConditionDialogMixin:Init()
 
     local Label = self:CreateFontString(nil, nil, "GameFontNormalSmall")
     self.Label = Label
+    Label:SetWidth(180)
     Label:SetPoint("TOP", 0, -15)
-    Label:SetPoint("LEFT", 10, 0)
-    Label:SetPoint("RIGHT", -10, 0)
+    Label:SetPoint("LEFT")
+    Label:SetPoint("RIGHT")
     Label:SetText(L["addon_set_switch_tips_dialog_label"])
 
     local ScrollBox = CreateFrame("Frame", nil, self, "WowScrollBoxList")
@@ -354,17 +354,38 @@ function AddonSetConditionDialogMixin:Init()
     ScrollUtil.InitScrollBoxListWithScrollBar(ScrollBox, ScrollBar, ScrollView)
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(ScrollBox, ScrollBar, anchorsWithScrollBar, anchorsWithoutScrollBar)
 
+    
+    Addon:RegisterCallback("AddonSettings.UIScale", self.OnUIScaleChanged, self)
+
     self:OnShow()
 end
 
+function AddonSetConditionDialogMixin:OnUIScaleChanged()
+    self:SetScale(Addon:GetUIScale())
+
+    local x, y = Addon:GetLoadConditionPromptPosition()
+    if x and y then
+        local scale = self:GetEffectiveScale()
+        self:SetPoint("BOTTOMLEFT", x / scale, y / scale)
+    else
+        self:SetPoint("BOTTOMRIGHT", -180, 120)
+    end
+end
+
 function AddonSetConditionDialogMixin:OnUpdate(elapsed)
+    if not self.HideTime then
+        self.Timer:Hide()
+        return
+    else
+        self.Timer:Show()
+    end
+
     local now = GetTime()
     if self:IsMouseOver() then
-        self.HideTime = now + 30 
-     end
+        self.HideTime = now + Addon:GetLoadConditionPromptAutoDismissTime() 
+    end
 
-    local hideTime = self.HideTime or now
-    local remainTime = hideTime - now
+    local remainTime = self.HideTime - now
     if remainTime <= 0 then
         self:Hide()
     end
@@ -384,6 +405,8 @@ end
 
 function AddonSetConditionDialogMixin:OnDragStop()
     self:StopMovingOrSizing()
+    local left, bottom = self:GetScaledRect()
+    Addon:SaveLoadConditionPromptPosition(left, bottom)
 end
 
 function AddonSetConditionDialogMixin:OnShow()
@@ -411,9 +434,16 @@ function AddonSetConditionDialogMixin:RefreshAddonSets(addonSets)
 end
 
 function AddonSetConditionDialogMixin:Setup(info)
-    self.HideTime = GetTime() + 30
-    self:SetScale(Addon:GetUIScale())
+    local autoDismissTime = Addon:GetLoadConditionPromptAutoDismissTime()
+    if autoDismissTime <= 0 then
+        self.HideTime = nil
+    else
+        self.HideTime = GetTime() + autoDismissTime
+    end
+
+    self:OnUIScaleChanged()
     self:RefreshAddonSets(info)
+    
     self:Show()
 end
 
