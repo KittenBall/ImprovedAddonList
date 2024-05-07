@@ -169,10 +169,9 @@ local function CheckAddonSetCondition()
 
             maxMetConditionNum = math.max(maxMetConditionNum, #metConditions)
 
-            if metCondition then
+            if metCondition and #metCondition > 1 then
                 if addonSet.Name == activeAddonSetName then
                     activeAddonSetMetCondition = true
-                    -- 如果当前插件集也满足条件，则记录其满足条件的数量
                     activeAddonSetMetConditionNum = #metConditions
                 end
 
