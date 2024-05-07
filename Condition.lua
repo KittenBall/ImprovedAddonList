@@ -145,7 +145,11 @@ local Conditions = {
 
 local function CheckAddonSetCondition()
     local addonSets = Addon:GetAddonSets()
+    local activeAddonSetName = Addon:GetActiveAddonSetName()
     local metConditionAddonSets = {}
+    local activeAddonSetMetConditionNum = 0
+    local activeAddonSetMetCondition = false
+    local maxMetConditionNum = 0
 
     for _, addonSet in ipairs(addonSets) do
         if addonSet.Enabled then
@@ -163,10 +167,23 @@ local function CheckAddonSetCondition()
                 end
             end
 
+            maxMetConditionNum = math.max(maxMetConditionNum, #metConditions)
+
             if metCondition then
+                if addonSet.Name == activeAddonSetName then
+                    activeAddonSetMetCondition = true
+                    -- 如果当前插件集也满足条件，则记录其满足条件的数量
+                    activeAddonSetMetConditionNum = #metConditions
+                end
+
                 tinsert(metConditionAddonSets, { AddonSet = addonSet, MetConditions = metConditions })
             end
         end
+    end
+
+    -- 当前插件集就满足条件，并且条件数量与满足最多条件数量的插件集一致，则无需弹出提示
+    if activeAddonSetMetCondition and activeAddonSetMetConditionNum >= maxMetConditionNum then
+        return
     end
 
     -- for _, item in ipairs(metConditionAddonSets) do
@@ -175,9 +192,7 @@ local function CheckAddonSetCondition()
     if #metConditionAddonSets > 0 then
         table.sort(metConditionAddonSets, function(a, b) return #a.MetConditions > #b.MetConditions end)
 
-        if metConditionAddonSets[1].AddonSet.Name ~= Addon:GetActiveAddonSetName() then
-            Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
-        end
+        Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
     end
 end
 

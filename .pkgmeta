@@ -5,6 +5,6 @@ ignore:
   - .vscode
   - .gitattributes
 
-manual-changelog:
-  filename: changelog.md
-  markup-type: markdown
+# manual-changelog:
+#   filename: changelog.md
+#   markup-type: markdown
