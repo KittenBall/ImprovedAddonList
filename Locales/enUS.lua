@@ -54,6 +54,9 @@ L["settings_load_indicator_color_loaded"] = "Loaded Color"
 L["settings_load_indicator_color_loaded_description"] = "Color value for loaded addons"
 L["settings_load_indicator_color_disabled"] = "Disabled Color"
 L["settings_load_indicator_color_disabled_description"] = "Color value for disabled addons"
+L["settings_group_addon_set"] = "Addon Set"
+L["settings_addon_set_load_condition_detect"] = "Load Condition Detection"
+L["settings_addon_set_load_condition_detect_tooltip"] = "Popup notification if suitable addon set(s) is available in the current scenario"
 
 L["addon_detail_basic_info"] = "Basic Information"
 L["addon_detail_name"] = "Name:"
@@ -185,8 +188,10 @@ L["addon_set_settings_condition_instance_difficulty_type_warfront_heroic"] = "Wa
 L["addon_set_settings_condition_instance_difficulty"] = "Instance Difficulty"
 L["addon_set_settings_condition_mythic_plus_affix"] = "Mythic+ Affixs"
 
-L["addon_set_condition_tooltip_label"] = "Addon Set\n%s\nMet the following conditions:\n%s"
+L["addon_set_condition_tooltip_label"] = "Addon Set\n%s\n\nMet the following conditions:\n%s"
 L["addon_set_condition_met_none"] = "Addon set has no conditions set"
+L["addon_set_switch_tips_dialog_label"] = "Detected more suitable addon set(s) for the current scenario. Click to apply the addon set and reload ui."
+L["addon_set_condition_met_count"] = "Hit %d conditions."
 
 L["load_addon"] = "Load this addon"
 L["enable_addon"] = "Enable addon"

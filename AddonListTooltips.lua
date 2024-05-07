@@ -230,8 +230,10 @@ function AddonListTooltipsMixin:SetOwner(owner)
     self.OwnerOriginMouseWheel = owner:GetScript("OnMouseWheel")
 
     owner:SetScript("OnMouseWheel", function(_, delta)
+        local propagateToOwner = self.ScrollBox:GetWheelPanPercentage() <= 0 or (delta < 0 and self.ScrollBox:IsAtEnd()) or (delta > 0 and self.ScrollBox:IsAtBegin())
+
         self.ScrollBox:OnMouseWheel(delta)
-        if self.OwnerOriginMouseWheel then
+        if propagateToOwner and self.OwnerOriginMouseWheel then
             self.OwnerOriginMouseWheel(_, delta)
         end
     end)

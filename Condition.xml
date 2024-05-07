@@ -6,15 +6,19 @@
 		<Size y="20"/>
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
-				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT" wordwrap="false">
-					<Size y="12"/>
+				<FontString parentKey="MetCount" inherits="GameFontNormalTiny" justifyH="RIGHT">
 					<Anchors>
-						<Anchor point="LEFT" x="4" y="0"/>
                         <Anchor point="RIGHT" x="-4" y="0"/>
 					</Anchors>
 				</FontString>
+				<FontString parentKey="Label" inherits="GameFontHighlight_NoShadow" justifyH="LEFT" wordwrap="false">
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="0"/>
+						<Anchor point="RIGHT" relativePoint="LEFT" relativeKey="$parent.MetCount" x="-5" />
+					</Anchors>
+				</FontString>
 			</Layer>
-			<Layer>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
 				<Texture parentKey="Background" setAllPoints="true"/>
 			</Layer>
 		</Layers>

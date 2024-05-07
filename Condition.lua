@@ -1,6 +1,7 @@
 local addonName, Addon = ...
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+local LibCustomGlow = LibStub("LibCustomGlow-1.0")
 
 local Conditions = {
     -- 名字-服务器
@@ -144,6 +145,10 @@ local Conditions = {
 }
 
 local function CheckAddonSetCondition()
+    if not Addon:IsLoadConditionDetectEnabled() then
+        return
+    end
+
     local addonSets = Addon:GetAddonSets()
     local activeAddonSetName = Addon:GetActiveAddonSetName()
     local metConditionAddonSets = {}
@@ -158,7 +163,6 @@ local function CheckAddonSetCondition()
             for _, condition in ipairs(Conditions) do
                 -- conditionEmpty true:条件为空 false:条件不为空
                 local met, conditionEmpty = condition:MetCondition(addonSet)
-                print(condition.Title, met, conditionEmpty)
                 if not met then
                     metCondition = false
                     break
@@ -234,7 +238,9 @@ function ImprovedAddonListConditionAddonSetItemMixin:Update(data)
         name = CreateSimpleTextureMarkup("Interface\\AddOns\\ImprovedAddonList\\Media\\location.png", 14, 14) .. " " .. name
         backgroundColor = CurrentAddonSetBackgroundColor
     end
+
     self.Label:SetText(name)
+    self.MetCount:SetText(L["addon_set_condition_met_count"]:format(#data.MetConditions))
     self.Background:SetColorTexture(backgroundColor:GetRGBA())
 end
 
@@ -256,14 +262,15 @@ function ImprovedAddonListConditionAddonSetItemMixin:OnEnter()
 
     local conditions = item.MetConditions and table.concat(item.MetConditions, "\n")
     if conditions == nil or conditions == "" then
-        conditions = WrapTextInColor(L["addon_set_condition_met_none"], NORMAL_FONT_COLOR)
+        conditions = L["addon_set_condition_met_none"]
     end
+    conditions = WrapTextInColor(conditions, NORMAL_FONT_COLOR)
 
     local addonListTooltipInfo = {
         Addons = addons,
         Label = L["addon_set_condition_tooltip_label"]:format(WrapTextInColor(addonSet.Name, NORMAL_FONT_COLOR), conditions)
     }
-    Addon:ShowAddonListTooltips(self:GetParent(), addonListTooltipInfo)
+    Addon:ShowAddonListTooltips(self:GetParent():GetParent(), addonListTooltipInfo)
 end
 
 function ImprovedAddonListConditionAddonSetItemMixin:OnLeave()
@@ -284,18 +291,41 @@ end
 local AddonSetConditionDialogMixin = {}
 
 function AddonSetConditionDialogMixin:Init()
+    self:SetScript("OnUpdate", self.OnUpdate)
+    self:SetScript("OnShow", self.OnShow)
+    self:SetScript("OnHide", self.OnHide)
+    self:SetScript("OnDragStart", self.OnDragStart)
+    self:SetScript("OnDragStop", self.OnDragStop)
+
     self:SetWidth(200)
-    self:SetHeight(400)
+    self:SetHeight(350)
     self:SetFrameStrata("DIALOG")
     self:SetPoint("BOTTOMRIGHT", -180, 120)
 
+    self:SetMovable(true)
+    self:EnableMouse(true)
+    self:RegisterForDrag("LeftButton")
+    self:SetClampedToScreen(true)
+
+    local bg = self:CreateTexture(nil, "Background", nil, -6)
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.3, 0.3, 0.3, 0.6)
+
+    local Timer = self:CreateFontString(nil, nil, "GameFontWhiteTiny")
+    self.Timer = Timer
+    Timer:SetPoint("TOPLEFT", 2, -2)
+
+    local Close = CreateFrame("Button", nil, self, "UIPanelCloseButton")
+    self.Close = Close
+    Close:SetSize(16, 16)
+    Close:SetPoint("CENTER", self, "TOPRIGHT", -2, -2)
+
     local Label = self:CreateFontString(nil, nil, "GameFontNormalSmall")
     self.Label = Label
-    Label:SetWidth(170)
-    Label:SetPoint("TOP", 0, -10)
-    Label:SetPoint("LEFT")
-    Label:SetPoint("RIGHT")
-    Label:SetText("检测到当前场景下更适合的插件集，点击应用插件集并重载界面")
+    Label:SetPoint("TOP", 0, -15)
+    Label:SetPoint("LEFT", 10, 0)
+    Label:SetPoint("RIGHT", -10, 0)
+    Label:SetText(L["addon_set_switch_tips_dialog_label"])
 
     local ScrollBox = CreateFrame("Frame", nil, self, "WowScrollBoxList")
     self.ScrollBox = ScrollBox
@@ -323,6 +353,45 @@ function AddonSetConditionDialogMixin:Init()
     
     ScrollUtil.InitScrollBoxListWithScrollBar(ScrollBox, ScrollBar, ScrollView)
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(ScrollBox, ScrollBar, anchorsWithScrollBar, anchorsWithoutScrollBar)
+
+    self:OnShow()
+end
+
+function AddonSetConditionDialogMixin:OnUpdate(elapsed)
+    local now = GetTime()
+    if self:IsMouseOver() then
+        self.HideTime = now + 30 
+     end
+
+    local hideTime = self.HideTime or now
+    local remainTime = hideTime - now
+    if remainTime <= 0 then
+        self:Hide()
+    end
+
+    self.timeElapsed = (self.timeElapsed or 0) + elapsed
+    if self.timeElapsed > 0.1 then
+        self.timeElapsed = 0
+
+        self.Timer:SetText(string.format("%ds", remainTime))
+    end
+end
+
+function AddonSetConditionDialogMixin:OnDragStart()
+    self:StartMoving()
+    self:SetUserPlaced(false)
+end
+
+function AddonSetConditionDialogMixin:OnDragStop()
+    self:StopMovingOrSizing()
+end
+
+function AddonSetConditionDialogMixin:OnShow()
+    LibCustomGlow.AutoCastGlow_Start(self, nil, 8, 0.1)
+end
+
+function AddonSetConditionDialogMixin:OnHide()
+    LibCustomGlow.AutoCastGlow_Stop(self)
 end
 
 function AddonSetConditionDialogMixin:GetDataProvider()
@@ -342,21 +411,16 @@ function AddonSetConditionDialogMixin:RefreshAddonSets(addonSets)
 end
 
 function AddonSetConditionDialogMixin:Setup(info)
-    if self.FadeOutJob then
-        self.FadeOutJob:Cancel()
-    end
-
+    self.HideTime = GetTime() + 30
     self:SetScale(Addon:GetUIScale())
     self:RefreshAddonSets(info)
     self:Show()
-    
-    self.FadeOutJob = C_Timer.After(10, function() self:Hide() end)
 end
 
 function Addon:ShowAddonSetConditionDialog(info)
     local addonSetConditionDialog = self.AddonSetConditionDialog
     if not addonSetConditionDialog then
-        addonSetConditionDialog = Mixin(CreateFrame("Frame", nil, UIParent, "TooltipBackdropTemplate"), AddonSetConditionDialogMixin)
+        addonSetConditionDialog = Mixin(CreateFrame("Frame", nil, UIParent), AddonSetConditionDialogMixin)
         -- addonSetConditionDialog = Mixin(self:CreateDialog(nil, UIParent), AddonSetConditionDialogMixin)
         self.AddonSetConditionDialog = addonSetConditionDialog
         addonSetConditionDialog:Init()

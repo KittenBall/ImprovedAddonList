@@ -201,6 +201,25 @@ local AddonSettingsInfo = {
                     end
                 },
             }
+        },
+        {
+            Title = L["settings_group_addon_set"],
+            Items = {
+                {
+                    -- 切换提示
+                    Title = L["settings_addon_set_load_condition_detect"],
+                    Tooltip = L["settings_addon_set_load_condition_detect_tooltip"],
+                    Type = "switch",
+                    Event = "AddonSettings.LoadConditionDetect",
+                    IsEnabled = function(self)
+                        return Addon:IsLoadConditionDetectEnabled()
+                    end,
+                    SetEnabled = function(self, enabled)
+                        print("set enabled", enabled)
+                        return Addon:SetLoadConditionDetectEnabled(enabled)
+                    end
+                }
+            }
         }
     }
 }
@@ -337,4 +356,20 @@ function Addon:SetUIScale(uiScale)
     end
 
     self.Saved.Config.UIScale = uiScale
+end
+
+-- 载入条件是否启用
+function Addon:IsLoadConditionDetectEnabled()
+    local enabled = self.Saved.Config.LoadConditionDetectEnabled
+    if enabled == nil then
+        enabled = true
+    end
+
+    return enabled
+end
+
+-- 设置载入条件是否启用
+function Addon:SetLoadConditionDetectEnabled(enabled)
+    self.Saved.Config.LoadConditionDetectEnabled = enabled
+    return true
 end

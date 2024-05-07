@@ -54,6 +54,9 @@ L["settings_load_indicator_color_loaded"] = "已加载颜色"
 L["settings_load_indicator_color_loaded_description"] = "已加载的插件的色值"
 L["settings_load_indicator_color_disabled"] = "未启用颜色"
 L["settings_load_indicator_color_disabled_description"] = "未启用的插件的色值"
+L["settings_group_addon_set"] = "插件集"
+L["settings_addon_set_load_condition_detect"] = "载入条件检测"
+L["settings_addon_set_load_condition_detect_tooltip"] = "如果当前场景下有合适的插件集，则弹窗提示"
 
 L["addon_detail_basic_info"] = "基本信息"
 L["addon_detail_name"] = "名称："
@@ -185,8 +188,10 @@ L["addon_set_settings_condition_instance_difficulty_type_warfront_heroic"] = "�
 L["addon_set_settings_condition_instance_difficulty"] = "副本难度"
 L["addon_set_settings_condition_mythic_plus_affix"] = "史诗钥石词缀"
 
-L["addon_set_condition_tooltip_label"] = "插件集\n%s\n满足以下条件：\n%s"
+L["addon_set_condition_tooltip_label"] = "插件集\n%s\n\n满足以下条件：\n%s"
 L["addon_set_condition_met_none"] = "插件集未设置条件"
+L["addon_set_switch_tips_dialog_label"] = "检测到当前场景下更适合的插件集，点击应用插件集并重载界面"
+L["addon_set_condition_met_count"] = "命中%d个条件"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"
