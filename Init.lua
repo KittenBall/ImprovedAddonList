@@ -33,6 +33,15 @@ local function OnInitialize()
     -- 配置
     saved.Config = saved.Config or {}
 
+    -- @todo 兼容，后续需移除
+    for _, addonSet in ipairs(saved.AddonSets) do
+        saved.AddonSets[addonSet.Name] = addonSet
+    end
+    for i = #saved.AddonSets, 1, -1 do
+        table.remove(saved.AddonSets, i)
+    end
+    
+
     -- 更新插件信息
     Addon:UpdateAddonInfos()
 

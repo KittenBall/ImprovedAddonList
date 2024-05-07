@@ -414,9 +414,9 @@ local function getAddonInAddonSets(addonName)
     local addonSets = Addon:GetAddonSets()
 
     local inAddonSets = {}
-    for _, addonSet in ipairs(addonSets) do
-        if addonSet.Addons and addonSet.Addons[addonName] then
-            tinsert(inAddonSets, addonSet.Name)
+    for addonSetName, addonSet in pairs(addonSets) do
+        if addonSet.Addons[addonName] then
+            tinsert(inAddonSets, addonSetName)
         end
     end
 

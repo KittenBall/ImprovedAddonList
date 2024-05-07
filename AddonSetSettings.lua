@@ -759,8 +759,8 @@ function Addon:EditAddonSetName(addonSetName, newAddonSetName)
     end
 
     local addonSets = self:GetAddonSets()
-    for _, addonSet in ipairs(addonSets) do
-        if addonSet.Name == newAddonSetName and addonSet.Name ~= addonSetName then
+    for name, addonSet in pairs(addonSets) do
+        if name == newAddonSetName and name ~= addonSetName then
             self:ShowError(L["addon_set_name_error_duplicate"])
             return
         end
@@ -773,6 +773,8 @@ function Addon:EditAddonSetName(addonSetName, newAddonSetName)
     end
 
     addonSet.Name = newAddonSetName
+    addonSets[addonSetName] = nil
+    addonSets[newAddonSetName] = addonSet
 
     if self:GetActiveAddonSetName() == addonSetName then
         self:SetActiveAddonSetName(newAddonSetName)

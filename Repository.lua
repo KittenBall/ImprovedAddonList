@@ -456,11 +456,7 @@ end
 -- 返回当前的插件集，或nil
 function Addon:GetActiveAddonSet()
     local activeAddonSet = self.Saved.ActiveAddonSet
-    if activeAddonSet then
-        return FindValueInTableIf(self:GetAddonSets(), function(addonSet)
-            return addonSet.Name == activeAddonSet
-        end)
-    end
+    return self:GetAddonSets()[activeAddonSet]
 end
 
 -- 返回当前的插件集名称
@@ -471,9 +467,7 @@ end
 -- 设置当前插件集
 function Addon:SetActiveAddonSetName(addonSetName)
     if addonSetName then
-        local exists = FindValueInTableIf(self:GetAddonSets(), function(addonSet)
-            return addonSet.Name == addonSetName
-        end)
+        local exists = self:GetAddonSets()[addonSetName]
         if not exists then
             self:ShowError(L["addon_set_can_not_find"]:format(WrapTextInColor(addonSetName, NORMAL_FONT_COLOR)))
             return
@@ -508,9 +502,7 @@ end
 
 -- 根据名称获取插件集
 function Addon:GetAddonSetByName(name)
-    return FindValueInTableIf(self:GetAddonSets(), function(addonSet)
-        return addonSet.Name == name
-    end)
+    return self:GetAddonSets()[name]
 end
 
 -- 新建插件集
@@ -539,7 +531,7 @@ function Addon:NewAddonSet(name)
         end
     end
 
-    tinsert(addonSets, { Name = name, Enabled = true, Addons = {} })
+    addonSets[name] = { Name = name, Enabled = true, Addons = {} }
 
     return true
 end
@@ -555,16 +547,7 @@ function Addon:DeleteAddonSet(name)
         self:SetActiveAddonSetName(nil)
     end
 
-    local addonSets = self:GetAddonSets()
-
-    local size = #addonSets
-    local index = size
-    while index > 0 do
-        if addonSets[index].Name == name then
-            table.remove(addonSets, index)
-        end
-        index = index -1
-    end
+    self:GetAddonSets()[name] = nil
 end
 
 -- 设置插件集插件列表
@@ -574,7 +557,6 @@ function Addon:SetAddonSetAddonList(addonSetName, addonList)
         return
     end
 
-    addonSet.Addons = addonSet.Addons or {}
     local addons = addonSet.Addons
     wipe(addons)
 
@@ -597,7 +579,6 @@ function Addon:MergeAddonListToAddonSet(addonSetName, addonList)
         return
     end
 
-    addonSet.Addons = addonSet.Addons or {}
     local addons = addonSet.Addons
 
     if addonList then

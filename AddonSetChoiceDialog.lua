@@ -305,8 +305,8 @@ function AddonSetChoiceDialogMixin:RefreshAddonSetList()
     local shouldFilter = searchText and strlen(searchText) > 0
     local addonSets = Addon:GetAddonSets()
 
-    for _, addonSet in ipairs_reverse(addonSets) do
-        if not shouldFilter or addonSet.Name:lower():match(searchText) then
+    for addonSetName, addonSet in pairs(addonSets) do
+        if not shouldFilter or addonSetName:lower():match(searchText) then
             addonSetDataProvider:Insert({
                 AddonSet = addonSet,
                 Checked = false,

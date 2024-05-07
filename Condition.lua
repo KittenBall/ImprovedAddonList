@@ -151,13 +151,14 @@ local function CheckAddonSetCondition()
     local activeAddonSetMetCondition = false
     local maxMetConditionNum = 0
 
-    for _, addonSet in ipairs(addonSets) do
+    for addonSetName, addonSet in pairs(addonSets) do
         if addonSet.Enabled then
             local metConditions = {}
             local metCondition = true
             for _, condition in ipairs(Conditions) do
                 -- conditionEmpty true:条件为空 false:条件不为空
                 local met, conditionEmpty = condition:MetCondition(addonSet)
+                print(condition.Title, met, conditionEmpty)
                 if not met then
                     metCondition = false
                     break
@@ -169,8 +170,8 @@ local function CheckAddonSetCondition()
 
             maxMetConditionNum = math.max(maxMetConditionNum, #metConditions)
 
-            if metCondition and #metConditions > 1 then
-                if addonSet.Name == activeAddonSetName then
+            if metCondition and #metConditions > 0 then
+                if addonSetName == activeAddonSetName then
                     activeAddonSetMetCondition = true
                     activeAddonSetMetConditionNum = #metConditions
                 end

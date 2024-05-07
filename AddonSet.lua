@@ -1046,7 +1046,7 @@ function Addon:RefreshAddonSetListContainer(targetAddonSetName)
     
     -- 没有插件集时，刷新框体
     local addonSets = self:GetAddonSets()
-    if #addonSets <= 0 then
+    if next(addonSets) == nil then
         self:SetCurrentFocusAddonSetName(nil)
         self:RefreshAddonSetAddonListContainer()
         self:RefreshAddonSetSettings()
@@ -1098,9 +1098,9 @@ function Addon:RefreshAddonSetList()
     local shouldFilter = searchText and strlen(searchText) > 0
     local addonSets = self:GetAddonSets()
 
-    for _, addonSet in ipairs_reverse(addonSets) do
+    for addonSetName, addonSet in pairs(addonSets) do
         if shouldFilter then
-            if addonSet.Name:lower():match(searchText) then
+            if addonSetName:lower():match(searchText) then
                 addonSetDataProvider:Insert(addonSet)
             end
         else
