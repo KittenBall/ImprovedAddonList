@@ -169,7 +169,7 @@ local function CheckAddonSetCondition()
 
             maxMetConditionNum = math.max(maxMetConditionNum, #metConditions)
 
-            if metCondition and #metCondition > 1 then
+            if metCondition and #metConditions > 1 then
                 if addonSet.Name == activeAddonSetName then
                     activeAddonSetMetCondition = true
                     activeAddonSetMetConditionNum = #metConditions
