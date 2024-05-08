@@ -21,6 +21,7 @@
 		<Size y="20"/>
 		<Frames>
 			<Button parentKey="EnableStatus" inherits="ImprovedAddonListAddonItemEnableStatusButtonTemplate">
+				<HitRectInsets left="-6" right="-6" top="-6" bottom="-6"/>
 				<Size x="15" y="15"/>
 				<Anchors>
 					<Anchor point="RIGHT" x="-4" />
