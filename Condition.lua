@@ -297,6 +297,10 @@ function AddonSetConditionDialogMixin:Init()
     self:SetScript("OnDragStart", self.OnDragStart)
     self:SetScript("OnDragStop", self.OnDragStop)
 
+    self:SetScript("OnEvent", self.OnEvent)
+    self:RegisterEvent("PLAYER_REGEN_DISABLED")
+    self:RegisterEvent("PLAYER_REGEN_ENABLED")
+
     self:SetWidth(200)
     self:SetHeight(350)
     self:SetFrameStrata("DIALOG")
@@ -360,6 +364,12 @@ function AddonSetConditionDialogMixin:Init()
     self:OnShow()
 end
 
+-- UIPanelCloseButton_OnClick 会调用此函数
+function AddonSetConditionDialogMixin.onCloseCallback(closeButton)
+    local parent = closeButton:GetParent()
+    parent:Dismiss()
+end
+
 function AddonSetConditionDialogMixin:OnUIScaleChanged()
     self:SetScale(Addon:GetUIScale())
 
@@ -369,6 +379,14 @@ function AddonSetConditionDialogMixin:OnUIScaleChanged()
         self:SetPoint("BOTTOMLEFT", x / scale, y / scale)
     else
         self:SetPoint("BOTTOMRIGHT", -180, 120)
+    end
+end
+
+function AddonSetConditionDialogMixin:OnEvent(event, ...)
+    if event == "PLAYER_REGEN_DISABLED" then
+        self:Refresh(true)
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        self:Refresh(false)
     end
 end
 
@@ -387,7 +405,7 @@ function AddonSetConditionDialogMixin:OnUpdate(elapsed)
 
     local remainTime = self.HideTime - now
     if remainTime <= 0 then
-        self:Hide()
+        self:Dismiss()
     end
 
     self.timeElapsed = (self.timeElapsed or 0) + elapsed
@@ -433,7 +451,16 @@ function AddonSetConditionDialogMixin:RefreshAddonSets(addonSets)
     self.ScrollBox:SetDataProvider(dataProvider, ScrollBoxConstants.DiscardScrollPosition)
 end
 
-function AddonSetConditionDialogMixin:Setup(info)
+function AddonSetConditionDialogMixin:Refresh(inCombat)
+    if not self.Info then
+        return
+    end
+
+    if inCombat then
+        self:Hide()
+        return    
+    end
+
     local autoDismissTime = Addon:GetLoadConditionPromptAutoDismissTime()
     if autoDismissTime <= 0 then
         self.HideTime = nil
@@ -442,9 +469,18 @@ function AddonSetConditionDialogMixin:Setup(info)
     end
 
     self:OnUIScaleChanged()
-    self:RefreshAddonSets(info)
-    
+    self:RefreshAddonSets(self.Info)
     self:Show()
+end
+
+function AddonSetConditionDialogMixin:Dismiss()
+    self.Info = nil
+    self:Hide()
+end
+
+function AddonSetConditionDialogMixin:Setup(info)
+    self.Info = info
+    self:Refresh(InCombatLockdown())
 end
 
 function Addon:ShowAddonSetConditionDialog(info)
@@ -456,7 +492,7 @@ function Addon:ShowAddonSetConditionDialog(info)
         addonSetConditionDialog:Init()
     end
 
-    addonSetConditionDialog:Setup(info)
+    addonSetConditionDialog:Setup(info, id)
 end
 
 function Addon:HideAddonSetConditionDialog()
