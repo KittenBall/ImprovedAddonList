@@ -430,7 +430,7 @@ end
 function Addon:GetLoadConditionPromptPositionSaveEnabled()
     local enabled = self.Saved.Config.LoadConditionPromptPositionSaveEnabled
     if enabled == nil then
-        enabled = true
+        enabled = false
     end
 
     return enabled
@@ -458,7 +458,7 @@ end
 
 -- 获取载入条件提示弹窗自动消失时间
 function Addon:GetLoadConditionPromptAutoDismissTime()
-    return self.Saved.Config.LoadConditionPromptAutoDismissTime or 20
+    return self.Saved.Config.LoadConditionPromptAutoDismissTime or 15
 end
 
 -- 设置载入条件提示弹窗自动消失时间

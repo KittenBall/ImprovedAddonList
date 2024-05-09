@@ -194,7 +194,7 @@ L["addon_set_settings_condition_mythic_plus_affix"] = "史诗钥石词缀"
 
 L["addon_set_condition_tooltip_label"] = "插件集\n%s\n\n满足以下条件：\n%s"
 L["addon_set_condition_met_none"] = "插件集未设置条件"
-L["addon_set_switch_tips_dialog_label"] = "检测到当前场景下更适合的插件集，点击应用插件集并重载界面"
+L["addon_set_switch_tips_dialog_label"] = "检测到当前场景下更适合的插件集"
 L["addon_set_condition_met_count"] = "命中%d个条件"
 
 L["load_addon"] = "加载此插件"

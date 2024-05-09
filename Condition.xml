@@ -18,8 +18,12 @@
 					</Anchors>
 				</FontString>
 			</Layer>
-			<Layer level="BACKGROUND" textureSubLevel="-6">
-				<Texture parentKey="Background" setAllPoints="true"/>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="HighlightOverlay" atlas="Professions_Recipe_Hover" useAtlasSize="true" alpha="0.5">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
         <Scripts>

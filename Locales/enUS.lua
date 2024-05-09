@@ -194,7 +194,7 @@ L["addon_set_settings_condition_mythic_plus_affix"] = "Mythic+ Affixs"
 
 L["addon_set_condition_tooltip_label"] = "Addon Set\n%s\n\nMet the following conditions:\n%s"
 L["addon_set_condition_met_none"] = "Addon set has no conditions set"
-L["addon_set_switch_tips_dialog_label"] = "Detected more suitable addon set(s) for the current scenario. Click to apply the addon set and reload ui."
+L["addon_set_switch_tips_dialog_label"] = "Detected more suitable addon set(s) for the current scenario."
 L["addon_set_condition_met_count"] = "Hit %d conditions."
 
 L["load_addon"] = "Load this addon"

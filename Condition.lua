@@ -224,24 +224,15 @@ end
 
 ImprovedAddonListConditionAddonSetItemMixin = {}
 
-local NormalAddonSetBackgroundColor = CreateColor(DISABLED_FONT_COLOR:GetRGB())
-NormalAddonSetBackgroundColor.a = 0.33
-
-local CurrentAddonSetBackgroundColor = CreateColor(NORMAL_FONT_COLOR:GetRGB())
-CurrentAddonSetBackgroundColor.a = 0.33
-
 function ImprovedAddonListConditionAddonSetItemMixin:Update(data)
     local activeAddonSetName = Addon:GetActiveAddonSetName()
     local name = data.AddonSet.Name
-    local backgroundColor = NormalAddonSetBackgroundColor
     if activeAddonSetName == name then
         name = CreateSimpleTextureMarkup("Interface\\AddOns\\ImprovedAddonList\\Media\\location.png", 14, 14) .. " " .. name
-        backgroundColor = CurrentAddonSetBackgroundColor
     end
 
     self.Label:SetText(name)
     self.MetCount:SetText(L["addon_set_condition_met_count"]:format(#data.MetConditions))
-    self.Background:SetColorTexture(backgroundColor:GetRGBA())
 end
 
 function ImprovedAddonListConditionAddonSetItemMixin:OnEnter()
@@ -292,8 +283,6 @@ local AddonSetConditionDialogMixin = {}
 
 function AddonSetConditionDialogMixin:Init()
     self:SetScript("OnUpdate", self.OnUpdate)
-    self:SetScript("OnShow", self.OnShow)
-    self:SetScript("OnHide", self.OnHide)
     self:SetScript("OnDragStart", self.OnDragStart)
     self:SetScript("OnDragStop", self.OnDragStop)
 
@@ -301,8 +290,7 @@ function AddonSetConditionDialogMixin:Init()
     self:RegisterEvent("PLAYER_REGEN_DISABLED")
     self:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-    self:SetWidth(200)
-    self:SetHeight(350)
+    self:SetWidth(300)
     self:SetFrameStrata("DIALOG")
 
     self:SetMovable(true)
@@ -310,25 +298,23 @@ function AddonSetConditionDialogMixin:Init()
     self:RegisterForDrag("LeftButton")
     self:SetClampedToScreen(true)
 
-    local bg = self:CreateTexture(nil, "Background", nil, -6)
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.3, 0.3, 0.3, 0.6)
+    CreateFrame("Frame", nil, self, "DialogBorderDarkTemplate")
 
     local Timer = self:CreateFontString(nil, nil, "GameFontWhiteTiny")
     self.Timer = Timer
-    Timer:SetPoint("TOPLEFT", 2, -2)
+    Timer:SetPoint("TOPLEFT", 12, -12)
 
     local Close = CreateFrame("Button", nil, self, "UIPanelCloseButton")
     self.Close = Close
     Close:SetSize(16, 16)
-    Close:SetPoint("CENTER", self, "TOPRIGHT", -2, -2)
+    Close:SetPoint("TOPRIGHT", self, "TOPRIGHT", -2, -2)
 
     local Label = self:CreateFontString(nil, nil, "GameFontNormalSmall")
     self.Label = Label
-    Label:SetWidth(180)
-    Label:SetPoint("TOP", 0, -15)
-    Label:SetPoint("LEFT")
-    Label:SetPoint("RIGHT")
+    Label:SetWidth(260)
+    Label:SetPoint("TOP", 0, -25)
+    Label:SetPoint("LEFT", 20, 0)
+    Label:SetPoint("RIGHT", -20, 0)
     Label:SetText(L["addon_set_switch_tips_dialog_label"])
 
     local ScrollBox = CreateFrame("Frame", nil, self, "WowScrollBoxList")
@@ -336,19 +322,19 @@ function AddonSetConditionDialogMixin:Init()
 
     local ScrollBar = CreateFrame("EventFrame", nil, self, "MinimalScrollBar")
     ScrollBar:SetPoint("TOP", Label, "BOTTOM", 0, -10)
-    ScrollBar:SetPoint("RIGHT", self, "RIGHT", -10, 0)
-    ScrollBar:SetPoint("BOTTOM", 0, 10)
+    ScrollBar:SetPoint("RIGHT", self, "RIGHT", -25, 0)
+    ScrollBar:SetPoint("BOTTOM", 0, 15)
 
     local anchorsWithScrollBar = {
         CreateAnchor("TOP", ScrollBar, "TOP"),
-        CreateAnchor("LEFT", 10, 0),
+        CreateAnchor("LEFT", 15, 0),
         CreateAnchor("BOTTOMRIGHT", ScrollBar, "BOTTOMLEFT", -5, 0),
     }
     
     local anchorsWithoutScrollBar = {
         CreateAnchor("TOP", ScrollBar, "TOP"),
-        CreateAnchor("LEFT", 10, 0),
-        CreateAnchor("BOTTOMRIGHT", -10, 10);
+        CreateAnchor("LEFT", 25, 0),
+        CreateAnchor("BOTTOMRIGHT", -25, 10);
     }
 
     local ScrollView = CreateScrollBoxListLinearView(1, 1, 1, 1, 1)
@@ -360,8 +346,6 @@ function AddonSetConditionDialogMixin:Init()
 
     
     Addon:RegisterCallback("AddonSettings.UIScale", self.OnUIScaleChanged, self)
-
-    self:OnShow()
 end
 
 -- UIPanelCloseButton_OnClick 会调用此函数
@@ -378,7 +362,7 @@ function AddonSetConditionDialogMixin:OnUIScaleChanged()
         local scale = self:GetEffectiveScale()
         self:SetPoint("BOTTOMLEFT", x / scale, y / scale)
     else
-        self:SetPoint("BOTTOMRIGHT", -180, 120)
+        self:SetPoint("TOP", 0, -135)
     end
 end
 
@@ -399,13 +383,18 @@ function AddonSetConditionDialogMixin:OnUpdate(elapsed)
     end
 
     local now = GetTime()
+    local dismissTime = Addon:GetLoadConditionPromptAutoDismissTime() 
     if self:IsMouseOver() then
-        self.HideTime = now + Addon:GetLoadConditionPromptAutoDismissTime() 
+        self.HideTime = now + dismissTime
     end
 
     local remainTime = self.HideTime - now
     if remainTime <= 0 then
         self:Dismiss()
+    else
+        local percent = remainTime / dismissTime
+        local alpha = 1 - math.pow(1 - percent, 2)
+        self:SetAlpha(alpha)
     end
 
     self.timeElapsed = (self.timeElapsed or 0) + elapsed
@@ -425,14 +414,6 @@ function AddonSetConditionDialogMixin:OnDragStop()
     self:StopMovingOrSizing()
     local left, bottom = self:GetScaledRect()
     Addon:SaveLoadConditionPromptPosition(left, bottom)
-end
-
-function AddonSetConditionDialogMixin:OnShow()
-    LibCustomGlow.AutoCastGlow_Start(self, nil, 8, 0.1)
-end
-
-function AddonSetConditionDialogMixin:OnHide()
-    LibCustomGlow.AutoCastGlow_Stop(self)
 end
 
 function AddonSetConditionDialogMixin:GetDataProvider()
@@ -469,6 +450,12 @@ function AddonSetConditionDialogMixin:Refresh(inCombat)
     end
 
     self:OnUIScaleChanged()
+
+    local addonSetSize = #self.Info
+    local scrollBoxHeight = math.min(10, addonSetSize) * 25
+    local height = self.Label:GetStringHeight() + scrollBoxHeight + 60
+    self:SetHeight(height)
+
     self:RefreshAddonSets(self.Info)
     self:Show()
 end
@@ -487,12 +474,11 @@ function Addon:ShowAddonSetConditionDialog(info)
     local addonSetConditionDialog = self.AddonSetConditionDialog
     if not addonSetConditionDialog then
         addonSetConditionDialog = Mixin(CreateFrame("Frame", nil, UIParent), AddonSetConditionDialogMixin)
-        -- addonSetConditionDialog = Mixin(self:CreateDialog(nil, UIParent), AddonSetConditionDialogMixin)
         self.AddonSetConditionDialog = addonSetConditionDialog
         addonSetConditionDialog:Init()
     end
 
-    addonSetConditionDialog:Setup(info, id)
+    addonSetConditionDialog:Setup(info)
 end
 
 function Addon:HideAddonSetConditionDialog()
