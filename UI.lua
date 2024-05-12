@@ -112,11 +112,13 @@ local function GetEnvInfo()
     if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
         flavor = "Retail"
     elseif WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
-        flavor = "CLASSIC"
+        flavor = "Classic"
     elseif WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC then
-        flavor = "WOTLKC"
+        flavor = "Wotlk"
+    elseif WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC then
+        flavor = "Cata"
     else
-        flavor = "UNKNOWN"
+        flavor = "Unknown"
     end
 
     return format("%s.%d(%s) on %s %s\nBuild on %s, current toc version:%s", patch, build, flavor, system, clientBit, date, tocNumber)

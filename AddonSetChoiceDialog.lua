@@ -15,7 +15,7 @@ function ImprovedAddonListAddonSetChoiceDialogItemMixin:OnClick()
     local item = self:GetData()
     item.Checked = not item.Checked
     self:Update()
-    item.Dialog:UpdateButtonStatus()
+    self:GetParent():GetParent():GetParent():UpdateButtonStatus()
 end
 
 local function showAddonListGameTooltip(self, title)
@@ -119,6 +119,7 @@ local function onAddonSetSearchBoxTextChanged(self, userInput)
         self.preText = self:GetText()
         self.searchJob = C_Timer.NewTimer(0.25, function()
             self:GetParent():RefreshAddonSetList()
+            self:GetParent():UpdateButtonStatus()
         end)
     end
 end
@@ -237,9 +238,6 @@ end
 
 function AddonSetChoiceDialogMixin:IsAllAddonSetSelected()
     local dataProvider = self:GetDataProvider()
-    local item = dataProvider:FindByPredicate(function(data)
-        return data.Checked ~= true
-    end)
 
     local allSelected, allDeselected
     for _, element in dataProvider:Enumerate() do
@@ -293,12 +291,19 @@ function AddonSetChoiceDialogMixin:GetTargetAddons()
     return self.ChoiceInfo.Addons
 end
 
-function AddonSetChoiceDialogMixin:RefreshAddonSetList()
+function AddonSetChoiceDialogMixin:RefreshAddonSetList(reset)
     local addonSetDataProvider = self:GetDataProvider()
 
     local searchText = self.SearchBox:GetText()
     searchText = searchText and strtrim(searchText)
     searchText = searchText and searchText:lower()
+
+    local checkStatus = {}
+    addonSetDataProvider:ForEach(function(data)
+        if data.Checked then
+            checkStatus[data.AddonSet.Name] = true
+        end
+    end)
 
     addonSetDataProvider:Flush()
 
@@ -306,11 +311,10 @@ function AddonSetChoiceDialogMixin:RefreshAddonSetList()
     local addonSets = Addon:GetAddonSets()
 
     for addonSetName, addonSet in pairs(addonSets) do
-        if not shouldFilter or addonSetName:lower():match(searchText) then
+        if not shouldFilter or addonSetName:lower():match(searchText) then 
             addonSetDataProvider:Insert({
                 AddonSet = addonSet,
-                Checked = false,
-                Dialog = self
+                Checked = not reset and checkStatus[addonSetName]
             })
         end
     end
@@ -321,7 +325,7 @@ end
 function AddonSetChoiceDialogMixin:SetupChoiceInfo(owner, choiceInfo)
     self.ChoiceInfo = choiceInfo
     self.SearchBox:SetText("")
-    self:RefreshAddonSetList()
+    self:RefreshAddonSetList(true)
     self:UpdateButtonStatus()
 
     self:ClearAllPoints()
