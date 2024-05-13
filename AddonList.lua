@@ -344,8 +344,6 @@ end
 
 -- 重置按钮：鼠标点击
 local function onResetButtonClick(self)
-    if not Addon:IsAddonListCanReset() then return end
-
     Addon:ResetAddonList()
     Addon:RefreshAddonListContainer()
 end

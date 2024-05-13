@@ -369,18 +369,6 @@ function Addon:ResetAddonList()
     self:UpdateAddonInfos()
 end
 
--- 插件列表是否可以重置
-function Addon:IsAddonListCanReset()
-    local addonInfos = self:GetAddonInfos()
-    for _, addonInfo in ipairs(addonInfos) do
-        if addonInfo.InitialEnabled ~= addonInfo.Enabled then
-            return true
-        end
-    end
-
-    return false
-end
-
 -- 启用所有插件
 function Addon:EnableAllAddons()
     local addonInfos = self:GetAddonInfos()
