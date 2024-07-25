@@ -175,9 +175,9 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     -- 可能值：不安全，安全，非法
     addonInfo.Security = security
     -- 插件依赖
-    addonInfo.Deps = addonInfo.Deps or {C_AddOns.GetAddOnDependencies(query)}
+    addonInfo.Deps = addonInfo.Deps or { C_AddOns.GetAddOnDependencies(query) }
     -- 可选依赖
-    addonInfo.OptionalDeps = addonInfo.OptionalDeps or {C_AddOns.GetAddOnOptionalDependencies(query)}
+    addonInfo.OptionalDeps = addonInfo.OptionalDeps or { C_AddOns.GetAddOnOptionalDependencies(query) }
     -- 备注
     addonInfo.Remark = self:GetAddonRemark(name)
     -- 是否收藏
@@ -311,7 +311,7 @@ function Addon:CanAddonLoadOnDemand(query)
     end
 
     for _, dep in pairs(addonInfo.Deps) do
-        if dep and not IsAddOnLoaded(dep) then
+        if dep and not C_AddOns.IsAddOnLoaded(dep) then
             return false
         end
     end

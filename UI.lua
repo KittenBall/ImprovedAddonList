@@ -128,10 +128,10 @@ end
 local function OnEnableExpiredAddonsButtonCheckedChange(self)
     if self:GetChecked() then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-        SetAddonVersionCheck(false);
+        C_AddOns.SetAddonVersionCheck(false);
     else
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-        SetAddonVersionCheck(true);
+        C_AddOns.SetAddonVersionCheck(true);
     end
     Addon:UpdateAddonInfos()
     Addon:RefreshAddonListContainer()
@@ -183,7 +183,7 @@ function Addon:GetOrCreateUI()
     EnableExpiredAddonsButton:SetSize(26, 26)
     EnableExpiredAddonsButton.text:SetFontObject(GameFontWhite)
     EnableExpiredAddonsButton.text:SetText(ADDON_FORCE_LOAD)
-    EnableExpiredAddonsButton:SetChecked(not IsAddonVersionCheckEnabled())
+    EnableExpiredAddonsButton:SetChecked(not C_AddOns.IsAddonVersionCheckEnabled())
     EnableExpiredAddonsButton:SetPoint("TOPRIGHT", -(EnableExpiredAddonsButton.text:GetStringWidth() + 20), -30)
     EnableExpiredAddonsButton:SetScript("OnClick", OnEnableExpiredAddonsButtonCheckedChange)
 
