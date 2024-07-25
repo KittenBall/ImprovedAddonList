@@ -481,4 +481,14 @@ local function OnBlizzardAddonListShow()
     Addon:ShowUI()
 end
 
-GameMenuButtonAddons:SetScript("OnClick", OnBlizzardAddonListShow)
+local function OnGameMenuFrameInitButtons(frame, text, callback, isDisabled, disabledText)
+    local children = { frame:GetChildren() }
+
+    for _, child in ipairs(children) do
+        if child:GetObjectType() == "Button" and child:GetText() == ADDONS then
+            child:SetScript("OnClick", OnBlizzardAddonListShow)
+        end
+    end
+end
+
+hooksecurefunc(GameMenuFrame, "InitButtons", OnGameMenuFrameInitButtons)

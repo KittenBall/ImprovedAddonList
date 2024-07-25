@@ -1076,7 +1076,7 @@ function Addon:ScrollToSelectedAddonSet()
     local selectedPredicate = function(elementData)
         return self:GetAddonSetListScrollBox().SelectionBehavior:IsElementDataSelected(elementData)
     end
-    self:GetAddonSetListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, ScrollBoxConstants.NoScrollInterpolation)
+    self:GetAddonSetListScrollBox():ScrollToElementDataByPredicate(selectedPredicate, ScrollBoxConstants.AlignCenter, 0, ScrollBoxConstants.NoScrollInterpolation)
 end
 
 -- 刷新插件集列表
