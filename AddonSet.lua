@@ -89,7 +89,7 @@ local function onAddonSetTipButtonClick(self, button)
                 local addonInfo = Addon:GetAddonInfoByNameOrNil(addonName)
                 if addonInfo and not addonInfo.Enabled
                     and not Addon:IsAddonManager(addonInfo.Name) and not Addon:IsAddonLocked(addonInfo.Name) then
-                        C_AddOns.EnableAddOn(addonInfo.Name)
+                        C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
                 end
             end
         end

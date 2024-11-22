@@ -20,9 +20,9 @@ end
 function ImprovedAddonListItemEnableStatusButtonMixin:OnClick()
     local addonInfo = self:GetParent():GetAddonInfo()
     if addonInfo.Enabled then
-        C_AddOns.DisableAddOn(addonInfo.Name)
+        C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
     else
-        C_AddOns.EnableAddOn(addonInfo.Name)
+        C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
     end
     Addon:RefreshAddonInfo(addonInfo.Name)
 end

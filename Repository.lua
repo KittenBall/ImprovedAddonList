@@ -361,9 +361,9 @@ function Addon:ResetAddonList()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if addonInfo.InitialEnabled then
-            C_AddOns.EnableAddOn(addonInfo.Name)
+            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
         else
-            C_AddOns.DisableAddOn(addonInfo.Name)
+            C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
         end
     end
     self:UpdateAddonInfos()
@@ -374,7 +374,7 @@ function Addon:EnableAllAddons()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if not addonInfo.IsLocked then
-            C_AddOns.EnableAddOn(addonInfo.Name)
+            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
         end
     end
     self:UpdateAddonInfos()
@@ -385,9 +385,9 @@ function Addon:DisableAllAddons()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if self:IsAddonManager(addonInfo.Name) then
-            C_AddOns.EnableAddOn(addonInfo.Name)
+            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
         elseif not addonInfo.IsLocked then
-            C_AddOns.DisableAddOn(addonInfo.Name)
+            C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
         end
     end
     self:UpdateAddonInfos()
@@ -477,9 +477,9 @@ function Addon:ApplyAddonSetAddons(addonSetName)
             if not self:IsAddonManager(addonName) and not self:IsAddonLocked(addonName) then
                 local shouldEnabled = addonSetAddons and addonSetAddons[addonName]
                 if shouldEnabled then
-                    C_AddOns.EnableAddOn(addonName)
+                    C_AddOns.EnableAddOn(addonName, UnitName("player"))
                 else
-                    C_AddOns.DisableAddOn(addonName)
+                    C_AddOns.DisableAddOn(addonName, UnitName("player"))
                 end
             end
 
