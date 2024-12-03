@@ -105,7 +105,7 @@ function Addon:UpdateAddonDetailFramesPosition()
             local detailLabel = addonDetailFrame[detail.Name .. "Label"]
             local detailBody = addonDetailFrame[detail.Name]
             local detailContent = detailBody:GetText() or ""
-            if strlen(detailContent) <= 0 then
+            if strlenutf8(detailContent) <= 0 then
                 detailLabel:SetShown(false)
                 detailBody:SetShown(false)
             else

@@ -318,7 +318,7 @@ function ImprovedAddonListAddonSetAddonListItemMixin:Update()
     local iconText = Addon:CreateAddonIconText(addonInfo.IconText)
     local label = iconText .. " " .. addonInfo.Title
     -- 显示备注
-    if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
+    if addonInfo.Remark and strlenutf8(addonInfo.Remark) > 0 then
         label = iconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     end
 
@@ -1095,7 +1095,7 @@ function Addon:RefreshAddonSetList()
 
     addonSetDataProvider:Flush()
 
-    local shouldFilter = searchText and strlen(searchText) > 0
+    local shouldFilter = searchText and strlenutf8(searchText) > 0
     local addonSets = self:GetAddonSets()
 
     for addonSetName, addonSet in pairs(addonSets) do
@@ -1171,7 +1171,7 @@ function Addon:RefreshAddonSetAddonList()
 
     addonSetAddonDataProvider:Flush()
 
-    local shouldFilter = searchText and strlen(searchText) > 0
+    local shouldFilter = searchText and strlstrlenutf8en(searchText) > 0
     local addonInfos = self:GetAddonInfos()
     
     for index, addonInfo in ipairs(addonInfos) do

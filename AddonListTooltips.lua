@@ -12,7 +12,7 @@ function ImprovedAddonListAddonListTooltipsItemMixin:Update()
     local iconText = Addon:CreateAddonIconText(addonInfo.IconText)
 
     local label
-    if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
+    if addonInfo.Remark and strlenutf8(addonInfo.Remark) > 0 then
         label = iconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     else
         label = iconText .. " " .. addonInfo.Title

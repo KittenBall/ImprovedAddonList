@@ -313,7 +313,7 @@ function ImprovedAddonListSettingsItemMixin:SetTitle(title, subTitle)
     self.Title:ClearAllPoints()
     self.SubTitle:ClearAllPoints()
 
-    if strlen(subTitle) > 0 then
+    if strlenutf8(subTitle) > 0 then
         self.Title:SetPoint("TOPLEFT", 5, -3)
         self.SubTitle:SetPoint("TOPLEFT", self.Title, "BOTTOMLEFT", 0, -2)
         self.SubTitle:Show()
@@ -659,7 +659,7 @@ local function ElementExtentCalculator(index, node)
     else
         local title = data.Title or ""
         local subTitle = data.SubTitle or ""
-        if strlen(subTitle) > 0 then
+        if strlenutf8(subTitle) > 0 then
             return 40
         else
             return 24

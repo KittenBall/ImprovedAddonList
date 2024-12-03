@@ -291,7 +291,7 @@ function EditDialogMinxin:Init()
     self.EditBox = EditBox
 
     self.EditBox:GetEditBox():HookScript("OnEditFocusGained", function(editBox)
-        editBox:SetCursorPosition(strlen(editBox:GetText() or ""))
+        editBox:SetCursorPosition(strlenutf8(editBox:GetText() or ""))
         self.EditBoxLayer:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
     end)
 

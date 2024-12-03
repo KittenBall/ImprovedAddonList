@@ -79,7 +79,7 @@ function Addon:SetAddonRemark(name, remark)
         return
     end
 
-    if strlen(remark) > self.REMARK_MAX_LENGTH then
+    if strlenutf8(remark) > self.REMARK_MAX_LENGTH then
         self:ShowError(L["edit_remark_error_too_long"])
         return
     end
@@ -505,7 +505,7 @@ function Addon:NewAddonSet(name)
         return
     end
     
-    if strlen(name) > self.ADDON_SET_NAME_MAX_LENGTH then
+    if strlenutf8(name) > self.ADDON_SET_NAME_MAX_LENGTH then
         self:ShowError(L["addon_set_name_error_too_long"])
         return
     end

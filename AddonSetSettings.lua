@@ -753,7 +753,7 @@ function Addon:EditAddonSetName(addonSetName, newAddonSetName)
         return
     end
     
-    if strlen(newAddonSetName) > self.ADDON_SET_NAME_MAX_LENGTH then
+    if strlenutf8(newAddonSetName) > self.ADDON_SET_NAME_MAX_LENGTH then
         self:ShowError(L["addon_set_name_error_too_long"])
         return
     end

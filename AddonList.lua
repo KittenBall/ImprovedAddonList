@@ -97,7 +97,7 @@ function ImprovedAddonListAddonItemMixin:Update()
     end
 
     -- 显示备注
-    if addonInfo.Remark and strlen(addonInfo.Remark) > 0 then
+    if addonInfo.Remark and strlenutf8(addonInfo.Remark) > 0 then
         label = iconText .. " " .. WrapTextInColor("*", DISABLED_FONT_COLOR) .. addonInfo.Remark
     end
 
@@ -569,7 +569,7 @@ function Addon:RefreshAddonList()
 
     local rootNode = addonDataProvider:GetRootNode()
     local addonInfos = self:GetAddonInfos()
-    local shouldFilter = searchText and strlen(searchText) > 0
+    local shouldFilter = searchText and strlenutf8(searchText) > 0
     
     for index, addonInfo in ipairs(addonInfos) do
         if shouldFilter then
