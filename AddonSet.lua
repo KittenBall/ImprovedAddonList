@@ -181,34 +181,15 @@ end
 function Addon:RefreshAddonSetContainer()
     local addonSetContainer = self:GetAddonSetContainer()
     local activeAddonSetLable = addonSetContainer.ActiveAddonSetLabel
-    local activeAddonSet = self:GetActiveAddonSet()
+    local activeAddonSetName = self:GetActiveAddonSetName()
 
-    if activeAddonSet then
-        activeAddonSetLable:SetText(activeAddonSet.Name)
+    if activeAddonSetName then
+        activeAddonSetLable:SetText(activeAddonSetName)
         activeAddonSetLable:SetTextColor(WHITE_FONT_COLOR:GetRGB())
+        addonSetContainer.AddonSetTipButton:SetShown(not self:IsAddonSetPerfectMacth(activeAddonSetName))
     else
         activeAddonSetLable:SetText(L["addon_set_inactive_tip"])
         activeAddonSetLable:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
-    end
-
-    if activeAddonSet and activeAddonSet.Addons then
-        local addonInfos = self:GetAddonInfos()
-        local perfectMatch = true
-
-        -- 检查是否完全匹配
-        for _, addonInfo in ipairs(addonInfos) do
-            if not self:IsAddonManager(addonInfo.Name) then
-                if addonInfo.Enabled and not activeAddonSet.Addons[addonInfo.Name] then
-                    perfectMatch = false
-                    break
-                elseif not addonInfo.Enabled and activeAddonSet.Addons[addonInfo.Name] then
-                    perfectMatch = false
-                    break
-                end
-            end
-        end
-        addonSetContainer.AddonSetTipButton:SetShown(not perfectMatch)
-    else
         addonSetContainer.AddonSetTipButton:Hide()
     end
 end

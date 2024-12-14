@@ -196,6 +196,8 @@ L["addon_set_condition_tooltip_label"] = "Addon Set\n%s\n\nMet the following con
 L["addon_set_condition_met_none"] = "Addon set has no conditions set"
 L["addon_set_switch_tips_dialog_label"] = "Detected more suitable addon set(s) for the current scenario."
 L["addon_set_condition_met_count"] = "Hit %d conditions."
+L["addon_set_not_perfect_match_alert"] = "Addon set \"%s\" is not matching perfectly"
+L["addon_set_not_perfect_match_confirm"] = "Apply Addon Set"
 
 L["load_addon"] = "Load this addon"
 L["enable_addon"] = "Enable addon"

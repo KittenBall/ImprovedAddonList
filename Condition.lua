@@ -8,8 +8,12 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_name_and_realm"],
         Event = { "PLAYER_LOGIN" },
+        Dynamic = false,
         Current = function(self)
             return UnitFullName("player")
+        end,
+        Sence = function(self)
+            return GetUnitName("player", true)
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetPlayerNameConditions(addonSet, self:Current())
@@ -19,8 +23,12 @@ local Conditions = {
     {
         Title = PVP_LABEL_WAR_MODE,
         Event = { "PLAYER_FLAGS_CHANGED" },
+        Dynamic = true,
         Current = function(self)
             return C_PvP.IsWarModeDesired()
+        end,
+        Sence = function(self)
+            return C_PvP.IsWarModeDesired() and "Enabled" or "Disabled"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetWarModeCondition(addonSet, self:Current())
@@ -30,8 +38,13 @@ local Conditions = {
     {
         Title = FACTION,
         Event = { "PLAYER_LOGIN" },
+        Dynamic = false,
         Current = function(self)
             return UnitFactionGroup("player")
+        end,
+        Sence = function(self)
+            local faction = UnitFactionGroup("player")
+            return faction
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetFactionCondition(addonSet, self:Current())
@@ -41,8 +54,14 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_max_level"],
         Event = { "PLAYER_LOGIN", "PLAYER_LEVEL_UP" },
+        Dynamic = true,
         Current = function(self)
-            return UnitLevel("player") == GetMaxPlayerLevel()
+            local maxLevel = UnitLevel("player") == GetMaxPlayerLevel()
+            self.Dynamic = not maxLevel
+            return maxLevel
+        end,
+        Sence = function(self)
+            return self:Current() and "MaxLevel" or "Leveling"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetMaxLevelCondition(addonSet, self:Current())
@@ -52,9 +71,14 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_specialization"],
         Event = { "ACTIVE_PLAYER_SPECIALIZATION_CHANGED" },
+        Dynamic = true,
         Current = function(self)
             local currentSpecIndex = GetSpecialization()
             return currentSpecIndex and GetSpecializationInfo(currentSpecIndex)
+        end,
+        Sence = function(self)
+            local _, specName = self:Current()
+            return specName or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetSpecializationCondition(addonSet, self:Current())
@@ -64,12 +88,16 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_specialization_role"],
         Event = { "ACTIVE_PLAYER_SPECIALIZATION_CHANGED" },
+        Dynamic = true,
         Current = function(self)
             local currentSpecIndex = GetSpecialization()
             if currentSpecIndex then
                 local _, _, _, _, role = GetSpecializationInfo(currentSpecIndex)
                 return role
             end
+        end,
+        Sence = function(self)
+            return self:Current() or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetSpecializationRoleCondition(addonSet, self:Current())
@@ -79,6 +107,7 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_race"],
         Event = { "PLAYER_LOGIN" },
+        Dynamic = false,
         Current = function(self)
             local _, _, raceId = UnitRace("player")
             if raceId then
@@ -88,6 +117,9 @@ local Conditions = {
                 end
             end
         end,
+        Sence = function(self)
+            return self:Current() or "Unknown"
+        end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetRaceCondition(addonSet, self:Current())
         end
@@ -96,9 +128,13 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_instance_type"],
         Event = { "ZONE_CHANGED_NEW_AREA" },
+        Dynamic = true,
         Current = function(self)
             local _, instanceType = GetInstanceInfo()
             return instanceType
+        end,
+        Sence = function(self)
+            return self:Current() or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetInstanceTypeCondition(addonSet, self:Current())
@@ -108,11 +144,15 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_instance_difficulty"],
         Event = { "PLAYER_DIFFICULTY_CHANGED", "ZONE_CHANGED_NEW_AREA" },
+        Dynamic = true,
         Current = function(self)
             local _, _, difficultyId = GetInstanceInfo()
             if difficultyId then
                 return Addon.InstanceDifficultyInfo[difficultyId]
             end
+        end,
+        Sence = function(self)
+            return self:Current() or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetInstanceDifficultyCondition(addonSet, self:Current())
@@ -122,9 +162,13 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_instance_difficulty_type"],
         Event = { "PLAYER_DIFFICULTY_CHANGED", "ZONE_CHANGED_NEW_AREA" },
+        Dynamic = true,
         Current = function(self)
             local _, _, difficultyId = GetInstanceInfo()
             return difficultyId
+        end,
+        Sence = function(self)
+            return self:Current() or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetInstanceDifficultyTypeCondition(addonSet, self:Current())
@@ -134,9 +178,14 @@ local Conditions = {
     {
         Title = L["addon_set_settings_condition_mythic_plus_affix"],
         Event = { "CHALLENGE_MODE_START", "CHALLENGE_MODE_COMPLETED" },
+        Dynamic = true,
         Current = function(self)
             local _, affixIDs = C_ChallengeMode.GetActiveKeystoneInfo()
             return affixIDs
+        end,
+        Sence = function(self)
+            local affixIds = C_ChallengeMode.GetActiveKeystoneInfo()
+            return affixIDs and table.concat(affixIds) or "Unknown"
         end,
         MetCondition = function(self, addonSet)
             return Addon:IsAddonSetMetMythicPlusAffixCondition(addonSet, self:Current())
@@ -144,10 +193,24 @@ local Conditions = {
     }
 }
 
+-- 最近弹窗时的场景
+local latestSences = {}
+-- 是否为第一次条件检查
+local firstCheckCondition = true
+
 local function CheckAddonSetCondition()
     if not Addon:IsLoadConditionDetectEnabled() then
         return
     end
+
+    local sences = {}
+    for _, condition in ipairs(Conditions) do
+        local sence = condition:Sence()
+        tinsert(sences, condition.Title .. ":" .. sence)
+    end
+
+    local firstCheck = firstCheckCondition
+    firstCheckCondition = false
 
     local addonSets = Addon:GetAddonSets()
     local activeAddonSetName = Addon:GetActiveAddonSetName()
@@ -160,42 +223,66 @@ local function CheckAddonSetCondition()
         if addonSet.Enabled then
             local metConditions = {}
             local metCondition = true
+
             for _, condition in ipairs(Conditions) do
-                -- conditionEmpty true:条件为空 false:条件不为空
-                local met, conditionEmpty = condition:MetCondition(addonSet)
-                if not met then
-                    metCondition = false
-                    break
-                end
-                if not conditionEmpty then
-                    tinsert(metConditions, condition.Title)
+                -- 仅当第一次检查条件时，才检查静态条件，这样会显著降低静态条件的提示频率
+                if firstCheck or condition.Dynamic then
+                    -- conditionEmpty true:条件为空 false:条件不为空
+                    local met, conditionEmpty = condition:MetCondition(addonSet)
+
+                    if not met then
+                        metCondition = false
+                        break
+                    end
+
+                    if not conditionEmpty then
+                        tinsert(metConditions, condition.Title)
+                    end
                 end
             end
 
-            maxMetConditionNum = math.max(maxMetConditionNum, #metConditions)
-
-            if metCondition and #metConditions > 0 then
+            local metConditionSize = #metConditions
+            maxMetConditionNum = math.max(maxMetConditionNum, metConditionSize)
+            
+            if metCondition and metConditionSize > 0 then
                 if addonSetName == activeAddonSetName then
                     activeAddonSetMetCondition = true
-                    activeAddonSetMetConditionNum = #metConditions
+                    activeAddonSetMetConditionNum = metConditionSize
                 end
-
-                tinsert(metConditionAddonSets, { AddonSet = addonSet, MetConditions = metConditions })
+                
+                tinsert(metConditionAddonSets, { AddonSet = addonSet, MetConditions = metConditions, MetConditionSize = metConditionSize })
             end
         end
     end
 
     -- 当前插件集就满足条件，并且条件数量与满足最多条件数量的插件集一致，则无需弹出提示
     if activeAddonSetMetCondition and activeAddonSetMetConditionNum >= maxMetConditionNum then
+        -- 检查是否完全匹配
+        if firstCheck and not Addon:IsAddonSetPerfectMacth(activeAddonSetName) then
+            local alertInfo = {
+                Extra = activeAddonSetName,
+                Label = L["addon_set_not_perfect_match_alert"]:format(WrapTextInColor(activeAddonSetName, NORMAL_FONT_COLOR)),
+                ConfirmText = L["addon_set_not_perfect_match_confirm"],
+                OnConfirm = function(extra)
+                    Addon:ApplyAddonSetAddons(extra)
+                    ReloadUI()
+                end
+            }
+            Addon:ShowAlertDialog(alertInfo)
+        end
         return
     end
 
     -- for _, item in ipairs(metConditionAddonSets) do
     --     print("满足加载条件的插件集：", item.AddonSet.Name, table.concat(item.MetConditions, "，"))
     -- end
-    if #metConditionAddonSets > 0 then
-        table.sort(metConditionAddonSets, function(a, b) return #a.MetConditions > #b.MetConditions end)
 
+    -- 如果场景不一致，才触发选择弹窗
+    if not tCompare(latestSences, sences) and #metConditionAddonSets > 0 then
+        latestSences = sences
+
+        table.sort(metConditionAddonSets, function(a, b) return a.MetConditionSize > b.MetConditionSize end)
+        
         Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
     end
 end
@@ -232,7 +319,7 @@ function ImprovedAddonListConditionAddonSetItemMixin:Update(data)
     end
 
     self.Label:SetText(name)
-    self.MetCount:SetText(L["addon_set_condition_met_count"]:format(#data.MetConditions))
+    self.MetCount:SetText(L["addon_set_condition_met_count"]:format(data.MetConditionSize))
 end
 
 function ImprovedAddonListConditionAddonSetItemMixin:OnEnter()

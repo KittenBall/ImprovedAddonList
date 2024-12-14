@@ -197,6 +197,8 @@ L["addon_set_condition_tooltip_label"] = "插件集\n%s\n\n满足以下条件：
 L["addon_set_condition_met_none"] = "插件集未设置条件"
 L["addon_set_switch_tips_dialog_label"] = "检测到当前场景下更适合的插件集"
 L["addon_set_condition_met_count"] = "命中%d个条件"
+L["addon_set_not_perfect_match_alert"] = "插件集“%s”未完全匹配"
+L["addon_set_not_perfect_match_confirm"] = "应用插件集"
 
 L["load_addon"] = "加载此插件"
 L["enable_addon"] = "启用插件"

@@ -1272,8 +1272,11 @@ function Addon:IsAddonSetMetInstanceDifficultyTypeCondition(addonSet, instanceDi
     end
 
     local instanceDifficultyTypes = self:GetAddonSetInstanceDifficultyTypeConditions(addonSet)
-    if instanceDifficultyTypes == nil or next(instanceDifficultyTypes) == nil or instanceDifficultyType == nil then
+    if instanceDifficultyTypes == nil or next(instanceDifficultyTypes) == nil then
         return true, true
+    end
+    if instanceDifficultyType == nil then
+        return false, false
     end
 
     return instanceDifficultyTypes[instanceDifficultyType] or false, false
@@ -1308,8 +1311,12 @@ function Addon:IsAddonSetMetMythicPlusAffixCondition(addonSet, affixIds)
     end
 
     local mythicPlusAffixs = self:GetAddonSetMythicPlusAffixConditions(addonSet)
-    if mythicPlusAffixs == nil or next(mythicPlusAffixs) == nil or affixIds == nil then
+    if mythicPlusAffixs == nil or next(mythicPlusAffixs) == nil then
         return true, true
+    end
+
+    if affixIds == nil or next(affixIds) == nil then
+        return false, false
     end
 
     for _, affixId in ipairs(affixIds) do

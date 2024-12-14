@@ -468,6 +468,29 @@ function Addon:SetActiveAddonSetName(addonSetName)
     self.Saved.ActiveAddonSets[UnitGUID("player")] = addonSetName
 end
 
+-- 插件集是否完全匹配
+function Addon:IsAddonSetPerfectMacth(addonSetName)
+    local addonSet = self:GetAddonSetByName(addonSetName)
+    if not addonSet or not addonSet.Addons then return false end
+
+    local perfectMatch = true
+    
+    -- 检查是否完全匹配
+    for _, addonInfo in ipairs(self:GetAddonInfos()) do
+        if not self:IsAddonManager(addonInfo.Name) then
+            if addonInfo.Enabled and not addonSet.Addons[addonInfo.Name] then
+                perfectMatch = false
+                break
+            elseif not addonInfo.Enabled and addonSet.Addons[addonInfo.Name] then
+                perfectMatch = false
+                break
+            end
+        end
+    end
+
+    return perfectMatch
+end
+
 -- 应用插件集
 function Addon:ApplyAddonSetAddons(addonSetName)
     local addonSet = self:GetAddonSetByName(addonSetName)

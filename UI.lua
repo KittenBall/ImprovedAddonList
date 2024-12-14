@@ -440,15 +440,13 @@ function AlertDialogMixin:SetupAlertInfo(alertInfo)
 end
 
 function Addon:ShowAlertDialog(alertInfo)
-    local UI = self:GetOrCreateUI()
-
-    if UI.AlertDialog then
-        UI.AlertDialog:SetupAlertInfo(alertInfo)
+    if Addon.AlertDialog then
+        Addon.AlertDialog:SetupAlertInfo(alertInfo)
         return 
     end
 
-    local AlertDialog = Mixin(CreateFrame("Frame", nil, UI), AlertDialogMixin)
-    UI.AlertDialog = AlertDialog
+    local AlertDialog = Mixin(CreateFrame("Frame", nil, UIParent), AlertDialogMixin)
+    Addon.AlertDialog = AlertDialog
 
     AlertDialog:Init()
     AlertDialog:SetupAlertInfo(alertInfo)
