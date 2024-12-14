@@ -29,6 +29,8 @@ local function OnInitialize()
     saved.AddonRemarks = saved.AddonRemarks or {}
     -- 插件集列表
     saved.AddonSets = saved.AddonSets or {}
+    -- 当前插件集
+    saved.ActiveAddonSets = saved.ActiveAddonSets or {}
 
     -- 配置
     saved.Config = saved.Config or {}

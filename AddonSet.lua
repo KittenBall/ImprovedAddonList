@@ -1171,7 +1171,7 @@ function Addon:RefreshAddonSetAddonList()
 
     addonSetAddonDataProvider:Flush()
 
-    local shouldFilter = searchText and strlstrlenutf8en(searchText) > 0
+    local shouldFilter = searchText and strlenutf8(searchText) > 0
     local addonInfos = self:GetAddonInfos()
     
     for index, addonInfo in ipairs(addonInfos) do

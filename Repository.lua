@@ -443,13 +443,16 @@ end
 
 -- 返回当前的插件集，或nil
 function Addon:GetActiveAddonSet()
-    local activeAddonSet = self.Saved.ActiveAddonSet
+    local guid = UnitGUID("player")
+    local activeAddonSet = self.Saved.ActiveAddonSets[guid]
+    if not activeAddonSet then return end
     return self:GetAddonSets()[activeAddonSet]
 end
 
 -- 返回当前的插件集名称
 function Addon:GetActiveAddonSetName()
-    return self.Saved.ActiveAddonSet
+    local guid = UnitGUID("player")
+    return self.Saved.ActiveAddonSets[guid]
 end
 
 -- 设置当前插件集
@@ -462,7 +465,7 @@ function Addon:SetActiveAddonSetName(addonSetName)
         end
     end
 
-    self.Saved.ActiveAddonSet = addonSetName
+    self.Saved.ActiveAddonSets[UnitGUID("player")] = addonSetName
 end
 
 -- 应用插件集
@@ -512,7 +515,7 @@ function Addon:NewAddonSet(name)
 
     local addonSets = self:GetAddonSets()
 
-    for _, addonSet in ipairs(addonSets) do
+    for _, addonSet in pairs(addonSets) do
         if addonSet.Name == name then
             self:ShowError(L["addon_set_name_error_duplicate"])
             return
