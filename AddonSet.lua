@@ -531,7 +531,7 @@ local function onSaveAddonSetButtonClick(self)
 
         local finalEnableStatus
         if tempEnableStatus == nil then
-            finalEnableStatus = enabld
+            finalEnableStatus = enabld 
         else
             finalEnableStatus = tempEnableStatus
         end

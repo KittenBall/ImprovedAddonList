@@ -161,6 +161,8 @@ do
         [37] = true,
         [52] = true,
         [70] = true,
+        [84] = true,--土灵
+        [85] = true,--土灵
     }
 
     for raceId, enabled in pairs(races) do
@@ -286,6 +288,10 @@ local InstanceDifficultyTypes = {
     [170] = GetDifficultyInfo(170),
     -- 晋升之路：谦逊
     [171] = GetDifficultyInfo(171),
+    -- 追随者地下城
+    [205] = LFG_TYPE_FOLLOWER_DUNGEON,
+    -- 地下堡
+    [208] = GetDifficultyInfo(208),
 }
 
 local function GetAddonSetInstanceDifficultyTypesSettingInfo(addonSetName)
@@ -359,7 +365,11 @@ Addon.InstanceDifficultyInfo = {
     -- 战争前线，普通
     [147] = "normal",
     -- 战争前线，英雄
-    [149] = "heroic"
+    [149] = "heroic",
+    -- 追随者地下城
+    [205] = "normal",
+    -- 地下堡
+    [208] = "normal"
 }
 
 local InstanceDifficulties = {
@@ -401,18 +411,18 @@ do
         9, 
         -- 强韧
         10,
-        -- 萨拉塔斯的交易：狡诈
-        147,
-        -- 萨拉塔斯的交易：扬升
-        148,
         -- 挑战者的危境
         152,
+        -- 萨拉塔斯的交易：扬升
+        148,
         -- 萨拉塔斯的交易：虚缚
         158,
         -- 萨拉塔斯的交易：湮灭
         159,
         -- 萨拉塔斯的交易：吞噬
         160,
+        -- 萨拉塔斯的交易：狡诈
+        147,
     }
 
     for _, affixId in ipairs(Affixs) do

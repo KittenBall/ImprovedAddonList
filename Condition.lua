@@ -208,6 +208,8 @@ local function CheckAddonSetCondition()
         local sence = condition:Sence()
         tinsert(sences, condition.Title .. ":" .. sence)
     end
+    local lastSences = latestSences
+    latestSences = sences
 
     local firstCheck = firstCheckCondition
     firstCheckCondition = false
@@ -257,6 +259,8 @@ local function CheckAddonSetCondition()
 
     -- 当前插件集就满足条件，并且条件数量与满足最多条件数量的插件集一致，则无需弹出提示
     if activeAddonSetMetCondition and activeAddonSetMetConditionNum >= maxMetConditionNum then
+        Addon:HideAddonSetConditionDialog()
+
         -- 检查是否完全匹配
         if firstCheck and not Addon:IsAddonSetPerfectMacth(activeAddonSetName) then
             local alertInfo = {
@@ -277,10 +281,9 @@ local function CheckAddonSetCondition()
     --     print("满足加载条件的插件集：", item.AddonSet.Name, table.concat(item.MetConditions, "，"))
     -- end
 
+    print(tCompare(lastSences, sences))
     -- 如果场景不一致，才触发选择弹窗
-    if not tCompare(latestSences, sences) and #metConditionAddonSets > 0 then
-        latestSences = sences
-
+    if not tCompare(lastSences, sences) and #metConditionAddonSets > 0 then
         table.sort(metConditionAddonSets, function(a, b) return a.MetConditionSize > b.MetConditionSize end)
         
         Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
