@@ -7,6 +7,7 @@ if not L then return end
 
 L["true"] = "是"
 L["false"] = "否"
+L["ignore"] = "忽略"
 
 L["addon_set"] = "插件集"
 L["settings_tips"] = "设置"

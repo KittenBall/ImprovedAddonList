@@ -6,6 +6,7 @@ if not L then return end
 
 L["true"] = "Yes"
 L["false"] = "No"
+L["ignore"] = "Ignore"
 
 L["addon_set"] = "Addon Set"
 L["settings_tips"] = "Settings"

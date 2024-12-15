@@ -267,6 +267,7 @@ local function CheckAddonSetCondition()
                 Extra = activeAddonSetName,
                 Label = L["addon_set_not_perfect_match_alert"]:format(WrapTextInColor(activeAddonSetName, NORMAL_FONT_COLOR)),
                 ConfirmText = L["addon_set_not_perfect_match_confirm"],
+                CancelText = L["ignore"],
                 OnConfirm = function(extra)
                     Addon:ApplyAddonSetAddons(extra)
                     ReloadUI()
@@ -280,8 +281,6 @@ local function CheckAddonSetCondition()
     -- for _, item in ipairs(metConditionAddonSets) do
     --     print("满足加载条件的插件集：", item.AddonSet.Name, table.concat(item.MetConditions, "，"))
     -- end
-
-    print(tCompare(lastSences, sences))
     -- 如果场景不一致，才触发选择弹窗
     if not tCompare(lastSences, sences) and #metConditionAddonSets > 0 then
         table.sort(metConditionAddonSets, function(a, b) return a.MetConditionSize > b.MetConditionSize end)
