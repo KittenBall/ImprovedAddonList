@@ -28,9 +28,20 @@ local Conditions = {
             return C_PvP.IsWarModeDesired()
         end,
         Sence = function(self)
+            local _, instanceType = GetInstanceInfo()
+            if instanceType ~= "none" then
+                return "Disabled"
+            end
+            
             return C_PvP.IsWarModeDesired() and "Enabled" or "Disabled"
         end,
         MetCondition = function(self, addonSet)
+            local _, instanceType = GetInstanceInfo()
+            if instanceType ~= "none" then
+                -- 非野外，不检查战争模式，视为命中条件
+                return true, false
+            end
+
             return Addon:IsAddonSetMetWarModeCondition(addonSet, self:Current())
         end
     },
@@ -211,6 +222,9 @@ local function CheckAddonSetCondition()
     local lastSences = latestSences
     latestSences = sences
 
+    -- print("--------------------")
+    -- DevTools_Dump(sences)
+
     local firstCheck = firstCheckCondition
     firstCheckCondition = false
 
@@ -222,6 +236,7 @@ local function CheckAddonSetCondition()
     local maxMetConditionNum = 0
 
     for addonSetName, addonSet in pairs(addonSets) do
+        -- DevTools_Dump(addonSet.Conditions)
         if addonSet.Enabled then
             local metConditions = {}
             local metCondition = true
@@ -231,6 +246,7 @@ local function CheckAddonSetCondition()
                 if firstCheck or condition.Dynamic then
                     -- conditionEmpty true:条件为空 false:条件不为空
                     local met, conditionEmpty = condition:MetCondition(addonSet)
+                    -- print(addonSetName, condition.Title, met, conditionEmpty)
 
                     if not met then
                         metCondition = false
@@ -256,6 +272,15 @@ local function CheckAddonSetCondition()
             end
         end
     end
+    
+    -- for _, item in ipairs(metConditionAddonSets) do
+    --     print("满足加载条件的插件集：", item.AddonSet.Name, table.concat(item.MetConditions, "，"))
+    -- end
+
+    if #metConditionAddonSets <= 0 then
+        Addon:HideAddonSetConditionDialog()
+        return
+    end
 
     -- 当前插件集就满足条件，并且条件数量与满足最多条件数量的插件集一致，则无需弹出提示
     if activeAddonSetMetCondition and activeAddonSetMetConditionNum >= maxMetConditionNum then
@@ -278,11 +303,8 @@ local function CheckAddonSetCondition()
         return
     end
 
-    -- for _, item in ipairs(metConditionAddonSets) do
-    --     print("满足加载条件的插件集：", item.AddonSet.Name, table.concat(item.MetConditions, "，"))
-    -- end
     -- 如果场景不一致，才触发选择弹窗
-    if not tCompare(lastSences, sences) and #metConditionAddonSets > 0 then
+    if not tCompare(lastSences, sences) then
         table.sort(metConditionAddonSets, function(a, b) return a.MetConditionSize > b.MetConditionSize end)
         
         Addon:ShowAddonSetConditionDialog(metConditionAddonSets)
