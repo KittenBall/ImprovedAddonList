@@ -39,7 +39,7 @@ local Conditions = {
             local _, instanceType = GetInstanceInfo()
             if instanceType ~= "none" then
                 -- 非野外，不检查战争模式，视为命中条件
-                return true, false
+                return true, true
             end
 
             return Addon:IsAddonSetMetWarModeCondition(addonSet, self:Current())
