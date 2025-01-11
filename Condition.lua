@@ -594,6 +594,6 @@ end
 
 function Addon:HideAddonSetConditionDialog()
     if self.AddonSetConditionDialog then
-        self.AddonSetConditionDialog:Hide()
+        self.AddonSetConditionDialog:Dimiss()
     end
 end
