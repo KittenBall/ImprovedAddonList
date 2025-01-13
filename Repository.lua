@@ -369,6 +369,14 @@ function Addon:ResetAddonList()
     self:UpdateAddonInfos()
 end
 
+-- 启用插件
+function Addon:EnableAddon(addonName)
+    local addonInfo = self:QueryAddonInfo(addonName)
+    if addonInfo and not addonInfo.IsLocked then
+        C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
+    end
+end
+
 -- 启用所有插件
 function Addon:EnableAllAddons()
     local addonInfos = self:GetAddonInfos()
@@ -378,6 +386,14 @@ function Addon:EnableAllAddons()
         end
     end
     self:UpdateAddonInfos()
+end
+
+-- 禁用插件
+function Addon:DisableAddon(addonName)
+    local addonInfo = self:QueryAddonInfo(addonName)
+    if addonInfo and not addonInfo.IsLocked and self:IsAddonManager(addonInfo.Name) then
+        C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
+    end
 end
 
 -- 禁用所有插件
