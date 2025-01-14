@@ -163,7 +163,7 @@ function Addon:GetAddonInfoOrNil(query, addonInfo)
     -- 是否按需加载
     addonInfo.LoadOnDemand = C_AddOns.IsAddOnLoadOnDemand(query)
     -- 是否启用
-    addonInfo.Enabled = C_AddOns.GetAddOnEnableState(query, UnitName("player")) > 0
+    addonInfo.Enabled = C_AddOns.GetAddOnEnableState(query, UnitName("player")) > Enum.AddOnEnableState.None
     -- 初始启用状态
     addonInfo.InitialEnabled = AddonInfoInitialStates[name].Enabled
     -- 是否过期
@@ -356,14 +356,32 @@ function Addon:IsUIShouldReload()
     end
 end
 
+-- 启用插件
+local function enableAddon(addonName)
+    if Addon:IsAddonEnableStatusCharacterOnly() then
+        C_AddOns.EnableAddOn(addonName, UnitName("player"))
+    else
+        C_AddOns.EnableAddOn(addonName)
+    end
+end
+
+-- 禁用插件
+local function disableAddon(addonName)
+    if Addon:IsAddonEnableStatusCharacterOnly() then
+        C_AddOns.DisableAddOn(addonName, UnitName("player"))
+    else
+        C_AddOns.DisableAddOn(addonName)
+    end
+end
+
 -- 重置插件列表
 function Addon:ResetAddonList()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if addonInfo.InitialEnabled then
-            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
+            enableAddon(addonInfo.Name)
         else
-            C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
+            disableAddon(addonInfo.Name)
         end
     end
     self:UpdateAddonInfos()
@@ -371,9 +389,9 @@ end
 
 -- 启用插件
 function Addon:EnableAddon(addonName)
-    local addonInfo = self:QueryAddonInfo(addonName)
-    if addonInfo and not addonInfo.IsLocked then
-        C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
+    local addonInfo = self:GetAddonInfoByNameOrNil(addonName)
+    if addonInfo and not addonInfo.IsLocked and not self:IsAddonManager(addonInfo.Name) then
+        enableAddon(addonName)
     end
 end
 
@@ -382,7 +400,7 @@ function Addon:EnableAllAddons()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if not addonInfo.IsLocked then
-            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
+            enableAddon(addonInfo.Name)
         end
     end
     self:UpdateAddonInfos()
@@ -391,8 +409,20 @@ end
 -- 禁用插件
 function Addon:DisableAddon(addonName)
     local addonInfo = self:QueryAddonInfo(addonName)
-    if addonInfo and not addonInfo.IsLocked and self:IsAddonManager(addonInfo.Name) then
-        C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
+    if addonInfo and not addonInfo.IsLocked and not self:IsAddonManager(addonInfo.Name) then
+        disableAddon(addonInfo.Name)
+    end
+end
+
+-- 刷新插件启用状态
+function Addon:UpdateAddonsEnableStatus()
+    local addonInfos = self:GetAddonInfos()
+    for _, addonInfo in ipairs(addonInfos) do
+        if addonInfo.Enabled then
+            enableAddon(addonInfo.Name)
+        else
+            disableAddon(addonInfo.Name)
+        end
     end
 end
 
@@ -401,9 +431,9 @@ function Addon:DisableAllAddons()
     local addonInfos = self:GetAddonInfos()
     for _, addonInfo in ipairs(addonInfos) do
         if self:IsAddonManager(addonInfo.Name) then
-            C_AddOns.EnableAddOn(addonInfo.Name, UnitName("player"))
+            enableAddon(addonInfo.Name)
         elseif not addonInfo.IsLocked then
-            C_AddOns.DisableAddOn(addonInfo.Name, UnitName("player"))
+            disableAddon(addonInfo.Name)
         end
     end
     self:UpdateAddonInfos()
@@ -519,9 +549,9 @@ function Addon:ApplyAddonSetAddons(addonSetName)
             if not self:IsAddonManager(addonName) and not self:IsAddonLocked(addonName) then
                 local shouldEnabled = addonSetAddons and addonSetAddons[addonName]
                 if shouldEnabled then
-                    C_AddOns.EnableAddOn(addonName, UnitName("player"))
+                    enableAddon(addonName)
                 else
-                    C_AddOns.DisableAddOn(addonName, UnitName("player"))
+                    disableAddon(addonName)
                 end
             end
 

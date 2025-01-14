@@ -90,6 +90,22 @@ local AddonSettingsInfo = {
                     Reset = function(self)
                         Addon:SetUIScale(nil)
                     end
+                },
+                -- 插件启用状态保存至角色
+                {
+                    Title = L["settings_addon_enable_status_character_only"],
+                    Type = "switch",
+                    Event = "AddonSettings.AddonEnableStatusCharacterOnly",
+                    Tooltip = L["settings_addon_enable_status_character_only_tooltip"],
+                    IsEnabled = function(self)
+                        return Addon:IsAddonEnableStatusCharacterOnly()
+                    end,
+                    SetEnabled = function(self, enabled)
+                        return Addon:SetAddonEnableStatusCharacterOnly(enabled)
+                    end,
+                    Reset = function(self)
+                        return Addon:SetAddonEnableStatusCharacterOnly(nil)
+                    end
                 }
             }
         },
@@ -464,5 +480,22 @@ end
 -- 设置载入条件提示弹窗自动消失时间
 function Addon:SetLoadConditionPromptAutoDismissTime(time)
     self.Saved.Config.LoadConditionPromptAutoDismissTime = time
+    return true
+end
+
+-- 插件启用状态保存至角色是否启用
+function Addon:IsAddonEnableStatusCharacterOnly()
+    local enabled = self.Saved.Config.AddonEnableStatusCharacterOnly
+    if enabled == nil then
+        enabled = true
+    end
+
+    return enabled
+end
+
+-- 设置插件启用状态是否保存至角色
+function Addon:SetAddonEnableStatusCharacterOnly(enabled)
+    self.Saved.Config.AddonEnableStatusCharacterOnly = enabled
+    self:UpdateAddonsEnableStatus()
     return true
 end

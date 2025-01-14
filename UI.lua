@@ -225,7 +225,7 @@ function Addon:GetOrCreateUI()
     -- 插件集
     local AddonSetContainer = CreateFrame("Frame", nil, UI)
     UI.AddonSetContainer = AddonSetContainer
-    AddonSetContainer:SetSize(240, 24)
+    AddonSetContainer:SetSize(280, 24)
     AddonSetContainer:SetPoint("TOPLEFT", 10, -32)
 
     -- 创建插件列表页
