@@ -19,6 +19,7 @@ Lib\LibCustomGlow-1.0.lua
 
 Locales\enUS.lua
 Locales\zhCN.lua
+Locales\ruRU.lua
 
 Tools.lua
 Repository.lua
