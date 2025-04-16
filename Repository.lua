@@ -359,7 +359,7 @@ end
 -- 启用插件
 local function enableAddon(addonName)
     if Addon:IsAddonEnableStatusCharacterOnly() then
-        C_AddOns.EnableAddOn(addonName, UniGUID("player"))
+        C_AddOns.EnableAddOn(addonName, UnitGUID("player"))
     else
         C_AddOns.EnableAddOn(addonName)
     end
